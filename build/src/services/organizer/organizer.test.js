@@ -15,8 +15,8 @@ describe('## organizer', () => {
     let organizerToken;
     beforeAll(() => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
         yield (0, pepperDb_1.syncDbModels)();
-        organizerObject = yield (0, fake_1.createFakeOrganizer)(organizerPassword);
-        organizerObject2 = yield (0, fake_1.createFakeOrganizer)(organizerPassword);
+        organizerObject = yield (0, fake_1.createFakeSeller)(organizerPassword);
+        organizerObject2 = yield (0, fake_1.createFakeSeller)(organizerPassword);
         organizerToken = (yield (0, supertest_1.default)(index_1.default).post('/api/organizer/login').send({ userName: organizerObject2.userName, password: organizerPassword }).expect(http_status_1.default.OK)).body.token;
     }));
     describe('# Login Oganizer', () => {
@@ -39,7 +39,7 @@ describe('## organizer', () => {
                 drinks: [fake_1.fake.product, fake_1.fake.product, fake_1.fake.product],
             };
             const { token } = (yield (0, supertest_1.default)(index_1.default).put('/api/organizer/login').send(Object.assign({}, organizerInfoTest)).expect(http_status_1.default.OK)).body;
-            const subscribedOrganizer = yield orms_1.Organizer.findOne({
+            const subscribedOrganizer = yield orms_1.Seller.findOne({
                 where: { userName: organizerInfoTest.userName, password: organizerInfoTest.password },
                 raw: true
             });
@@ -106,9 +106,9 @@ describe('## organizer', () => {
     });
     describe('# organizer parties', () => {
         test('Should be able to get organizer own parties', () => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
-            const organizerTest = yield (0, fake_1.createFakeOrganizer)(organizerPassword);
-            const p1 = yield (0, fake_1.createFakeParty)(organizerTest);
-            const p2 = yield (0, fake_1.createFakeParty)(organizerTest);
+            const organizerTest = yield (0, fake_1.createFakeSeller)(organizerPassword);
+            const p1 = yield (0, fake_1.createFakeInvitation)(organizerTest);
+            const p2 = yield (0, fake_1.createFakeInvitation)(organizerTest);
             const testToken = (yield (0, supertest_1.default)(index_1.default).post('/api/organizer/login').
                 send({ userName: organizerTest.userName, password: organizerPassword }).expect(http_status_1.default.OK)).body.token;
             const parties = (yield (0, supertest_1.default)(index_1.default).get(`/api/organizer/party`).

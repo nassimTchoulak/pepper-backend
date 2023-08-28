@@ -1,15 +1,15 @@
-import { User, UserMatch, Party, Organizer, UserParty } from "orms";
+import { Buyer, UserMatch, Invitation, Seller, UserParty } from "orms";
 import { normalizeUserMatches, normalizeOrganizerParties } from 'services/user/user.helper';
-import { IParty, IMatch, MatchStatus, OrganizerStatus, UserPartyStatus } from 'models/types';
+import { IParty, IMatch, MatchStatus, UserStatus, TransactionStatus } from 'models/types';
 import { Op } from 'sequelize';
 import _ from 'lodash';
 export class UserService {
-  public static async getUserParties(user: User): Promise<IParty[]> {
+  public static async getUserParties(user: Buyer): Promise<IParty[]> {
     const parties = await user.getParties({ attributes: { exclude: ['createdAt', 'deletedAt', 'updatedAt'] } });
     const matches = await user.getMatches({ raw: true });
     const partiesWithOrganizersAndAttendees = await Promise.all(
       parties.map(async (currentParty) => {
-        const organizer = await currentParty.getOrganizer({
+        const organizer = await currentParty.getSeller({
           attributes: { exclude: ['status', 'createdAt', 'deletedAt', 'updatedAt'] }
         });
         const usersSubscribedToThisParty = await currentParty.getUsers({
@@ -18,7 +18,7 @@ export class UserService {
         });
         // TODO: fix typing
         const attendeesForThisParty = usersSubscribedToThisParty.filter(
-          (userSubscribedToThisParty) => [UserPartyStatus.ACCEPTED, UserPartyStatus.ATTENDED].includes((userSubscribedToThisParty as unknown as any)['UserParty.status']));
+          (userSubscribedToThisParty) => [TransactionStatus.ACCEPTED, TransactionStatus.ATTENDED].includes((userSubscribedToThisParty as unknown as any)['UserParty.status']));
 
         // TODO: test this logic
         const attendeesFilteredByUserMatches = _.filter(attendeesForThisParty, (attendee) => !_.map(matches, (match) => match.id).includes(attendee.id));
@@ -33,10 +33,10 @@ export class UserService {
     return partiesWithOrganizersAndAttendees;
   }
 
-  public static async getPartiesUserCanGoTo(user: User): Promise<IParty[]> {
+  public static async getPartiesUserCanGoTo(user: Buyer): Promise<IParty[]> {
     const userParties = await user.getParties();
-    const acceptedOrganizers = await Organizer.findAll({ where: { status: OrganizerStatus.Accepted }});
-    const parties = await Party.findAll({ where: {
+    const acceptedOrganizers = await Seller.findAll({ where: { status: UserStatus.Accepted }});
+    const parties = await Invitation.findAll({ where: {
         id: {
             [Op.notIn]: userParties.map((userParty) => userParty.id),
         },
@@ -48,7 +48,7 @@ export class UserService {
 
     const partiesWithOrganizers = await Promise.all(
       await parties.map(async (currentParty) => {
-        const organizer = await currentParty.getOrganizer();
+        const organizer = await currentParty.getSeller();
         return { ...organizer.get({ plain: true }), ...currentParty.get({ plain: true }) };
       })
     );
@@ -56,13 +56,13 @@ export class UserService {
     return normalizedParties;
   }
 
-  public static async getUserMatches(user: User): Promise<IMatch[]> {
+  public static async getUserMatches(user: Buyer): Promise<IMatch[]> {
     const matches = await user.getMatches({ raw: true });
     const normalizedMatches = normalizeUserMatches(matches);
     return normalizedMatches;
   }
 
-  public static async updateUserMatchStatus(user: User, match: User): Promise<void | null> {
+  public static async updateUserMatchStatus(user: Buyer, match: Buyer): Promise<void | null> {
     const matchUserStatus = (await UserMatch.findOne({ where: { [Op.and]: [{ UserId: match.id }, { MatchId: user.id }] } }))?.status;
 
     if(matchUserStatus === MatchStatus.WAITING) {
@@ -72,9 +72,9 @@ export class UserService {
     }
   }
 
-  private static async _acceptUser(party: Party, user: User) {
+  private static async _acceptUser(party: Invitation, user: Buyer) {
     await UserParty.update(
-      { status: UserPartyStatus.ACCEPTED },
+      { status: TransactionStatus.ACCEPTED },
       { where: { 
         [Op.and]: [
           { UserId: user.id },
@@ -87,7 +87,7 @@ export class UserService {
     const lastWaitingAttendeeId = (await UserParty.findAll({
       attributes: { exclude: ['createdAt', 'deletedAt', 'updatedAt'] },
       where: {
-        status: UserPartyStatus.WAITING,
+        status: TransactionStatus.WAITING,
         PartyId: party.id,
         UserId: { [Op.not]: user.id },
       },
@@ -103,7 +103,7 @@ export class UserService {
 
     if (lastWaitingAttendeeId) {
       await UserParty.update(
-        { status: UserPartyStatus.ACCEPTED },
+        { status: TransactionStatus.ACCEPTED },
         { where: { 
           [Op.and]: [
             { UserId: lastWaitingAttendeeId },
@@ -115,13 +115,13 @@ export class UserService {
     }
   }
   
-  public static async addParty(user: User, party: Party): Promise<void> {
+  public static async addParty(user: Buyer, party: Invitation): Promise<void> {
     await user.addParty(party);
 
     const lastAcceptedAttendeeId = (await UserParty.findAll({
       attributes: { exclude: ['createdAt', 'deletedAt', 'updatedAt'] },
       where: {
-        status: UserPartyStatus.ACCEPTED,
+        status: TransactionStatus.ACCEPTED,
         PartyId: party.id,
         UserId: { [Op.not]: user.id },
       },
@@ -135,7 +135,7 @@ export class UserService {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }) as unknown as any)?.UserId;
 
-    const lastAcceptedAttendee = lastAcceptedAttendeeId ? await User.findOne({
+    const lastAcceptedAttendee = lastAcceptedAttendeeId ? await Buyer.findOne({
       attributes: ['gender'],
       where: { id: lastAcceptedAttendeeId },
       raw: true,

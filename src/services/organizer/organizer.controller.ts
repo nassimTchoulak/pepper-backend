@@ -1,16 +1,16 @@
 import { Request, Response } from 'express';
 import Joi from 'joi';
 import { validation } from 'helpers/helpers';
-import { Organizer, Party } from 'orms';
+import { Seller, Invitation } from 'orms';
 import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
-import { IOrganizer, IParty, OrganizerStatus } from 'models/types';
+import { IOrganizer, IParty, UserStatus } from 'models/types';
 import 'dotenv/config';
 import _ from 'lodash';
 import { OrganizerService } from 'services/organizer/organizer.service';
 
 interface OrganizerRequest extends Request {
-  organizer: Organizer
+  organizer: Seller
 };
 
 export class OrganizerController {
@@ -30,7 +30,7 @@ export class OrganizerController {
   public static async subscribe(req: Request, res: Response): Promise<Response<{ token: string }>> {
 
     // TO-DO : Add other tests such as phoneNumber and location
-    const organizerTest = await Organizer.findOne({ where: { userName: req.body.userName }, raw: true})
+    const organizerTest = await Seller.findOne({ where: { userName: req.body.userName }, raw: true})
 
     if (organizerTest !== null) {
       res.status(httpStatus.UNAUTHORIZED);
@@ -39,7 +39,7 @@ export class OrganizerController {
 
     // TO-DO: set status to be pending and validate user later through web App
 
-    await Organizer.create({
+    await Seller.create({
       userName: req.body.userName,
       password: req.body.password,
       phoneNumber: req.body.phoneNumber,
@@ -49,10 +49,10 @@ export class OrganizerController {
       imgs: req.body.imgs,
       foods: req.body.foods,
       drinks: req.body.drinks,
-      status: OrganizerStatus.Pending
+      status: UserStatus.Pending
     });
 
-    const organizer = await Organizer.findOne({ 
+    const organizer = await Seller.findOne({ 
       where: { userName: req.body.userName }, 
       attributes: { exclude: ['password','createdAt','updatedAt','deletedAt'] },
       raw: true,
@@ -76,14 +76,14 @@ export class OrganizerController {
     password: Joi.string().required(),
   }))
   public static async login(req: Request, res: Response): Promise<Response<{ token: string }>> {
-    const organizer = await Organizer.findOne({ where: { userName: req.body.userName, password: req.body.password }, raw: true});
+    const organizer = await Seller.findOne({ where: { userName: req.body.userName, password: req.body.password }, raw: true});
     if (!organizer) {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'Organizer does not exist' });
     }
 
     // TO-DO : update policy for allowed logins (maybe pending or Accepted)
-    const isAuthorized = organizer.status !== OrganizerStatus.Rejected;
+    const isAuthorized = organizer.status !== UserStatus.Rejected;
 
     if (!isAuthorized) {
       res.status(httpStatus.UNAUTHORIZED);
@@ -99,7 +99,7 @@ export class OrganizerController {
 
   @validation(Joi.object({}))
   public static async getOrganizer(req: OrganizerRequest, res: Response): Promise<Response<{ organizer: IOrganizer }>> {
-    const organizer = await Organizer.findOne({ where: { id: req.organizer.id }, raw: true });
+    const organizer = await Seller.findOne({ where: { id: req.organizer.id }, raw: true });
     if (!organizer) {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'Organizer does not exist' });
@@ -117,8 +117,8 @@ export class OrganizerController {
     drinks: Joi.array().items({ name: Joi.string(), price: Joi.number() }).optional()
   }))
   public static async updateOrganizer(req: OrganizerRequest, res: Response): Promise<Response<{ organizer: IOrganizer }>> {
-    await Organizer.update({ ...req.body }, { where:  { id: req.organizer.id }});
-    const organizer = await Organizer.findOne({ where: { id: req.organizer.id }, raw: true });
+    await Seller.update({ ...req.body }, { where:  { id: req.organizer.id }});
+    const organizer = await Seller.findOne({ where: { id: req.organizer.id }, raw: true });
     return res.json({ organizer: _.omit(organizer, ['createdAt', 'updatedAt', 'deletedAt','password']) });
   }
 
@@ -133,14 +133,14 @@ export class OrganizerController {
     maxAge: Joi.number().required(),
   }))
   public static async createNewparty(req: OrganizerRequest, res: Response): Promise<Response<{ parties: IParty[] }>> {
-    const organizer = await Organizer.findOne({ where: { id: req.organizer.id }});
+    const organizer = await Seller.findOne({ where: { id: req.organizer.id }});
 
     if (!organizer) {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'User does not exist' });
     }
 
-    const party = await Party.create({
+    const party = await Invitation.create({
       theme: req.body.theme,
       date: req.body.date,
       price: req.body.price,
@@ -149,14 +149,14 @@ export class OrganizerController {
       maxAge: req.body.maxAge,
     });
 
-    await organizer.addParty(party);
+    await organizer.addInvitations(party);
     const normalizedParties = await OrganizerService.getOrganizerParties(organizer)
     return res.json({ parties: normalizedParties });
   }
 
   @validation(Joi.object({}))
   public static async getOrganizerParties(req: OrganizerRequest, res: Response): Promise<Response<{ parties: IParty[] }>> {
-    const organizer = await Organizer.findOne({ where: { id: req.organizer.id }});
+    const organizer = await Seller.findOne({ where: { id: req.organizer.id }});
 
     if (!organizer) {
       res.status(httpStatus.NOT_FOUND);
@@ -171,12 +171,12 @@ export class OrganizerController {
     partyId: Joi.number().required(),
   }))
   public static async deleteParty(req: OrganizerRequest, res: Response): Promise<Response<{ parties: IParty[] }>> {
-    const organizer = await Organizer.findOne({ where: { id: req.organizer.id }});
+    const organizer = await Seller.findOne({ where: { id: req.organizer.id }});
 
 
-    const party = await Party.findByPk(req.body.partyId);
+    const party = await Invitation.findByPk(req.body.partyId);
     
-    const partyOrganizer = await party?.getOrganizer();
+    const partyOrganizer = await party?.getSeller();
 
     if ((partyOrganizer != undefined) && (party != null) && (partyOrganizer.id == req.organizer.id)){
       await party.destroy();

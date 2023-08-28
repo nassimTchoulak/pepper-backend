@@ -1,21 +1,21 @@
 import jwt from 'jsonwebtoken';
 import httpStatus from 'http-status';
 import 'dotenv/config';
-import { IOrganizer, IUser } from 'models/types';
+import { IBuyer, ISeller } from 'models/types';
 
-const authorizeForUser = async (req: any, res: any, next: any) => {
-  let user;
+const authorizeForBuyer = async (req: any, res: any, next: any) => {
+  let buyer;
   try {
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
     }
 
-    user = jwt.verify(req.headers.authorization, process.env.JWT_KEY) as IUser;
+    buyer = jwt.verify(req.headers.authorization, process.env.JWT_KEY) as IBuyer;
 
-    if (!user?.id) {
-      throw 'Does not contain user';
+    if (!buyer?.id) {
+      throw 'Does not contain buyer';
     }
-    req.user = user;
+    req.user = buyer;
     next();
   } catch (e) {
     res.status(httpStatus.UNAUTHORIZED);
@@ -25,19 +25,19 @@ const authorizeForUser = async (req: any, res: any, next: any) => {
   }
 }
 
-const authorizeForOrganize = async (req: any, res: any, next: any) => {
-  let organizer;
+const authorizeForSeller = async (req: any, res: any, next: any) => {
+  let seller;
   try {
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
     }
 
-    organizer = jwt.verify(req.headers.authorization, process.env.JWT_KEY) as IOrganizer;
+    seller = jwt.verify(req.headers.authorization, process.env.JWT_KEY) as ISeller;
 
-    if (!organizer?.id) {
-      throw 'Does not contain organizer';
+    if (!seller?.id) {
+      throw 'Does not contain seller';
     }
-    req.organizer = organizer;
+    req.organizer = seller;
     next();
   } catch (e) {
     res.status(httpStatus.UNAUTHORIZED);
@@ -47,4 +47,4 @@ const authorizeForOrganize = async (req: any, res: any, next: any) => {
   }
 }
 
-export { authorizeForUser, authorizeForOrganize };
+export { authorizeForBuyer as authorizeForBuyer, authorizeForSeller as authorizeForSeller };

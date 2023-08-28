@@ -1,21 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.authorizeForOrganize = exports.authorizeForUser = void 0;
+exports.authorizeForSeller = exports.authorizeForBuyer = void 0;
 const tslib_1 = require("tslib");
 const jsonwebtoken_1 = (0, tslib_1.__importDefault)(require("jsonwebtoken"));
 const http_status_1 = (0, tslib_1.__importDefault)(require("http-status"));
 require("dotenv/config");
-const authorizeForUser = (req, res, next) => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
-    let user;
+const authorizeForBuyer = (req, res, next) => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
+    let buyer;
     try {
         if (!process.env.JWT_KEY) {
             throw 'JWT key not provided';
         }
-        user = jsonwebtoken_1.default.verify(req.headers.authorization, process.env.JWT_KEY);
-        if (!(user === null || user === void 0 ? void 0 : user.id)) {
-            throw 'Does not contain user';
+        buyer = jsonwebtoken_1.default.verify(req.headers.authorization, process.env.JWT_KEY);
+        if (!(buyer === null || buyer === void 0 ? void 0 : buyer.id)) {
+            throw 'Does not contain buyer';
         }
-        req.user = user;
+        req.user = buyer;
         next();
     }
     catch (e) {
@@ -25,18 +25,18 @@ const authorizeForUser = (req, res, next) => (0, tslib_1.__awaiter)(void 0, void
         });
     }
 });
-exports.authorizeForUser = authorizeForUser;
-const authorizeForOrganize = (req, res, next) => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
-    let organizer;
+exports.authorizeForBuyer = authorizeForBuyer;
+const authorizeForSeller = (req, res, next) => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
+    let seller;
     try {
         if (!process.env.JWT_KEY) {
             throw 'JWT key not provided';
         }
-        organizer = jsonwebtoken_1.default.verify(req.headers.authorization, process.env.JWT_KEY);
-        if (!(organizer === null || organizer === void 0 ? void 0 : organizer.id)) {
-            throw 'Does not contain organizer';
+        seller = jsonwebtoken_1.default.verify(req.headers.authorization, process.env.JWT_KEY);
+        if (!(seller === null || seller === void 0 ? void 0 : seller.id)) {
+            throw 'Does not contain seller';
         }
-        req.organizer = organizer;
+        req.organizer = seller;
         next();
     }
     catch (e) {
@@ -46,5 +46,5 @@ const authorizeForOrganize = (req, res, next) => (0, tslib_1.__awaiter)(void 0, 
         });
     }
 });
-exports.authorizeForOrganize = authorizeForOrganize;
+exports.authorizeForSeller = authorizeForSeller;
 //# sourceMappingURL=acl.js.map

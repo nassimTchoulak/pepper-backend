@@ -1,22 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OrganizerStatus = exports.StoreStatus = exports.Gender = exports.UserPartyStatus = exports.MatchStatus = void 0;
+exports.UserStatus = exports.StoreStatus = exports.Gender = exports.TransactionStatus = void 0;
 ;
 ;
 ;
-var MatchStatus;
-(function (MatchStatus) {
-    MatchStatus["ACCEPTED"] = "accepted";
-    MatchStatus["WAITING"] = "waiting";
-})(MatchStatus = exports.MatchStatus || (exports.MatchStatus = {}));
-var UserPartyStatus;
-(function (UserPartyStatus) {
-    UserPartyStatus["WAITING"] = "waiting";
-    UserPartyStatus["ACCEPTED"] = "accepted";
-    UserPartyStatus["ATTENDED"] = "attended";
-    UserPartyStatus["REJECTED"] = "rejected";
-    UserPartyStatus["ABSENT"] = "absent";
-})(UserPartyStatus = exports.UserPartyStatus || (exports.UserPartyStatus = {}));
+;
+;
+var TransactionStatus;
+(function (TransactionStatus) {
+    TransactionStatus["OPENED"] = "opened";
+    TransactionStatus["CONFIRMED"] = "confirmed";
+    TransactionStatus["PAYED"] = "payed";
+    TransactionStatus["DONE"] = "done";
+    TransactionStatus["CANCELED"] = "canceled";
+})(TransactionStatus = exports.TransactionStatus || (exports.TransactionStatus = {}));
 var Gender;
 (function (Gender) {
     Gender["MAN"] = "man";
@@ -30,10 +27,11 @@ var StoreStatus;
     StoreStatus["Rejected"] = "rejected";
 })(StoreStatus = exports.StoreStatus || (exports.StoreStatus = {}));
 ;
-var OrganizerStatus;
-(function (OrganizerStatus) {
-    OrganizerStatus["Pending"] = "pending";
-    OrganizerStatus["Accepted"] = "accepted";
-    OrganizerStatus["Rejected"] = "rejected";
-})(OrganizerStatus = exports.OrganizerStatus || (exports.OrganizerStatus = {}));
+var UserStatus;
+(function (UserStatus) {
+    UserStatus["Pending"] = "pending";
+    UserStatus["Started"] = "started";
+    UserStatus["Accepted"] = "accepted";
+    UserStatus["Rejected"] = "rejected";
+})(UserStatus = exports.UserStatus || (exports.UserStatus = {}));
 //# sourceMappingURL=types.js.map

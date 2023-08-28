@@ -36,7 +36,7 @@ app.use(express_1.default.static(path_1.default.join(__dirname, 'views')));
     viewsDirectory: (0, path_1.resolve)(__dirname, 'views'),
 });
 app.get("/admin", (_req, res) => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
-    const organizers = yield orms_1.Organizer.findAll({ raw: true });
+    const organizers = yield orms_1.Seller.findAll({ raw: true });
     res.render("admin", { organizers });
 }));
 app.get("/privacy-policy", (_req, res) => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {

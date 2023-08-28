@@ -25,16 +25,16 @@ describe('## User', () => {
     let party3;
     beforeAll(() => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
         yield (0, pepperDb_1.syncDbModels)();
-        user1 = yield (0, fake_1.createFakeUser)({ gender: types_1.Gender.MAN });
-        user2 = yield (0, fake_1.createFakeUser)({ gender: types_1.Gender.MAN });
-        user3 = yield (0, fake_1.createFakeUser)({ gender: types_1.Gender.WOMAN });
-        user4 = yield (0, fake_1.createFakeUser)({ gender: types_1.Gender.WOMAN });
-        user5 = yield (0, fake_1.createFakeUser)({ gender: types_1.Gender.WOMAN });
-        user6 = yield (0, fake_1.createFakeUser)({ gender: types_1.Gender.MAN });
-        user7 = yield (0, fake_1.createFakeUser)({ gender: types_1.Gender.MAN });
-        party = yield (0, fake_1.createFakePartyWithItsOrganizer)();
-        party2 = yield (0, fake_1.createFakePartyWithItsOrganizer)();
-        party3 = yield (0, fake_1.createFakePartyWithItsOrganizer)();
+        user1 = yield (0, fake_1.createFakeBuyer)({ gender: types_1.Gender.MAN });
+        user2 = yield (0, fake_1.createFakeBuyer)({ gender: types_1.Gender.MAN });
+        user3 = yield (0, fake_1.createFakeBuyer)({ gender: types_1.Gender.WOMAN });
+        user4 = yield (0, fake_1.createFakeBuyer)({ gender: types_1.Gender.WOMAN });
+        user5 = yield (0, fake_1.createFakeBuyer)({ gender: types_1.Gender.WOMAN });
+        user6 = yield (0, fake_1.createFakeBuyer)({ gender: types_1.Gender.MAN });
+        user7 = yield (0, fake_1.createFakeBuyer)({ gender: types_1.Gender.MAN });
+        party = yield (0, fake_1.createFakeInvitationWithSeller)();
+        party2 = yield (0, fake_1.createFakeInvitationWithSeller)();
+        party3 = yield (0, fake_1.createFakeInvitationWithSeller)();
     }));
     describe('# Login', () => {
         test('should NOT be able to login if phoneNumber is not provided', () => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
@@ -63,7 +63,7 @@ describe('## User', () => {
                 interests: [fake_1.fake.word, fake_1.fake.word, fake_1.fake.word],
             };
             const { token } = (yield (0, supertest_1.default)(index_1.default).put('/api/user/login').send(Object.assign(Object.assign({}, userInfo), { code: '123456' })).expect(http_status_1.default.OK)).body;
-            const subscribedUser = yield orms_1.User.findOne({ where: { phoneNumber: '0000000000' } });
+            const subscribedUser = yield orms_1.Buyer.findOne({ where: { phoneNumber: '0000000000' } });
             if (!process.env.JWT_KEY) {
                 throw 'JWT key not provided';
             }
@@ -142,7 +142,7 @@ describe('## User', () => {
                 expect(returnMatches).toEqual(expect.arrayContaining([Object.assign(Object.assign({}, lodash_1.default.omit(user2, ['createdAt', 'deletedAt', 'updatedAt'])), { status: types_1.MatchStatus.WAITING })]));
             }));
             test('should find the new match in the user matches list', () => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
-                const userAfterMatch = yield orms_1.User.findOne({ where: { id: user1.id } });
+                const userAfterMatch = yield orms_1.Buyer.findOne({ where: { id: user1.id } });
                 const userMatches = yield (userAfterMatch === null || userAfterMatch === void 0 ? void 0 : userAfterMatch.getMatches({ raw: true }));
                 const normalizedMatches = (0, user_helper_1.normalizeUserMatches)(userMatches || []);
                 expect(normalizedMatches).toEqual(expect.arrayContaining([Object.assign(Object.assign({}, lodash_1.default.omit(user2, ['createdAt', 'deletedAt', 'updatedAt'])), { status: types_1.MatchStatus.WAITING })]));
@@ -153,11 +153,11 @@ describe('## User', () => {
                     send({ matchId: user2.id }).
                     expect(http_status_1.default.OK)).body.matches;
                 expect(matchesAfterDeletion).toEqual(expect.arrayContaining([]));
-                const user1AfterDeletion = yield orms_1.User.findOne({ where: { id: user1.id } });
+                const user1AfterDeletion = yield orms_1.Buyer.findOne({ where: { id: user1.id } });
                 const matchesOfUser1AfterDeletion = yield (user1AfterDeletion === null || user1AfterDeletion === void 0 ? void 0 : user1AfterDeletion.getMatches({ raw: true }));
                 const normalizedMatchesOfUser1 = (0, user_helper_1.normalizeUserMatches)(matchesOfUser1AfterDeletion || []);
                 expect(normalizedMatchesOfUser1).toEqual(expect.arrayContaining([]));
-                const user2AfterDeletion = yield orms_1.User.findOne({ where: { id: user1.id } });
+                const user2AfterDeletion = yield orms_1.Buyer.findOne({ where: { id: user1.id } });
                 const matchesOfUser2AfterDeletion = yield (user2AfterDeletion === null || user2AfterDeletion === void 0 ? void 0 : user2AfterDeletion.getMatches({ raw: true }));
                 const normalizedMatchesOfUser2 = (0, user_helper_1.normalizeUserMatches)(matchesOfUser2AfterDeletion || []);
                 expect(normalizedMatchesOfUser2).toEqual(expect.arrayContaining([]));
@@ -170,7 +170,7 @@ describe('## User', () => {
                     send({ partyId: party.id }).
                     expect(http_status_1.default.OK)).body.parties;
                 expect(parties.map((currentParty) => currentParty.id)).toEqual([party.id]);
-                const userAfterAddingParty = yield orms_1.User.findOne({ where: { id: user1.id } });
+                const userAfterAddingParty = yield orms_1.Buyer.findOne({ where: { id: user1.id } });
                 const AfterAddingParty = yield (userAfterAddingParty === null || userAfterAddingParty === void 0 ? void 0 : userAfterAddingParty.getParties({ raw: true }));
                 expect(AfterAddingParty === null || AfterAddingParty === void 0 ? void 0 : AfterAddingParty.map((currentParty) => currentParty.id)).toEqual([party.id]);
             }));
@@ -179,7 +179,7 @@ describe('## User', () => {
                     set('Authorization', tokenOfUser1).
                     expect(http_status_1.default.OK)).body.parties;
                 expect(parties.map((currentParty) => currentParty.id)).toEqual([party.id]);
-                const userAfterAddingParty = yield orms_1.User.findOne({ where: { id: user1.id } });
+                const userAfterAddingParty = yield orms_1.Buyer.findOne({ where: { id: user1.id } });
                 const AfterAddingParty = yield (userAfterAddingParty === null || userAfterAddingParty === void 0 ? void 0 : userAfterAddingParty.getParties({ raw: true }));
                 expect(AfterAddingParty === null || AfterAddingParty === void 0 ? void 0 : AfterAddingParty.map((currentParty) => currentParty.id)).toEqual([party.id]);
             }));
@@ -189,7 +189,7 @@ describe('## User', () => {
                     send({ partyId: party.id }).
                     expect(http_status_1.default.OK)).body.parties;
                 expect(parties.map((currentParty) => currentParty.id)).toEqual([]);
-                const userAfterAddingParty = yield orms_1.User.findOne({ where: { id: user1.id } });
+                const userAfterAddingParty = yield orms_1.Buyer.findOne({ where: { id: user1.id } });
                 const AfterAddingParty = yield (userAfterAddingParty === null || userAfterAddingParty === void 0 ? void 0 : userAfterAddingParty.getParties({ raw: true }));
                 expect(AfterAddingParty === null || AfterAddingParty === void 0 ? void 0 : AfterAddingParty.map((currentParty) => currentParty.id)).toEqual([]);
             }));
@@ -246,7 +246,7 @@ describe('## User', () => {
                 expect(lodash_1.default.sortBy(genderParityParties.attendees.map((attendee) => attendee.id))).toEqual([user1.id, user2.id, user3.id, user4.id, user5.id, user6.id]);
             }));
             test('Should NOT be able to attend party using organizerId if user has not been accepted', () => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
-                const organizer = yield party2.getOrganizer();
+                const organizer = yield party2.getSeller();
                 yield (0, supertest_1.default)(index_1.default).put(`/api/user/parties`).
                     set('Authorization', tokenOfUser7).
                     send({ organizerId: organizer.id }).
@@ -257,7 +257,7 @@ describe('## User', () => {
                     set('Authorization', tokenOfUser7).
                     send({ partyId: party2.id }).
                     expect(http_status_1.default.OK);
-                const organizer = yield party2.getOrganizer();
+                const organizer = yield party2.getSeller();
                 const parties = yield (0, supertest_1.default)(index_1.default).put(`/api/user/parties`).
                     set('Authorization', tokenOfUser7).
                     send({ organizerId: organizer.id }).

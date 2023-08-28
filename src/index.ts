@@ -7,7 +7,7 @@ import gradient from 'gradient-string';
 import EnvHelper from 'helpers/envHelper';
 import { setupReactViews } from 'express-tsx-views';
 import path, { resolve } from "path";
-import { Organizer } from 'orms';
+import { Seller } from 'orms';
 
 const app = express();
 
@@ -43,7 +43,7 @@ setupReactViews(app, {
 });
 
 app.get("/admin", async(_req, res) => {
-  const organizers = await Organizer.findAll({ raw: true });
+  const organizers = await Seller.findAll({ raw: true });
   res.render("admin", { organizers });
 });
 

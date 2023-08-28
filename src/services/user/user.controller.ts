@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import Joi from 'joi';
 import { validation } from 'helpers/helpers';
-import { User, Party, UserParty, Organizer } from 'orms';
+import { Buyer, Invitation, UserParty, Seller } from 'orms';
 import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
-import { IUser, Gender, IParty, UserPartyStatus } from 'models/types';
+import { IUser, Gender, IParty, TransactionStatus } from 'models/types';
 import _ from 'lodash';
 import { UserService } from 'services/user/user.service';
 import 'dotenv/config';
@@ -13,7 +13,7 @@ import { Op } from 'sequelize';
 import moment from 'moment';
 
 interface UserRequest extends Request {
-  user: User
+  user: Buyer
 };
 
 export class UserController {
@@ -21,7 +21,7 @@ export class UserController {
     phoneNumber: Joi.string().required(),
   }))
   public static async createLoginVerificationAndCheckIfUserExisits(req: Request, res: Response): Promise<Response<{ userExists: boolean }>> {
-    const user = await User.findOne({ where: { phoneNumber: req.query.phoneNumber }, raw: true});
+    const user = await Buyer.findOne({ where: { phoneNumber: req.query.phoneNumber }, raw: true});
     // FIX: fix type
     await AuthHelper.createVerification(req.query.phoneNumber as string);
     return res.json({ userExists: !!user });
@@ -49,7 +49,7 @@ export class UserController {
       return res.json({ message: 'Verification code not valid' });
     }
 
-    await User.create({
+    await Buyer.create({
       name: req.body.name,
       gender: req.body.gender,
       phoneNumber: req.body.phoneNumber,
@@ -63,7 +63,7 @@ export class UserController {
       snapchat: req.body.snapchat,
     });
 
-    const user = await User.findOne({ where: { phoneNumber: req.body.phoneNumber }, raw: true});
+    const user = await Buyer.findOne({ where: { phoneNumber: req.body.phoneNumber }, raw: true});
     
     if (!user) {
       res.status(httpStatus.INTERNAL_SERVER_ERROR);
@@ -83,7 +83,7 @@ export class UserController {
     code: Joi.string().required(),
   }))
   public static async login(req: Request, res: Response): Promise<Response<{ token: string }>> {
-    const user = await User.findOne({ where: { phoneNumber: req.body.phoneNumber }, raw: true});
+    const user = await Buyer.findOne({ where: { phoneNumber: req.body.phoneNumber }, raw: true});
     if (!user) {
       res.status(httpStatus.UNAUTHORIZED);
       return res.json({ message: 'User does not exist' });
@@ -106,7 +106,7 @@ export class UserController {
 
   @validation(Joi.object({}))
   public static async getUser(req: UserRequest, res: Response): Promise<Response<{ user: IUser }>> {
-    const user = await User.findOne({ where: { id: req.user.id }, raw: true });
+    const user = await Buyer.findOne({ where: { id: req.user.id }, raw: true });
     if (!user) {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'User does not exist' });
@@ -125,14 +125,14 @@ export class UserController {
     snapchat: Joi.string().optional(),
   }))
   public static async updateUser(req: UserRequest, res: Response): Promise<Response<{ user: IUser }>> {
-    await User.update({ ...req.body }, { where:  { id: req.user.id }});
-    const user = await User.findOne({ where: { id: req.user.id }, raw: true });
+    await Buyer.update({ ...req.body }, { where:  { id: req.user.id }});
+    const user = await Buyer.findOne({ where: { id: req.user.id }, raw: true });
     return res.json({ user: _.omit(user, ['createdAt', 'updatedAt', 'deletedAt']) });
   }
 
   @validation(Joi.object({}))
-  public static async getMatches(req: UserRequest, res: Response): Promise<Response<{ matches: User[] }>> {
-    const user = await User.findOne({ where: { id: req.user.id }});
+  public static async getMatches(req: UserRequest, res: Response): Promise<Response<{ matches: Buyer[] }>> {
+    const user = await Buyer.findOne({ where: { id: req.user.id }});
 
     if (!user) {
       res.status(httpStatus.NOT_FOUND);
@@ -147,9 +147,9 @@ export class UserController {
   @validation(Joi.object({
     matchId: Joi.number().required(),
   }))
-  public static async addMatch(req: UserRequest, res: Response): Promise<Response<{ matches: User[] }>> {
-    const match = await User.findOne({ where: { id: req.body.matchId } });
-    const user = await User.findOne({ where: { id: req.user.id }});
+  public static async addMatch(req: UserRequest, res: Response): Promise<Response<{ matches: Buyer[] }>> {
+    const match = await Buyer.findOne({ where: { id: req.body.matchId } });
+    const user = await Buyer.findOne({ where: { id: req.user.id }});
     if (!match || !user) {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'Match or User does not exist' });
@@ -164,9 +164,9 @@ export class UserController {
   @validation(Joi.object({
     matchId: Joi.number().required(),
   }))
-  public static async deleteMatch(req: UserRequest, res: Response): Promise<Response<{ matches: User[] }>> {
-    const user = await User.findOne({ where: { id: req.user.id } });
-    const match = await User.findOne({ where: { id: req.body.matchId } });
+  public static async deleteMatch(req: UserRequest, res: Response): Promise<Response<{ matches: Buyer[] }>> {
+    const user = await Buyer.findOne({ where: { id: req.user.id } });
+    const match = await Buyer.findOne({ where: { id: req.body.matchId } });
 
     if (!user || !match) {
       res.status(httpStatus.NOT_FOUND);
@@ -182,7 +182,7 @@ export class UserController {
 
   @validation(Joi.object({}))
   public static async getParties(req: UserRequest, res: Response): Promise<Response<{ parties: IParty[] }>> {
-    const user = await User.findOne({ where: { id: req.user.id }});
+    const user = await Buyer.findOne({ where: { id: req.user.id }});
 
     if (!user) {
       res.status(httpStatus.NOT_FOUND);
@@ -195,7 +195,7 @@ export class UserController {
   // TODO: add pagination
   @validation(Joi.object({}))
   public static async getPartiesThatUserCanGoTo(req: UserRequest, res: Response): Promise<Response<{ parties: IParty[] }>> {
-    const user = await User.findOne({ where: { id: req.user.id }});
+    const user = await Buyer.findOne({ where: { id: req.user.id }});
 
     if (!user) {
       res.status(httpStatus.NOT_FOUND);
@@ -209,8 +209,8 @@ export class UserController {
     partyId: Joi.number().required(),
   }))
   public static async addParty(req: UserRequest, res: Response): Promise<Response<{ parties: IParty[] }>> {
-    const party = await Party.findOne({ where: { id: req.body.partyId } });
-    const user = await User.findOne({ where: { id: req.user.id }});
+    const party = await Invitation.findOne({ where: { id: req.body.partyId } });
+    const user = await Buyer.findOne({ where: { id: req.user.id }});
 
     if (!party || !user) {
       res.status(httpStatus.NOT_FOUND);
@@ -225,10 +225,10 @@ export class UserController {
     organizerId: Joi.number().required(),
   }))
   public static async attendParty(req: UserRequest, res: Response): Promise<Response<{ parties: IParty[] }>> {
-    const organizer = await Organizer.findOne({ where: { id: req.body.organizerId } });
+    const organizer = await Seller.findOne({ where: { id: req.body.organizerId } });
 
     // get today's party
-    const organizerParties = await organizer?.getParties({ where:
+    const organizerParties = await organizer?.getInvitations({ where:
       {
         // is today
         date: {
@@ -242,7 +242,7 @@ export class UserController {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'Party does not exist' });
     }
-    const user = await User.findOne({ where: { id: req.user.id }});
+    const user = await Buyer.findOne({ where: { id: req.user.id }});
     const party = organizerParties[0];
     if (!party || !user) {
       res.status(httpStatus.NOT_FOUND);
@@ -254,7 +254,7 @@ export class UserController {
         [Op.and]: [
           { UserId: user.id },
           { PartyId: party.id },
-          { status: UserPartyStatus.ACCEPTED },
+          { status: TransactionStatus.ACCEPTED },
         ],
         },
       },
@@ -265,7 +265,7 @@ export class UserController {
     }
     // TODO: test this logic
     await UserParty.update(
-      { status: UserPartyStatus.ATTENDED },
+      { status: TransactionStatus.ATTENDED },
       { where: { 
         [Op.and]: [
           { UserId: user.id },
@@ -282,8 +282,8 @@ export class UserController {
     partyId: Joi.number().required(),
   }))
   public static async cancelParty(req: UserRequest, res: Response): Promise<Response<{ parties: IParty[] }>> {
-    const party = await Party.findOne({ where: { id: req.body.partyId } });
-    const user = await User.findOne({ where: { id: req.user.id }});
+    const party = await Invitation.findOne({ where: { id: req.body.partyId } });
+    const user = await Buyer.findOne({ where: { id: req.user.id }});
 
     if (!party || !user) {
       res.status(httpStatus.NOT_FOUND);

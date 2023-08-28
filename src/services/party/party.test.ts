@@ -1,25 +1,25 @@
 import request from 'supertest';
 import app from 'index';
 import httpStatus from 'http-status';
-import { User, Party } from 'orms';
-import { createFakeUser, createFakePartyWithItsOrganizer } from 'helpers/fake';
+import { Buyer, Invitation } from 'orms';
+import { createFakeBuyer, createFakeInvitationWithSeller } from 'helpers/fake';
 import { syncDbModels } from 'orms/pepperDb';
 import 'dotenv/config';
 import { IParty } from 'models/types';
 
 describe('## Party', () => {
-  let user: User;
+  let user: Buyer;
   let tokenOfUser1: string;
-  let party1: Party;
-  let party2: Party;
+  let party1: Invitation;
+  let party2: Invitation;
 
 
   beforeAll(async () => {
     await syncDbModels();
-    user = await createFakeUser();
-    party1 = await createFakePartyWithItsOrganizer();
-    party2 = await createFakePartyWithItsOrganizer();
-    await (await User.findOne({ where: { id: user.id }}))?.addParty(party1);
+    user = await createFakeBuyer();
+    party1 = await createFakeInvitationWithSeller();
+    party2 = await createFakeInvitationWithSeller();
+    await (await Buyer.findOne({ where: { id: user.id }}))?.addParty(party1);
     const { token } = (await request(app).post('/api/user/login').send({ phoneNumber: user.phoneNumber, code: '123456' }).expect(httpStatus.OK)).body;
     tokenOfUser1 = token;
 

@@ -23,6 +23,7 @@ const initDb = async () => {
 
 const syncDbModels = async () => {
   await pepperDb.sync({ force: true });
+  console.log(" SSCU ");
 };
 
 export { initDb, syncDbModels, pepperDb };

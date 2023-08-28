@@ -15,12 +15,12 @@ const organizer_service_1 = require("services/organizer/organizer.service");
 class OrganizerController {
     static subscribe(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const organizerTest = yield orms_1.Organizer.findOne({ where: { userName: req.body.userName }, raw: true });
+            const organizerTest = yield orms_1.Seller.findOne({ where: { userName: req.body.userName }, raw: true });
             if (organizerTest !== null) {
                 res.status(http_status_1.default.UNAUTHORIZED);
                 return res.json({ message: 'UserName already exists' });
             }
-            yield orms_1.Organizer.create({
+            yield orms_1.Seller.create({
                 userName: req.body.userName,
                 password: req.body.password,
                 phoneNumber: req.body.phoneNumber,
@@ -30,9 +30,9 @@ class OrganizerController {
                 imgs: req.body.imgs,
                 foods: req.body.foods,
                 drinks: req.body.drinks,
-                status: types_1.OrganizerStatus.Pending
+                status: types_1.UserStatus.Pending
             });
-            const organizer = yield orms_1.Organizer.findOne({
+            const organizer = yield orms_1.Seller.findOne({
                 where: { userName: req.body.userName },
                 attributes: { exclude: ['password', 'createdAt', 'updatedAt', 'deletedAt'] },
                 raw: true,
@@ -50,12 +50,12 @@ class OrganizerController {
     }
     static login(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const organizer = yield orms_1.Organizer.findOne({ where: { userName: req.body.userName, password: req.body.password }, raw: true });
+            const organizer = yield orms_1.Seller.findOne({ where: { userName: req.body.userName, password: req.body.password }, raw: true });
             if (!organizer) {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'Organizer does not exist' });
             }
-            const isAuthorized = organizer.status !== types_1.OrganizerStatus.Rejected;
+            const isAuthorized = organizer.status !== types_1.UserStatus.Rejected;
             if (!isAuthorized) {
                 res.status(http_status_1.default.UNAUTHORIZED);
                 return res.json({ message: 'Organizer not validated yet' });
@@ -69,7 +69,7 @@ class OrganizerController {
     }
     static getOrganizer(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const organizer = yield orms_1.Organizer.findOne({ where: { id: req.organizer.id }, raw: true });
+            const organizer = yield orms_1.Seller.findOne({ where: { id: req.organizer.id }, raw: true });
             if (!organizer) {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'Organizer does not exist' });
@@ -79,19 +79,19 @@ class OrganizerController {
     }
     static updateOrganizer(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            yield orms_1.Organizer.update(Object.assign({}, req.body), { where: { id: req.organizer.id } });
-            const organizer = yield orms_1.Organizer.findOne({ where: { id: req.organizer.id }, raw: true });
+            yield orms_1.Seller.update(Object.assign({}, req.body), { where: { id: req.organizer.id } });
+            const organizer = yield orms_1.Seller.findOne({ where: { id: req.organizer.id }, raw: true });
             return res.json({ organizer: lodash_1.default.omit(organizer, ['createdAt', 'updatedAt', 'deletedAt', 'password']) });
         });
     }
     static createNewparty(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const organizer = yield orms_1.Organizer.findOne({ where: { id: req.organizer.id } });
+            const organizer = yield orms_1.Seller.findOne({ where: { id: req.organizer.id } });
             if (!organizer) {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'User does not exist' });
             }
-            const party = yield orms_1.Party.create({
+            const party = yield orms_1.Invitation.create({
                 theme: req.body.theme,
                 date: req.body.date,
                 price: req.body.price,
@@ -99,14 +99,14 @@ class OrganizerController {
                 minAge: req.body.minAge,
                 maxAge: req.body.maxAge,
             });
-            yield organizer.addParty(party);
+            yield organizer.addInvitations(party);
             const normalizedParties = yield organizer_service_1.OrganizerService.getOrganizerParties(organizer);
             return res.json({ parties: normalizedParties });
         });
     }
     static getOrganizerParties(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const organizer = yield orms_1.Organizer.findOne({ where: { id: req.organizer.id } });
+            const organizer = yield orms_1.Seller.findOne({ where: { id: req.organizer.id } });
             if (!organizer) {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'User does not exist' });
@@ -117,9 +117,9 @@ class OrganizerController {
     }
     static deleteParty(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const organizer = yield orms_1.Organizer.findOne({ where: { id: req.organizer.id } });
-            const party = yield orms_1.Party.findByPk(req.body.partyId);
-            const partyOrganizer = yield (party === null || party === void 0 ? void 0 : party.getOrganizer());
+            const organizer = yield orms_1.Seller.findOne({ where: { id: req.organizer.id } });
+            const party = yield orms_1.Invitation.findByPk(req.body.partyId);
+            const partyOrganizer = yield (party === null || party === void 0 ? void 0 : party.getSeller());
             if ((partyOrganizer != undefined) && (party != null) && (partyOrganizer.id == req.organizer.id)) {
                 yield party.destroy();
             }

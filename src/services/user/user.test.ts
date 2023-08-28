@@ -2,8 +2,8 @@
 import request from 'supertest';
 import app from 'index';
 import httpStatus from 'http-status';
-import { User, Party } from 'orms';
-import { createFakeUser, createFakePartyWithItsOrganizer, fake } from 'helpers/fake';
+import { Buyer, Invitation } from 'orms';
+import { createFakeBuyer, createFakeInvitationWithSeller, fake } from 'helpers/fake';
 import { syncDbModels } from 'orms/pepperDb';
 import jwt from 'jsonwebtoken';
 import { IUser, MatchStatus, IParty, Gender } from 'models/types';
@@ -12,29 +12,29 @@ import { normalizeUserMatches } from 'services/user/user.helper';
 import 'dotenv/config';
 
 describe('## User', () => {
-  let user1: User;
-  let user2: User;
-  let user3: User;
-  let user4: User;
-  let user5: User;
-  let user6: User;
-  let user7: User;
-  let party: Party;
-  let party2: Party;
-  let party3: Party;
+  let user1: Buyer;
+  let user2: Buyer;
+  let user3: Buyer;
+  let user4: Buyer;
+  let user5: Buyer;
+  let user6: Buyer;
+  let user7: Buyer;
+  let party: Invitation;
+  let party2: Invitation;
+  let party3: Invitation;
 
   beforeAll(async () => {
     await syncDbModels();
-    user1 = await createFakeUser({ gender: Gender.MAN });
-    user2 = await createFakeUser({ gender: Gender.MAN });
-    user3 = await createFakeUser({ gender: Gender.WOMAN });
-    user4 = await createFakeUser({ gender: Gender.WOMAN });
-    user5 = await createFakeUser({ gender: Gender.WOMAN });
-    user6 = await createFakeUser({ gender: Gender.MAN });
-    user7 = await createFakeUser({ gender: Gender.MAN });
-    party = await createFakePartyWithItsOrganizer();
-    party2 = await createFakePartyWithItsOrganizer();
-    party3 = await createFakePartyWithItsOrganizer();
+    user1 = await createFakeBuyer({ gender: Gender.MAN });
+    user2 = await createFakeBuyer({ gender: Gender.MAN });
+    user3 = await createFakeBuyer({ gender: Gender.WOMAN });
+    user4 = await createFakeBuyer({ gender: Gender.WOMAN });
+    user5 = await createFakeBuyer({ gender: Gender.WOMAN });
+    user6 = await createFakeBuyer({ gender: Gender.MAN });
+    user7 = await createFakeBuyer({ gender: Gender.MAN });
+    party = await createFakeInvitationWithSeller();
+    party2 = await createFakeInvitationWithSeller();
+    party3 = await createFakeInvitationWithSeller();
   });
 
   // TODO: mock twilio and test verification
@@ -70,7 +70,7 @@ describe('## User', () => {
       };
 
       const { token } = (await request(app).put('/api/user/login').send({ ...userInfo, code: '123456' }).expect(httpStatus.OK)).body;
-      const subscribedUser = await User.findOne({ where: { phoneNumber: '0000000000'}}) as unknown as User;
+      const subscribedUser = await Buyer.findOne({ where: { phoneNumber: '0000000000'}}) as unknown as Buyer;
       
       if (!process.env.JWT_KEY) {
         throw 'JWT key not provided';
@@ -145,7 +145,7 @@ describe('## User', () => {
     });
 
     describe('# User Matches', () => {
-      let matches: User[];
+      let matches: Buyer[];
       beforeAll(async () => {
         matches = (await request(app).post(`/api/user/matches`).
         set('Authorization', tokenOfUser1).
@@ -168,7 +168,7 @@ describe('## User', () => {
       });
 
       test('should find the new match in the user matches list', async () => {
-        const userAfterMatch = await User.findOne({ where: { id: user1.id } });
+        const userAfterMatch = await Buyer.findOne({ where: { id: user1.id } });
         const userMatches = await userAfterMatch?.getMatches({ raw: true });
         const normalizedMatches = normalizeUserMatches(userMatches || []);
         expect(normalizedMatches).toEqual(
@@ -184,12 +184,12 @@ describe('## User', () => {
         
         expect(matchesAfterDeletion).toEqual( expect.arrayContaining([]));
 
-        const user1AfterDeletion = await User.findOne({ where: { id: user1.id } });
+        const user1AfterDeletion = await Buyer.findOne({ where: { id: user1.id } });
         const matchesOfUser1AfterDeletion = await user1AfterDeletion?.getMatches({ raw: true });
         const normalizedMatchesOfUser1 = normalizeUserMatches(matchesOfUser1AfterDeletion || []);
         expect(normalizedMatchesOfUser1).toEqual( expect.arrayContaining([]));
 
-        const user2AfterDeletion = await User.findOne({ where: { id: user1.id } });
+        const user2AfterDeletion = await Buyer.findOne({ where: { id: user1.id } });
         const matchesOfUser2AfterDeletion = await user2AfterDeletion?.getMatches({ raw: true });
         const normalizedMatchesOfUser2 = normalizeUserMatches(matchesOfUser2AfterDeletion || []);
         expect(normalizedMatchesOfUser2).toEqual( expect.arrayContaining([]));
@@ -207,9 +207,9 @@ describe('## User', () => {
         
         expect(parties.map((currentParty: IParty) => currentParty.id)).toEqual([party.id]);
 
-        const userAfterAddingParty = await User.findOne({ where: { id: user1.id } });
+        const userAfterAddingParty = await Buyer.findOne({ where: { id: user1.id } });
         const AfterAddingParty = await userAfterAddingParty?.getParties({ raw: true });
-        expect(AfterAddingParty?.map((currentParty: Party) => currentParty.id)).toEqual([party.id]);
+        expect(AfterAddingParty?.map((currentParty: Invitation) => currentParty.id)).toEqual([party.id]);
       });
 
       test('Should be Able to get parties of user', async () => {
@@ -219,9 +219,9 @@ describe('## User', () => {
         
         expect(parties.map((currentParty: IParty) => currentParty.id)).toEqual([party.id]);
 
-        const userAfterAddingParty = await User.findOne({ where: { id: user1.id } });
+        const userAfterAddingParty = await Buyer.findOne({ where: { id: user1.id } });
         const AfterAddingParty = await userAfterAddingParty?.getParties({ raw: true });
-        expect(AfterAddingParty?.map((currentParty: Party) => currentParty.id)).toEqual([party.id]);
+        expect(AfterAddingParty?.map((currentParty: Invitation) => currentParty.id)).toEqual([party.id]);
       });
 
       test('Should be Able to cancel user\'s party and return them', async () => {
@@ -232,9 +232,9 @@ describe('## User', () => {
         
         expect(parties.map((currentParty: IParty) => currentParty.id)).toEqual([]);
   
-        const userAfterAddingParty = await User.findOne({ where: { id: user1.id } });
+        const userAfterAddingParty = await Buyer.findOne({ where: { id: user1.id } });
         const AfterAddingParty = await userAfterAddingParty?.getParties({ raw: true });
-        expect(AfterAddingParty?.map((currentParty: Party) => currentParty.id)).toEqual([]);
+        expect(AfterAddingParty?.map((currentParty: Invitation) => currentParty.id)).toEqual([]);
       });
 
       test('Should maintain gender parity and get parties for user', async() => {
@@ -296,7 +296,7 @@ describe('## User', () => {
       });
 
       test('Should NOT be able to attend party using organizerId if user has not been accepted', async() => {
-        const organizer = await party2.getOrganizer();
+        const organizer = await party2.getSeller();
         await request(app).put(`/api/user/parties`).
           set('Authorization', tokenOfUser7).
           send({ organizerId: organizer.id }).
@@ -308,7 +308,7 @@ describe('## User', () => {
           set('Authorization', tokenOfUser7).
           send({ partyId: party2.id }).
           expect(httpStatus.OK);
-        const organizer = await party2.getOrganizer();
+        const organizer = await party2.getSeller();
         const parties = await request(app).put(`/api/user/parties`).
           set('Authorization', tokenOfUser7).
           send({ organizerId: organizer.id }).

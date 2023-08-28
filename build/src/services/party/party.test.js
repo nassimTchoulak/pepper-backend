@@ -16,10 +16,10 @@ describe('## Party', () => {
     beforeAll(() => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
         var _a;
         yield (0, pepperDb_1.syncDbModels)();
-        user = yield (0, fake_1.createFakeUser)();
-        party1 = yield (0, fake_1.createFakePartyWithItsOrganizer)();
-        party2 = yield (0, fake_1.createFakePartyWithItsOrganizer)();
-        yield ((_a = (yield orms_1.User.findOne({ where: { id: user.id } }))) === null || _a === void 0 ? void 0 : _a.addParty(party1));
+        user = yield (0, fake_1.createFakeBuyer)();
+        party1 = yield (0, fake_1.createFakeInvitationWithSeller)();
+        party2 = yield (0, fake_1.createFakeInvitationWithSeller)();
+        yield ((_a = (yield orms_1.Buyer.findOne({ where: { id: user.id } }))) === null || _a === void 0 ? void 0 : _a.addParty(party1));
         const { token } = (yield (0, supertest_1.default)(index_1.default).post('/api/user/login').send({ phoneNumber: user.phoneNumber, code: '123456' }).expect(http_status_1.default.OK)).body;
         tokenOfUser1 = token;
     }));

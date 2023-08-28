@@ -1,105 +1,68 @@
-import { User, Organizer, Party } from 'orms';
+import { Buyer, Seller, Invitation } from 'orms';
 import { syncDbModels } from 'orms/pepperDb';
-import { fake, createFakeUser } from 'helpers/fake';
+import { fake, createFakeBuyer } from 'helpers/fake';
 import { SHA256 } from 'crypto-js';
-import { OrganizerStatus } from '../models/types'
+import moment from "moment";
 
-const numberOfUsersToAdd = 50;
-const numberOfOrganizersToAdd = 3;
+const numberOfBuyersToAdd = 50;
+const numberOfSellersToAdd = 3;
 
 describe('## Init Data', () => {
-  let users: User[];
-  let organizers: Organizer[];
+  let buyers: Buyer[];
+  let sellers: Seller[];
 
   beforeAll(async () => {
     await syncDbModels();
   });
 
-  test('Add Users', async () => {
-    const fakeUsersData = await Promise.all([...Array(numberOfUsersToAdd).keys()].map(async () => createFakeUser()));
-    users = await User.findAll();
+  test('Add Buyers', async () => {
+    const fakeUsersData = await Promise.all([...Array(numberOfBuyersToAdd).keys()].map(async () => createFakeBuyer()));
+    buyers = await Buyer.findAll();
     expect(fakeUsersData).toBeTruthy();
   });
 
-  test('Match Users', async () => {
-    const maxNumberOfMatches = 5;
-    const minNumberOfMatches = 0;
-    await Promise.all(
-      users.map(async (user, key) => {
-        const numberOfMatches = fake.integer(minNumberOfMatches, maxNumberOfMatches);
-        for await (let i of [...Array(numberOfMatches).keys()]) {
-          const matchKey = fake.integer(i, numberOfUsersToAdd-1);
-          if (matchKey === key) { return; }
-          // If we have matched two users. We might try to match them again since we are doing things randomly without protection
-          try {
-            // TODO: add more realistic cases
-            // library does not have typing for passing through
-            const status = (fake as unknown as any).match_status;
-            //@ts-ignore
-            await user.addMatch(users[matchKey], { through: { status }});
-            if ( status === 'ACCEPTED' ) {
-            //@ts-ignore
-            await users[matchKey].addMatch(user , { through: { status }});
-            }
-          } catch(e){}
-        }
-      })
-    );
-  });
-
-  test('Add Organizers', async () => {
-    const fakeOrganizersData = [...Array(numberOfOrganizersToAdd).keys()].map(() => ({
-      title: fake.title,
-      phoneNumber: fake.phone,
-      userName: fake.username,
-      password: SHA256(fake.password).toString(),
+  test('Add sellers', async () => {
+    const fakeSellersData = [...Array(numberOfSellersToAdd).keys()].map(() => ({
+      phoneNumber: (fake as unknown as any).phoneNumber,
+      firstName: fake.name,
+      businessName: fake.username,
+      email: fake.email,
+      name: fake.name,
+      password: SHA256(fake.password),
       location: fake.address,
-      description: fake.description,
-      imgs: [(fake as unknown as any).bar, (fake as unknown as any).bar, (fake as unknown as any).bar],
-      foods: [(fake as unknown as any).product, (fake as unknown as any).product, (fake as unknown as any).product],
-      drinks: [(fake as unknown as any).product, (fake as unknown as any).product, (fake as unknown as any).product],
-      status: OrganizerStatus.Accepted
+      description: fake.description
     }));
 
-    organizers = await Promise.all(
-      fakeOrganizersData.map(async (organizerData) => {
-        const createdUser = await Organizer.create(organizerData);
+    sellers = await Promise.all(
+      fakeSellersData.map(async (organizerData) => {
+        const createdUser = await Seller.create(organizerData);
         return createdUser;
       })
     );
-    expect(organizers).toBeTruthy();
+    expect(sellers).toBeTruthy();
   });
 
-  test('Add Parties to organizers', async () => {
+  test('Add invitation to seller', async () => {
     const maxNumberOfParties = 5;
     const minNumberOfParties = 0;
     await Promise.all(
-      organizers.map(async (organizer) => {
+      sellers.map(async (seller_) => {
         const numberOfParties = fake.integer(minNumberOfParties, maxNumberOfParties);
         for await (let i of [...Array(numberOfParties).keys()]) {
-         const party = await Party.create({
-            theme: fake.title,
-            date: new Date(fake.date('YYYY-MM-DD')),
-            price: fake.integer(20, 40),
-            people: fake.integer(20, 40),
-            minAge: 18,
-            maxAge: 25 + i,
+         const invitation = await Invitation.create({
+            product: fake.name,
+            date: moment(),
+            price: fake.integer(0, 100),
+            instances: fake.integer(20, 40),
+            description: fake.description,
+            delivery: fake.address2,
           });
-          await organizer.addParty(party);
+          await seller_.addInvitation(invitation);
         }
       })
     );
   });
 
-  test('Add Parties to Users', async () => {
-    const parties = await Party.findAll();
-    await Promise.all(
-      parties.map(async (party) => {
-        for await (let i of [...Array(party.people).keys()]) {
-          const userIndex = fake.integer(i, numberOfUsersToAdd-1);;
-          await users[userIndex].addParty(party);
-        }
-      })
-    );
-  });
+  //TO-DO:  add transaction to users
+
 });

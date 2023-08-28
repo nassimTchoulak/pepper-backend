@@ -94,9 +94,9 @@ class Admin extends react_1.default.Component {
                     react_1.default.createElement("th", null, organizer.phoneNumber),
                     react_1.default.createElement("th", null, organizer.status),
                     react_1.default.createElement("th", null,
-                        react_1.default.createElement("button", { "data-action": "delete", "data-id": organizer.id, "data-status": organizer.status, className: organizer.status !== types_1.OrganizerStatus.Rejected ? "delete" : "disabled" }, "Delete")),
+                        react_1.default.createElement("button", { "data-action": "delete", "data-id": organizer.id, "data-status": organizer.status, className: organizer.status !== types_1.UserStatus.Rejected ? "delete" : "disabled" }, "Delete")),
                     react_1.default.createElement("th", null,
-                        react_1.default.createElement("button", { "data-action": "validate", "data-id": organizer.id, "data-status": organizer.status, className: organizer.status !== types_1.OrganizerStatus.Accepted ? "validate" : "disabled" }, "Validate"))))))),
+                        react_1.default.createElement("button", { "data-action": "validate", "data-id": organizer.id, "data-status": organizer.status, className: organizer.status !== types_1.UserStatus.Accepted ? "validate" : "disabled" }, "Validate"))))))),
             react_1.default.createElement("script", { src: "adminLogic.js" })));
     }
 }

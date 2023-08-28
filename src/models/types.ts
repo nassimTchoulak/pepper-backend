@@ -1,56 +1,69 @@
-export interface IParty {
+export interface IInvitation {
   id: number,
-  title: string,
-  theme: string,
-  date: string,
-  location: string,
-  people: number,
-  minAge: number,
-  maxAge: number,
+  product: string,
   description: string,
-  foods: Array<{ name: string, price: number }>,
-  drinks: Array<{ name: string, price: number }>,
+  date: Date,
   price: number,
-  imgs: Array<{ uri: string }>,
-  attendees?: IUser[],
-  status?: UserPartyStatus,
+  instances: number,
+  delivery: string,
+  status: TransactionStatus,
 };
 
-interface IUserBase {
+
+export interface ITransaction {
+  id: number,
+  operation: string
+  code: string,
+  product: string,
+  description: string,
+  date: Date,
+  price: number,
+  instances: number,
+  delivery: string,
+};
+
+export interface ITransactionBuyer extends IInvitation, ITransaction, ISellerBase{};
+
+export interface ITransactionSeller extends IInvitation, ITransaction, IBuyerBase{};
+
+export interface IBuyerBase {
   id: number,
   name: string,
+  firstName: string,
   gender: Gender
   phoneNumber: string,
   address: string,
-  description: string,
-  job: string,
-  imgs: Array<{ uri: string }>,
-  interests: string[],
-  facebook: string,
-  instagram: string,
-  snapchat: string,
+  description: string
 }
 
-export interface IUser extends IUserBase {
-  matches: IMatch[],
-  parties: IParty[],
-};
-
-export interface IMatch extends IUserBase{
-  status: MatchStatus,
-};
-
-export enum MatchStatus {
-  ACCEPTED = 'accepted',
-  WAITING = 'waiting',
+export interface ISellerBase {
+  id: number,
+  name: string,
+  phoneNumber: string,
+  email: string,
+  firstName: string,
+  businessName: string,
+  gender: Gender,
+  location: string,
+  description: string
 }
 
-export enum UserPartyStatus {
-  WAITING = 'waiting',
-  ACCEPTED = 'accepted',
-  ATTENDED = 'attended',
-  REJECTED = 'rejected',
-  ABSENT = 'absent',
+export interface IBuyer extends IBuyerBase {
+  transactions: ITransactionBuyer[],
+};
+
+export interface ISeller extends ISellerBase {
+  invitations : IInvitation[],
+  transactions: ITransactionSeller[]
+}
+
+
+export enum TransactionStatus {
+  OPENED = 'opened',
+  CONFIRMED = 'confirmed',
+  PAYED = 'payed',
+  DONE = 'done',
+  CANCELED = 'canceled',
 }
 
 export enum Gender {
@@ -66,27 +79,10 @@ export enum StoreStatus {
 };
 
 
-export enum OrganizerStatus {
+export enum UserStatus {
   Pending = 'pending',
+  Started = 'started',
   Accepted = 'accepted',
   Rejected = 'rejected',
 }
 
-
-interface IOrganizerBase {
-  id: number,
-  userName :string
-  title : string
-  location : string
-  phoneNumber: string,
-  address: string,
-  description: string,
-  imgs: Array<{ uri: string }>,
-  foods : Array<{ name: string, price: number }>,
-  drinks : Array<{ name: string, price: number }>,
-  status : OrganizerStatus
-}
-
-export interface IOrganizer extends IOrganizerBase {
-  parties : IParty[]
-}

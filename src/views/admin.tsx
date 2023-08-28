@@ -1,4 +1,4 @@
-import { IOrganizer, OrganizerStatus } from "models/types";
+import { IOrganizer, UserStatus } from "models/types";
 import React from "react";
 
 export interface Props {
@@ -106,8 +106,8 @@ export default class Admin extends React.Component<Props> {
               <th>{organizer.location}</th>
               <th>{organizer.phoneNumber}</th>
               <th>{organizer.status}</th>
-              <th><button data-action="delete" data-id={organizer.id} data-status={organizer.status} className={organizer.status !== OrganizerStatus.Rejected ? "delete" : "disabled"}>Delete</button></th>
-              <th><button data-action="validate" data-id={organizer.id} data-status={organizer.status} className={organizer.status !== OrganizerStatus.Accepted ? "validate" : "disabled"}>Validate</button></th>
+              <th><button data-action="delete" data-id={organizer.id} data-status={organizer.status} className={organizer.status !== UserStatus.Rejected ? "delete" : "disabled"}>Delete</button></th>
+              <th><button data-action="validate" data-id={organizer.id} data-status={organizer.status} className={organizer.status !== UserStatus.Accepted ? "validate" : "disabled"}>Validate</button></th>
             </tr>
           ))
         }

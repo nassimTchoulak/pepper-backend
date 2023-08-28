@@ -1,19 +1,19 @@
 import { initDb, pepperDb } from 'orms/pepperDb';
-import { initParty, associateParty } from 'orms/party.orm';
-import { initUser, associateUser } from 'orms/user.orm';
-import { initOrganizer, associateOrganizer } from 'orms/organizer.orm';
+import { initInvitation, associateInvitation } from 'orms/invitation.orm';
+import { initTransaction } from './transation.orm';
+import { initBuyer, associateUser } from 'orms/buyer.orm';
+import { initSeller, associateSeller } from 'orms/seller.orm';
 (async () => await initDb())();
-initOrganizer(pepperDb);
-initParty(pepperDb);
-initUser(pepperDb);
+initSeller(pepperDb);
+initInvitation(pepperDb);
+initBuyer(pepperDb);
+initTransaction(pepperDb);
 
-associateOrganizer();
-associateParty();
+associateSeller();
+associateInvitation();
 associateUser();
-export { Party } from 'orms/party.orm';
-export { Organizer } from 'orms/organizer.orm';
-export { User } from 'orms/user.orm';
-export { UserMatch } from 'orms/user.orm';
-export { UserParty } from 'orms/user.orm';
+export { Invitation as Invitation } from 'orms/invitation.orm';
+export { Seller as Seller } from 'orms/seller.orm';
+export { Buyer as Buyer } from 'orms/buyer.orm';
 
 

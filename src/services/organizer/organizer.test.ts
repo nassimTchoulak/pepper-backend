@@ -1,24 +1,24 @@
 import request from 'supertest';
 import app from 'index';
 import httpStatus from 'http-status';
-import { Organizer } from 'orms';
-import { createFakeOrganizer, createFakeParty, fake } from 'helpers/fake';
+import { Seller } from 'orms';
+import { createFakeSeller, createFakeInvitation, fake } from 'helpers/fake';
 import { syncDbModels } from 'orms/pepperDb';
 import { IOrganizer, IParty } from 'models/types';
 import jwt from 'jsonwebtoken';
 
 describe('## organizer', () => {
 
-  let organizerObject: Organizer;
-  let organizerObject2: Organizer;
+  let organizerObject: Seller;
+  let organizerObject2: Seller;
   const organizerPassword = fake.password;
   let organizerToken: string;
 
   beforeAll(async () => {
     await syncDbModels();
 
-    organizerObject  = await createFakeOrganizer(organizerPassword);
-    organizerObject2 = await createFakeOrganizer(organizerPassword);
+    organizerObject  = await createFakeSeller(organizerPassword);
+    organizerObject2 = await createFakeSeller(organizerPassword);
     organizerToken = (await request(app).post('/api/organizer/login').send({ userName: organizerObject2.userName, password: organizerPassword}).expect(httpStatus.OK)).body.token;
 
   });
@@ -47,10 +47,10 @@ describe('## organizer', () => {
       };
 
       const { token } = (await request(app).put('/api/organizer/login').send({ ...organizerInfoTest }).expect(httpStatus.OK)).body;
-      const subscribedOrganizer = await Organizer.findOne({ 
+      const subscribedOrganizer = await Seller.findOne({ 
         where: { userName: organizerInfoTest.userName, password: organizerInfoTest.password },
         raw: true
-      }) as Organizer;
+      }) as Seller;
       
       if (!process.env.JWT_KEY) {
         throw 'JWT key not provided';
@@ -136,10 +136,10 @@ describe('## organizer', () => {
 
     test('Should be able to get organizer own parties', async() => {
 
-      const organizerTest = await createFakeOrganizer(organizerPassword)
+      const organizerTest = await createFakeSeller(organizerPassword)
   
-      const p1 = await createFakeParty(organizerTest)
-      const p2 = await createFakeParty(organizerTest)
+      const p1 = await createFakeInvitation(organizerTest)
+      const p2 = await createFakeInvitation(organizerTest)
   
       const testToken = (await request(app).post('/api/organizer/login').
       send({ userName: organizerTest.userName, password: organizerPassword}).expect(httpStatus.OK)).body.token;

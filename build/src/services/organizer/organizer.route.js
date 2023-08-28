@@ -14,13 +14,13 @@ class OrganizerRoutes {
         return this._router;
     }
     _assignRoute() {
-        this._router.route('/').get(acl_1.authorizeForOrganize, (0, helpers_1.checkParametersAndCallRoute)(organizer_controller_1.OrganizerController.getOrganizer));
-        this._router.route('/').put(acl_1.authorizeForOrganize, (0, helpers_1.checkParametersAndCallRoute)(organizer_controller_1.OrganizerController.updateOrganizer));
+        this._router.route('/').get(acl_1.authorizeForSeller, (0, helpers_1.checkParametersAndCallRoute)(organizer_controller_1.OrganizerController.getOrganizer));
+        this._router.route('/').put(acl_1.authorizeForSeller, (0, helpers_1.checkParametersAndCallRoute)(organizer_controller_1.OrganizerController.updateOrganizer));
         this._router.route('/login').put((0, helpers_1.checkParametersAndCallRoute)(organizer_controller_1.OrganizerController.subscribe));
         this._router.route('/login').post((0, helpers_1.checkParametersAndCallRoute)(organizer_controller_1.OrganizerController.login));
-        this._router.route('/party').post(acl_1.authorizeForOrganize, (0, helpers_1.checkParametersAndCallRoute)(organizer_controller_1.OrganizerController.createNewparty));
-        this._router.route('/party').get(acl_1.authorizeForOrganize, (0, helpers_1.checkParametersAndCallRoute)(organizer_controller_1.OrganizerController.getOrganizerParties));
-        this._router.route('/party').delete(acl_1.authorizeForOrganize, (0, helpers_1.checkParametersAndCallRoute)(organizer_controller_1.OrganizerController.deleteParty));
+        this._router.route('/party').post(acl_1.authorizeForSeller, (0, helpers_1.checkParametersAndCallRoute)(organizer_controller_1.OrganizerController.createNewparty));
+        this._router.route('/party').get(acl_1.authorizeForSeller, (0, helpers_1.checkParametersAndCallRoute)(organizer_controller_1.OrganizerController.getOrganizerParties));
+        this._router.route('/party').delete(acl_1.authorizeForSeller, (0, helpers_1.checkParametersAndCallRoute)(organizer_controller_1.OrganizerController.deleteParty));
     }
 }
 exports.default = new OrganizerRoutes().build();

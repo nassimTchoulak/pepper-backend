@@ -18,7 +18,7 @@ const moment_1 = (0, tslib_1.__importDefault)(require("moment"));
 class UserController {
     static createLoginVerificationAndCheckIfUserExisits(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const user = yield orms_1.User.findOne({ where: { phoneNumber: req.query.phoneNumber }, raw: true });
+            const user = yield orms_1.Buyer.findOne({ where: { phoneNumber: req.query.phoneNumber }, raw: true });
             yield auth_1.default.createVerification(req.query.phoneNumber);
             return res.json({ userExists: !!user });
         });
@@ -30,7 +30,7 @@ class UserController {
                 res.status(http_status_1.default.UNAUTHORIZED);
                 return res.json({ message: 'Verification code not valid' });
             }
-            yield orms_1.User.create({
+            yield orms_1.Buyer.create({
                 name: req.body.name,
                 gender: req.body.gender,
                 phoneNumber: req.body.phoneNumber,
@@ -43,7 +43,7 @@ class UserController {
                 instagram: req.body.instagram,
                 snapchat: req.body.snapchat,
             });
-            const user = yield orms_1.User.findOne({ where: { phoneNumber: req.body.phoneNumber }, raw: true });
+            const user = yield orms_1.Buyer.findOne({ where: { phoneNumber: req.body.phoneNumber }, raw: true });
             if (!user) {
                 res.status(http_status_1.default.INTERNAL_SERVER_ERROR);
                 return res.json({ message: 'User could not be created!' });
@@ -57,7 +57,7 @@ class UserController {
     }
     static login(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const user = yield orms_1.User.findOne({ where: { phoneNumber: req.body.phoneNumber }, raw: true });
+            const user = yield orms_1.Buyer.findOne({ where: { phoneNumber: req.body.phoneNumber }, raw: true });
             if (!user) {
                 res.status(http_status_1.default.UNAUTHORIZED);
                 return res.json({ message: 'User does not exist' });
@@ -76,7 +76,7 @@ class UserController {
     }
     static getUser(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const user = yield orms_1.User.findOne({ where: { id: req.user.id }, raw: true });
+            const user = yield orms_1.Buyer.findOne({ where: { id: req.user.id }, raw: true });
             if (!user) {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'User does not exist' });
@@ -86,14 +86,14 @@ class UserController {
     }
     static updateUser(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            yield orms_1.User.update(Object.assign({}, req.body), { where: { id: req.user.id } });
-            const user = yield orms_1.User.findOne({ where: { id: req.user.id }, raw: true });
+            yield orms_1.Buyer.update(Object.assign({}, req.body), { where: { id: req.user.id } });
+            const user = yield orms_1.Buyer.findOne({ where: { id: req.user.id }, raw: true });
             return res.json({ user: lodash_1.default.omit(user, ['createdAt', 'updatedAt', 'deletedAt']) });
         });
     }
     static getMatches(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const user = yield orms_1.User.findOne({ where: { id: req.user.id } });
+            const user = yield orms_1.Buyer.findOne({ where: { id: req.user.id } });
             if (!user) {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'User does not exist' });
@@ -104,8 +104,8 @@ class UserController {
     }
     static addMatch(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const match = yield orms_1.User.findOne({ where: { id: req.body.matchId } });
-            const user = yield orms_1.User.findOne({ where: { id: req.user.id } });
+            const match = yield orms_1.Buyer.findOne({ where: { id: req.body.matchId } });
+            const user = yield orms_1.Buyer.findOne({ where: { id: req.user.id } });
             if (!match || !user) {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'Match or User does not exist' });
@@ -118,8 +118,8 @@ class UserController {
     }
     static deleteMatch(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const user = yield orms_1.User.findOne({ where: { id: req.user.id } });
-            const match = yield orms_1.User.findOne({ where: { id: req.body.matchId } });
+            const user = yield orms_1.Buyer.findOne({ where: { id: req.user.id } });
+            const match = yield orms_1.Buyer.findOne({ where: { id: req.body.matchId } });
             if (!user || !match) {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'User or Match does not exist' });
@@ -132,7 +132,7 @@ class UserController {
     }
     static getParties(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const user = yield orms_1.User.findOne({ where: { id: req.user.id } });
+            const user = yield orms_1.Buyer.findOne({ where: { id: req.user.id } });
             if (!user) {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'User does not exist' });
@@ -143,7 +143,7 @@ class UserController {
     }
     static getPartiesThatUserCanGoTo(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const user = yield orms_1.User.findOne({ where: { id: req.user.id } });
+            const user = yield orms_1.Buyer.findOne({ where: { id: req.user.id } });
             if (!user) {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'User does not exist' });
@@ -154,8 +154,8 @@ class UserController {
     }
     static addParty(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const party = yield orms_1.Party.findOne({ where: { id: req.body.partyId } });
-            const user = yield orms_1.User.findOne({ where: { id: req.user.id } });
+            const party = yield orms_1.Invitation.findOne({ where: { id: req.body.partyId } });
+            const user = yield orms_1.Buyer.findOne({ where: { id: req.user.id } });
             if (!party || !user) {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'Party or User does not exist' });
@@ -167,8 +167,8 @@ class UserController {
     }
     static attendParty(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const organizer = yield orms_1.Organizer.findOne({ where: { id: req.body.organizerId } });
-            const organizerParties = yield (organizer === null || organizer === void 0 ? void 0 : organizer.getParties({ where: {
+            const organizer = yield orms_1.Seller.findOne({ where: { id: req.body.organizerId } });
+            const organizerParties = yield (organizer === null || organizer === void 0 ? void 0 : organizer.getInvitations({ where: {
                     date: {
                         [sequelize_1.Op.gte]: (0, moment_1.default)().startOf('day').toDate(),
                         [sequelize_1.Op.lte]: (0, moment_1.default)().endOf('day').toDate(),
@@ -179,7 +179,7 @@ class UserController {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'Party does not exist' });
             }
-            const user = yield orms_1.User.findOne({ where: { id: req.user.id } });
+            const user = yield orms_1.Buyer.findOne({ where: { id: req.user.id } });
             const party = organizerParties[0];
             if (!party || !user) {
                 res.status(http_status_1.default.NOT_FOUND);
@@ -189,7 +189,7 @@ class UserController {
                     [sequelize_1.Op.and]: [
                         { UserId: user.id },
                         { PartyId: party.id },
-                        { status: types_1.UserPartyStatus.ACCEPTED },
+                        { status: types_1.TransactionStatus.ACCEPTED },
                     ],
                 },
             });
@@ -197,7 +197,7 @@ class UserController {
                 res.status(http_status_1.default.UNAUTHORIZED);
                 return res.json({ message: 'User has not been accepted to attend the party' });
             }
-            yield orms_1.UserParty.update({ status: types_1.UserPartyStatus.ATTENDED }, { where: {
+            yield orms_1.UserParty.update({ status: types_1.TransactionStatus.ATTENDED }, { where: {
                     [sequelize_1.Op.and]: [
                         { UserId: user.id },
                         { PartyId: party.id },
@@ -210,8 +210,8 @@ class UserController {
     }
     static cancelParty(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const party = yield orms_1.Party.findOne({ where: { id: req.body.partyId } });
-            const user = yield orms_1.User.findOne({ where: { id: req.user.id } });
+            const party = yield orms_1.Invitation.findOne({ where: { id: req.body.partyId } });
+            const user = yield orms_1.Buyer.findOne({ where: { id: req.user.id } });
             if (!party || !user) {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'Party or User does not exist' });

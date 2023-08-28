@@ -12,7 +12,7 @@ require("dotenv/config");
 class PartyController {
     static getPartiesThatUserCanGoTo(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const user = yield orms_1.User.findOne({ where: { id: req.user.id } });
+            const user = yield orms_1.Buyer.findOne({ where: { id: req.user.id } });
             if (!user) {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'User does not exist' });

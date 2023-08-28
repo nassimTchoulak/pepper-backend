@@ -1,9 +1,9 @@
-import { User, Party } from "orms";
+import { Buyer, Invitation } from "orms";
 import { IMatch, IParty } from 'models/types';
 import _ from 'lodash';
 
-const normalizeUserMatches = (userMatches: User[]): IMatch[] => {
-  return userMatches.map((match: User): IMatch => ({
+const normalizeUserMatches = (userMatches: Buyer[]): IMatch[] => {
+  return userMatches.map((match: Buyer): IMatch => ({
     id: match.id,
     name: match.name,
     gender: match.gender,
@@ -20,7 +20,7 @@ const normalizeUserMatches = (userMatches: User[]): IMatch[] => {
   }))
 }
 
-const normalizeOrganizerParties = (userParties: Party[]): IParty[] => {
+const normalizeOrganizerParties = (userParties: Invitation[]): IParty[] => {
   const normalizedOrganizerParty = _.map(userParties, (party) => {
    return _.omit(party, ['password', 'userName', 'phoneNumber', 'UserParties', 'createdAt', 'updatedAt', 'deletedAt']) as unknown as IParty;
   });

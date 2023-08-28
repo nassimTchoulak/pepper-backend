@@ -13,14 +13,14 @@ class UserService {
             const parties = yield user.getParties({ attributes: { exclude: ['createdAt', 'deletedAt', 'updatedAt'] } });
             const matches = yield user.getMatches({ raw: true });
             const partiesWithOrganizersAndAttendees = yield Promise.all(parties.map((currentParty) => (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-                const organizer = yield currentParty.getOrganizer({
+                const organizer = yield currentParty.getSeller({
                     attributes: { exclude: ['status', 'createdAt', 'deletedAt', 'updatedAt'] }
                 });
                 const usersSubscribedToThisParty = yield currentParty.getUsers({
                     attributes: { exclude: ['createdAt', 'deletedAt', 'updatedAt'] },
                     raw: true,
                 });
-                const attendeesForThisParty = usersSubscribedToThisParty.filter((userSubscribedToThisParty) => [types_1.UserPartyStatus.ACCEPTED, types_1.UserPartyStatus.ATTENDED].includes(userSubscribedToThisParty['UserParty.status']));
+                const attendeesForThisParty = usersSubscribedToThisParty.filter((userSubscribedToThisParty) => [types_1.TransactionStatus.ACCEPTED, types_1.TransactionStatus.ATTENDED].includes(userSubscribedToThisParty['UserParty.status']));
                 const attendeesFilteredByUserMatches = lodash_1.default.filter(attendeesForThisParty, (attendee) => !lodash_1.default.map(matches, (match) => match.id).includes(attendee.id));
                 const attendees = lodash_1.default.map(attendeesFilteredByUserMatches, (attendee) => lodash_1.default.omitBy(attendee, (_value, key) => key.includes('UserParty')));
                 const plainParty = currentParty.get({ plain: true });
@@ -34,8 +34,8 @@ class UserService {
     static getPartiesUserCanGoTo(user) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
             const userParties = yield user.getParties();
-            const acceptedOrganizers = yield orms_1.Organizer.findAll({ where: { status: types_1.OrganizerStatus.Accepted } });
-            const parties = yield orms_1.Party.findAll({ where: {
+            const acceptedOrganizers = yield orms_1.Seller.findAll({ where: { status: types_1.UserStatus.Accepted } });
+            const parties = yield orms_1.Invitation.findAll({ where: {
                     id: {
                         [sequelize_1.Op.notIn]: userParties.map((userParty) => userParty.id),
                     },
@@ -45,7 +45,7 @@ class UserService {
                 }
             });
             const partiesWithOrganizers = yield Promise.all(yield parties.map((currentParty) => (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-                const organizer = yield currentParty.getOrganizer();
+                const organizer = yield currentParty.getSeller();
                 return Object.assign(Object.assign({}, organizer.get({ plain: true })), currentParty.get({ plain: true }));
             })));
             const normalizedParties = (0, user_helper_1.normalizeOrganizerParties)(partiesWithOrganizers);
@@ -73,7 +73,7 @@ class UserService {
     static _acceptUser(party, user) {
         var _a;
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            yield orms_1.UserParty.update({ status: types_1.UserPartyStatus.ACCEPTED }, { where: {
+            yield orms_1.UserParty.update({ status: types_1.TransactionStatus.ACCEPTED }, { where: {
                     [sequelize_1.Op.and]: [
                         { UserId: user.id },
                         { PartyId: party.id },
@@ -83,7 +83,7 @@ class UserService {
             const lastWaitingAttendeeId = (_a = (yield orms_1.UserParty.findAll({
                 attributes: { exclude: ['createdAt', 'deletedAt', 'updatedAt'] },
                 where: {
-                    status: types_1.UserPartyStatus.WAITING,
+                    status: types_1.TransactionStatus.WAITING,
                     PartyId: party.id,
                     UserId: { [sequelize_1.Op.not]: user.id },
                 },
@@ -95,7 +95,7 @@ class UserService {
                 plain: true,
             }))) === null || _a === void 0 ? void 0 : _a.UserId;
             if (lastWaitingAttendeeId) {
-                yield orms_1.UserParty.update({ status: types_1.UserPartyStatus.ACCEPTED }, { where: {
+                yield orms_1.UserParty.update({ status: types_1.TransactionStatus.ACCEPTED }, { where: {
                         [sequelize_1.Op.and]: [
                             { UserId: lastWaitingAttendeeId },
                             { PartyId: party.id },
@@ -112,7 +112,7 @@ class UserService {
             const lastAcceptedAttendeeId = (_a = (yield orms_1.UserParty.findAll({
                 attributes: { exclude: ['createdAt', 'deletedAt', 'updatedAt'] },
                 where: {
-                    status: types_1.UserPartyStatus.ACCEPTED,
+                    status: types_1.TransactionStatus.ACCEPTED,
                     PartyId: party.id,
                     UserId: { [sequelize_1.Op.not]: user.id },
                 },
@@ -123,7 +123,7 @@ class UserService {
                 raw: true,
                 plain: true,
             }))) === null || _a === void 0 ? void 0 : _a.UserId;
-            const lastAcceptedAttendee = lastAcceptedAttendeeId ? yield orms_1.User.findOne({
+            const lastAcceptedAttendee = lastAcceptedAttendeeId ? yield orms_1.Buyer.findOne({
                 attributes: ['gender'],
                 where: { id: lastAcceptedAttendeeId },
                 raw: true,
