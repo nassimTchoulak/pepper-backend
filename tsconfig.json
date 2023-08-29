@@ -27,6 +27,6 @@
     "src/**/*", "migrations",
   ],
   "exclude": [
-    "src/scripts/*", 
+    "src/scripts/*",
   ]
 }

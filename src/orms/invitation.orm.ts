@@ -1,6 +1,6 @@
 import { Model, DataTypes, Sequelize, BelongsToSetAssociationMixin, BelongsToGetAssociationMixin, HasManyRemoveAssociationMixin, HasManyAddAssociationMixin, HasManyCountAssociationsMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin } from 'sequelize';
 import { Seller } from 'orms/seller.orm';
-import { Transaction } from './transation.orm';
+import { Transaction } from './transaction.orm';
 import { Buyer } from './buyer.orm';
 import { TransactionStatus } from 'models/types';
 

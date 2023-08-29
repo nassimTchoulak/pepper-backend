@@ -6,7 +6,7 @@ import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
 import { IUser, Gender, IParty, TransactionStatus } from 'models/types';
 import _ from 'lodash';
-import { UserService } from 'services/user/user.service';
+import { UserService } from 'services/buyer/buyer.service';
 import 'dotenv/config';
 import AuthHelper from 'helpers/auth';
 import { Op } from 'sequelize';

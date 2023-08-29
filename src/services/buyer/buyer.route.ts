@@ -1,5 +1,5 @@
 import express, { Router } from 'express';
-import { UserController } from 'services/user/user.controller';
+import { UserController } from 'services/buyer/buyer.controller';
 import { checkParametersAndCallRoute } from 'helpers/helpers';
 import { authorizeForBuyer } from 'acls/acl';
 

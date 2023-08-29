@@ -8,7 +8,7 @@ import { syncDbModels } from 'orms/pepperDb';
 import jwt from 'jsonwebtoken';
 import { IUser, MatchStatus, IParty, Gender } from 'models/types';
 import _ from 'lodash';
-import { normalizeUserMatches } from 'services/user/user.helper';
+import { normalizeUserMatches } from 'services/buyer/buyer.helper';
 import 'dotenv/config';
 
 describe('## User', () => {

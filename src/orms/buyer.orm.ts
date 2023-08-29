@@ -1,7 +1,7 @@
 import { Model, DataTypes, Sequelize, HasManyGetAssociationsMixin, HasManyCountAssociationsMixin, HasManyHasAssociationMixin, HasManyAddAssociationMixin, HasManySetAssociationsMixin, Association, HasManyRemoveAssociationMixin } from 'sequelize';
 import { Gender } from 'models/types';
 import { Invitation } from 'orms/invitation.orm';
-import { Transaction } from './transation.orm';
+import { Transaction } from './transaction.orm';
 
 
 class Buyer extends Model {

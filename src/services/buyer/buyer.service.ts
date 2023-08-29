@@ -1,5 +1,5 @@
 import { Buyer, UserMatch, Invitation, Seller, UserParty } from "orms";
-import { normalizeUserMatches, normalizeOrganizerParties } from 'services/user/user.helper';
+import { normalizeUserMatches, normalizeInvitations } from 'services/buyer/buyer.helper';
 import { IParty, IMatch, MatchStatus, UserStatus, TransactionStatus } from 'models/types';
 import { Op } from 'sequelize';
 import _ from 'lodash';
@@ -52,7 +52,7 @@ export class UserService {
         return { ...organizer.get({ plain: true }), ...currentParty.get({ plain: true }) };
       })
     );
-    const normalizedParties = normalizeOrganizerParties(partiesWithOrganizers);
+    const normalizedParties = normalizeInvitations(partiesWithOrganizers);
     return normalizedParties;
   }
 

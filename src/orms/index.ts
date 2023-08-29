@@ -1,6 +1,6 @@
 import { initDb, pepperDb } from 'orms/pepperDb';
 import { initInvitation, associateInvitation } from 'orms/invitation.orm';
-import { initTransaction } from './transation.orm';
+import { initTransaction } from './transaction.orm';
 import { initBuyer, associateUser } from 'orms/buyer.orm';
 import { initSeller, associateSeller } from 'orms/seller.orm';
 (async () => await initDb())();

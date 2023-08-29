@@ -1,5 +1,5 @@
 import express, { Router } from 'express';
-import { PartyController } from 'services/party/party.controller';
+import { PartyController } from 'services/invitation/invitation.controller';
 import { checkParametersAndCallRoute } from 'helpers/helpers';
 import { authorizeForBuyer } from 'acls/acl';
 

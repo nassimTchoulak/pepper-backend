@@ -3,7 +3,7 @@ import Joi from 'joi';
 import { validation } from 'helpers/helpers';
 import { Buyer } from 'orms';
 import httpStatus from 'http-status';
-import { UserService } from 'services/user/user.service';
+import { UserService } from 'services/buyer/buyer.service';
 import 'dotenv/config';
 import { IParty } from 'models/types';
 
