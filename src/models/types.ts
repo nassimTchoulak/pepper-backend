@@ -6,7 +6,7 @@ export interface IInvitation {
   price: number,
   instances: number,
   delivery: string,
-  status: TransactionStatus,
+  active: boolean
 };
 
 
@@ -20,6 +20,7 @@ export interface ITransaction {
   price: number,
   instances: number,
   delivery: string,
+  state: TransactionStatus,
 };
 
 export interface ITransactionBuyer extends IInvitation, ITransaction, ISellerBase{};
@@ -30,10 +31,11 @@ export interface IBuyerBase {
   id: number,
   name: string,
   firstName: string,
+  birthDay: Date,
   gender: Gender
   phoneNumber: string,
   address: string,
-  description: string
+  status: UserStatus,
 }
 
 export interface ISellerBase {
@@ -45,7 +47,8 @@ export interface ISellerBase {
   businessName: string,
   gender: Gender,
   location: string,
-  description: string
+  description: string,
+  status: UserStatus
 }
 
 export interface IBuyer extends IBuyerBase {

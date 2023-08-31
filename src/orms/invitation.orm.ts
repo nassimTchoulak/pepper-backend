@@ -12,8 +12,7 @@ class Invitation extends Model {
   public price!: number;
   public instances!: number;
   public delivery!: string;
-
-  public status!: TransactionStatus;
+  public active!: boolean;
 
   public createdAt!: Date;
   public updatedAt!: Date;
@@ -39,6 +38,10 @@ const initInvitation = (sequelize: Sequelize) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    description: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     date: {
       type: DataTypes.DATE,
       allowNull: false,
@@ -55,10 +58,10 @@ const initInvitation = (sequelize: Sequelize) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    status: {
-      type: DataTypes.ENUM( TransactionStatus.OPENED, TransactionStatus.CONFIRMED, TransactionStatus.CANCELED, TransactionStatus.PAYED, TransactionStatus.DONE ),
+    active: {
+      type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: TransactionStatus.OPENED 
+      defaultValue: true
     },
   }, { sequelize, paranoid: true });
   

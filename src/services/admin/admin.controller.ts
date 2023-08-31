@@ -17,4 +17,9 @@ export class AdminController {
     const organizer = await Seller.findOne({ where: { id: req.body.id }, raw: true });
     return res.json({ organizer: _.omit(organizer, ['createdAt', 'updatedAt', 'deletedAt','password']) });
   }
+
+  public static async dummyMethod(req: Request, res: Response): Promise<Response<{answer : string }>> {
+
+    return res.json({ answer:"good" });
+  }
 } 

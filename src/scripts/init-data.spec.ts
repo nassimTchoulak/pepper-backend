@@ -28,7 +28,7 @@ describe('## Init Data', () => {
       businessName: fake.username,
       email: fake.email,
       name: fake.name,
-      password: SHA256(fake.password),
+      password: String(SHA256(fake.password)),
       location: fake.address,
       description: fake.description
     }));

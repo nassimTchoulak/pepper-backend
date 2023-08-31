@@ -16,6 +16,11 @@ class AdminController {
             return res.json({ organizer: lodash_1.default.omit(organizer, ['createdAt', 'updatedAt', 'deletedAt', 'password']) });
         });
     }
+    static dummyMethod(req, res) {
+        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+            return res.json({ answer: "good" });
+        });
+    }
 }
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({

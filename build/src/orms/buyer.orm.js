@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Buyer = exports.associateUser = exports.initBuyer = void 0;
+exports.Buyer = exports.associateTransaction = exports.initBuyer = void 0;
 const sequelize_1 = require("sequelize");
 const types_1 = require("models/types");
 const invitation_orm_1 = require("orms/invitation.orm");
-const transation_orm_1 = require("./transation.orm");
+const transaction_orm_1 = require("./transaction.orm");
 class Buyer extends sequelize_1.Model {
 }
 exports.Buyer = Buyer;
@@ -27,6 +27,11 @@ const initBuyer = (sequelize) => {
             type: sequelize_1.DataTypes.ENUM(types_1.Gender.MAN, types_1.Gender.WOMAN),
             allowNull: false,
         },
+        birthDay: {
+            type: sequelize_1.DataTypes.DATE,
+            allowNull: false,
+            defaultValue: (0, sequelize_1.NOW)()
+        },
         phoneNumber: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
@@ -45,15 +50,16 @@ const initBuyer = (sequelize) => {
             type: sequelize_1.DataTypes.TEXT,
             allowNull: true,
         },
-        description: {
-            type: sequelize_1.DataTypes.TEXT,
-            allowNull: true,
+        status: {
+            type: sequelize_1.DataTypes.ENUM(types_1.UserStatus.Pending, types_1.UserStatus.Accepted, types_1.UserStatus.Rejected, types_1.UserStatus.Started),
+            allowNull: false,
+            defaultValue: types_1.UserStatus.Pending,
         }
     }, { sequelize, paranoid: true });
 };
 exports.initBuyer = initBuyer;
-const associateUser = () => {
-    Buyer.belongsToMany(invitation_orm_1.Invitation, { through: transation_orm_1.Transaction, as: 'transactions' });
+const associateTransaction = () => {
+    Buyer.belongsToMany(invitation_orm_1.Invitation, { through: transaction_orm_1.Transaction, as: 'transactions', uniqueKey: 'transactionId' });
 };
-exports.associateUser = associateUser;
+exports.associateTransaction = associateTransaction;
 //# sourceMappingURL=buyer.orm.js.map

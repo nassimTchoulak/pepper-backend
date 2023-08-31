@@ -1,22 +1,19 @@
 import { Request, Response } from 'express';
 import Joi from 'joi';
 import { validation } from 'helpers/helpers';
-import { Buyer, Invitation, UserParty, Seller } from 'orms';
+import { Buyer, Invitation, Seller } from 'orms';
 import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
-import { IUser, Gender, IParty, TransactionStatus } from 'models/types';
+import { Gender, IBuyer } from 'models/types';
 import _ from 'lodash';
-import { UserService } from 'services/buyer/buyer.service';
 import 'dotenv/config';
 import AuthHelper from 'helpers/auth';
-import { Op } from 'sequelize';
-import moment from 'moment';
 
 interface UserRequest extends Request {
   user: Buyer
 };
 
-export class UserController {
+export class BuyerController {
   @validation(Joi.object({
     phoneNumber: Joi.string().required(),
   }))
@@ -29,17 +26,13 @@ export class UserController {
 
   @validation(Joi.object({
     phoneNumber: Joi.string().required(),
+    email: Joi.string().required(),
     code: Joi.string().required(),
     name: Joi.string().required(),
+    firstName: Joi.string().required(),
     gender: Joi.string().valid(...Object.values(Gender)).required(),
     address: Joi.string().optional(),
     description: Joi.string().optional(),
-    job: Joi.string().optional(),
-    imgs: Joi.array().items({ uri: Joi.string() }),
-    interests: Joi.array().items(Joi.string()).optional(),
-    facebook: Joi.string().optional(),
-    instagram: Joi.string().optional(),
-    snapchat: Joi.string().optional(),
   }))
   public static async subscribe(req: Request, res: Response): Promise<Response<{ token: string }>> {
     const isVerified = await AuthHelper.checkVerification(req.body.phoneNumber, req.body.code);
@@ -55,12 +48,6 @@ export class UserController {
       phoneNumber: req.body.phoneNumber,
       address: req.body.address,
       description: req.body.description,
-      job: req.body.job,
-      imgs: req.body.imgs,
-      interests: req.body.interests,
-      facebook: req.body.facebook,
-      instagram: req.body.instagram,
-      snapchat: req.body.snapchat,
     });
 
     const user = await Buyer.findOne({ where: { phoneNumber: req.body.phoneNumber }, raw: true});
@@ -105,7 +92,7 @@ export class UserController {
   }
 
   @validation(Joi.object({}))
-  public static async getUser(req: UserRequest, res: Response): Promise<Response<{ user: IUser }>> {
+  public static async getBuyer(req: UserRequest, res: Response): Promise<Response<{ user: IBuyer }>> {
     const user = await Buyer.findOne({ where: { id: req.user.id }, raw: true });
     if (!user) {
       res.status(httpStatus.NOT_FOUND);
@@ -117,19 +104,16 @@ export class UserController {
   @validation(Joi.object({
     address: Joi.string().optional(),
     description: Joi.string().optional(),
-    job: Joi.string().optional(),
-    imgs: Joi.array().items({ uri: Joi.string() }).optional(),
-    interests: Joi.array().items(Joi.string()).optional(),
-    facebook: Joi.string().optional(),
-    instagram: Joi.string().optional(),
-    snapchat: Joi.string().optional(),
+    name: Joi.string().optional(),
+    firstName: Joi.string().optional(),
+
   }))
-  public static async updateUser(req: UserRequest, res: Response): Promise<Response<{ user: IUser }>> {
+  public static async updateBuyer(req: UserRequest, res: Response): Promise<Response<{ user: IBuyer }>> {
     await Buyer.update({ ...req.body }, { where:  { id: req.user.id }});
     const user = await Buyer.findOne({ where: { id: req.user.id }, raw: true });
     return res.json({ user: _.omit(user, ['createdAt', 'updatedAt', 'deletedAt']) });
   }
-
+  /*
   @validation(Joi.object({}))
   public static async getMatches(req: UserRequest, res: Response): Promise<Response<{ matches: Buyer[] }>> {
     const user = await Buyer.findOne({ where: { id: req.user.id }});
@@ -139,7 +123,7 @@ export class UserController {
       return res.json({ message: 'User does not exist' });
     }
 
-    const normalizedMatches = await UserService.getUserMatches(user);
+    const normalizedMatches = await BuyerService.getUserMatches(user);
     return res.json({ matches: normalizedMatches });
   }
 
@@ -155,8 +139,8 @@ export class UserController {
       return res.json({ message: 'Match or User does not exist' });
     }
     await user.addMatch(match);
-    await UserService.updateUserMatchStatus(user, match);
-    const normalizedMatches = await UserService.getUserMatches(user);
+    await BuyerService.updateUserMatchStatus(user, match);
+    const normalizedMatches = await BuyerService.getUserMatches(user);
     return res.json({ matches: normalizedMatches });
   }
 
@@ -176,7 +160,7 @@ export class UserController {
     user.removeMatch(match);
     match.removeMatch(user);
 
-    const normalizedMatches = await UserService.getUserMatches(user);
+    const normalizedMatches = await BuyerService.getUserMatches(user);
     return res.json({ matches: normalizedMatches });
   }
 
@@ -188,7 +172,7 @@ export class UserController {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'User does not exist' });
     }
-    const normalizedParties = await UserService.getUserParties(user);
+    const normalizedParties = await BuyerService.getUserParties(user);
     return res.json({ parties: normalizedParties });
   }
 
@@ -201,7 +185,7 @@ export class UserController {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'User does not exist' });
     }
-    const normalizedParties = await UserService.getPartiesUserCanGoTo(user);
+    const normalizedParties = await BuyerService.getPartiesUserCanGoTo(user);
     return res.json({ parties: normalizedParties });
   }
 
@@ -216,8 +200,8 @@ export class UserController {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'Party or User does not exist' });
     }
-    await UserService.addParty(user, party);
-    const normalizedParties = await UserService.getUserParties(user);
+    await BuyerService.addParty(user, party);
+    const normalizedParties = await BuyerService.getUserParties(user);
     return res.json({ parties: normalizedParties });
   }
 
@@ -274,7 +258,7 @@ export class UserController {
         },
       },
     );
-    const normalizedParties = await UserService.getUserParties(user);
+    const normalizedParties = await BuyerService.getUserParties(user);
     return res.json({ parties: normalizedParties });
   }
 
@@ -291,7 +275,8 @@ export class UserController {
     }
 
     await user.removeParty(party);
-    const normalizedParties = await UserService.getUserParties(user);
+    const normalizedParties = await BuyerService.getUserParties(user);
     return res.json({ parties: normalizedParties });
   }
+  */
 }

@@ -11,7 +11,7 @@ import { SellerService } from 'services/seller/seller.service';
 import { Op } from 'sequelize';
 
 interface SellerRequest extends Request {
-  seller: Seller
+  seller: ISeller
 };
 
 export class SellerController {
@@ -43,7 +43,7 @@ export class SellerController {
     // TO-DO: set status to be pending and validate user later through web App
     // TO-DO: add SHA-256
     await Seller.create({
-      name: req.body.userName,
+      name: req.body.name,
       firstName: req.body.firstName,
       password: req.body.password,
       phoneNumber: req.body.phoneNumber,
@@ -80,27 +80,32 @@ export class SellerController {
     const seller = await Seller.findOne({ where: { email: req.body.email, password: req.body.password }, raw: true});
     if (!seller) {
       res.status(httpStatus.NOT_FOUND);
-      return res.json({ message: 'Organizer does not exist' });
+      return res.json({ message: 'seller does not exist' });
     }
 
     // TO-DO : update policy for allowed logins (maybe pending or Accepted)
-    const isAuthorized = seller.status === UserStatus.Accepted;
+    const isAuthorized = seller.status !== UserStatus.Rejected;
 
     if (!isAuthorized) {
       res.status(httpStatus.UNAUTHORIZED);
-      return res.json({ message: 'Organizer not validated yet' });
+      return res.json({ message: 'seller removed' });
     }
 
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
     }
-    const token = jwt.sign(seller, process.env.JWT_KEY);
+    const token = jwt.sign(seller, process.env.JWT_KEY, { expiresIn: '5s'});
     return res.json({ token });
   }
 
   @validation(Joi.object({}))
   public static async getSeller(req: SellerRequest, res: Response): Promise<Response<{ seller: ISeller }>> {
-    const seller = await Seller.findOne({ where: { id: req.seller.id }, raw: true });
+
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
+    const seller = await Seller.findOne({ where: { id: TokenSeller.id }, raw: true });
     if (!seller) {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'Organizer does not exist' });
@@ -150,7 +155,7 @@ export class SellerController {
       description: req.body.description,
     });
 
-    await seller.addInvitations(invitation);
+    await seller.addInvitation(invitation);
     const normalizedParties = await SellerService.getSellerInvitations(seller)
     return res.json({ invitations: normalizedParties });
   }

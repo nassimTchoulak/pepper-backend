@@ -1,8 +1,8 @@
-import { IOrganizer, UserStatus } from "models/types";
+import { ISeller, UserStatus } from "models/types";
 import React from "react";
 
 export interface Props {
-  organizers: IOrganizer[];
+  sellers: ISeller[];
 }
 
 export default class Admin extends React.Component<Props> {
@@ -100,9 +100,9 @@ export default class Admin extends React.Component<Props> {
       </thead>
       <tbody>
         {
-          this.props.organizers.map((organizer) => (
+          this.props.sellers.map((organizer) => (
             <tr>
-              <th>{organizer.title}</th>
+              <th>{organizer.businessName}</th>
               <th>{organizer.location}</th>
               <th>{organizer.phoneNumber}</th>
               <th>{organizer.status}</th>

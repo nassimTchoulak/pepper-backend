@@ -22,7 +22,7 @@ class Seller extends Model {
   public deletedAt!: Date;
 
   public getInvitations!: HasManyGetAssociationsMixin<Invitation>;
-  public addInvitations!: HasManyAddAssociationMixin<Invitation, number>;
+  public addInvitation!: HasManyAddAssociationMixin<Invitation, number>;
   public hasInvitations!: HasManyHasAssociationMixin<Invitation, number>;
   public countInvitations!: HasManyCountAssociationsMixin;
 }
@@ -57,7 +57,7 @@ const initSeller = (sequelize: Sequelize) => {
     businessName: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
+      unique: false,
     },
     password: {
       type: DataTypes.STRING,

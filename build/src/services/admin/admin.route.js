@@ -13,7 +13,8 @@ class AdminRoutes {
         return this._router;
     }
     _assignRoute() {
-        this._router.route('/organizer').put((0, helpers_1.checkParametersAndCallRoute)(admin_controller_1.AdminController.updateStatus));
+        this._router.route('/').get((0, helpers_1.checkParametersAndCallRoute)(admin_controller_1.AdminController.dummyMethod));
+        this._router.route('/seller').put((0, helpers_1.checkParametersAndCallRoute)(admin_controller_1.AdminController.updateStatus));
     }
 }
 exports.default = new AdminRoutes().build();

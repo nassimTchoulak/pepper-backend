@@ -1,5 +1,5 @@
-import { Model, DataTypes, Sequelize, HasManyGetAssociationsMixin, HasManyCountAssociationsMixin, HasManyHasAssociationMixin, HasManyAddAssociationMixin, HasManySetAssociationsMixin, Association, HasManyRemoveAssociationMixin } from 'sequelize';
-import { Gender } from 'models/types';
+import { Model, DataTypes, Sequelize, HasManyGetAssociationsMixin, HasManyCountAssociationsMixin, HasManyHasAssociationMixin, HasManyAddAssociationMixin, HasManySetAssociationsMixin, Association, HasManyRemoveAssociationMixin, NOW } from 'sequelize';
+import { Gender, UserStatus } from 'models/types';
 import { Invitation } from 'orms/invitation.orm';
 import { Transaction } from './transaction.orm';
 
@@ -9,11 +9,12 @@ class Buyer extends Model {
   public name!: string;
   public firstName!: string;
   public gender!: Gender;
+  public birthDay!: Date;
   public phoneNumber!: string;
   public email!: string;
   public address!: string;
   public password!: string;
-  public readonly transactions!: Transaction[];
+  public status!: UserStatus;
 
   public createdAt!: Date;
   public updatedAt!: Date;
@@ -46,6 +47,11 @@ const initBuyer = (sequelize: Sequelize) => {
       type: DataTypes.ENUM(Gender.MAN, Gender.WOMAN),
       allowNull: false,
     },
+    birthDay: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: NOW()
+    },
     phoneNumber: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -64,15 +70,16 @@ const initBuyer = (sequelize: Sequelize) => {
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true,
+    status: {
+      type: DataTypes.ENUM(UserStatus.Pending, UserStatus.Accepted, UserStatus.Rejected, UserStatus.Started),
+      allowNull: false,
+      defaultValue: UserStatus.Pending,
     }
   }, { sequelize, paranoid: true });
 };
 
-const associateUser = () => {
-  Buyer.belongsToMany(Invitation, { through: Transaction, as: 'transactions' });
+const associateTransaction = () => {
+  Buyer.belongsToMany(Invitation, { through: Transaction, as: 'transactions', uniqueKey: 'transactionId' });
 }
 
-export { initBuyer as initBuyer, associateUser, Buyer as Buyer };
+export { initBuyer as initBuyer, associateTransaction , Buyer as Buyer };

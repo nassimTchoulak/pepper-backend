@@ -1,9 +1,11 @@
-import { Buyer, UserMatch, Invitation, Seller, UserParty } from "orms";
-import { normalizeUserMatches, normalizeInvitations } from 'services/buyer/buyer.helper';
-import { IParty, IMatch, MatchStatus, UserStatus, TransactionStatus } from 'models/types';
+import { Buyer, Invitation, Seller } from "orms";
+import { normalizeInvitations } from 'services/buyer/buyer.helper';
+import { UserStatus, TransactionStatus } from 'models/types';
 import { Op } from 'sequelize';
 import _ from 'lodash';
-export class UserService {
+export class BuyerService {
+
+  /*
   public static async getUserParties(user: Buyer): Promise<IParty[]> {
     const parties = await user.getParties({ attributes: { exclude: ['createdAt', 'deletedAt', 'updatedAt'] } });
     const matches = await user.getMatches({ raw: true });
@@ -115,6 +117,7 @@ export class UserService {
     }
   }
   
+  
   public static async addParty(user: Buyer, party: Invitation): Promise<void> {
     await user.addParty(party);
 
@@ -145,4 +148,5 @@ export class UserService {
       await this._acceptUser(party, user);
     }
   }
+  */
 }

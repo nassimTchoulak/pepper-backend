@@ -1,5 +1,5 @@
 import express, { Router } from 'express';
-import { PartyController } from 'services/invitation/invitation.controller';
+import { InvitationController } from 'services/invitation/invitation.controller';
 import { checkParametersAndCallRoute } from 'helpers/helpers';
 import { authorizeForBuyer } from 'acls/acl';
 
@@ -12,7 +12,7 @@ class PartyRoutes {
   }
 
   private _assignRoute() {
-    this._router.route('/').get(authorizeForBuyer,checkParametersAndCallRoute(PartyController.getPartiesThatUserCanGoTo));
+    this._router.route('/').get(authorizeForBuyer,checkParametersAndCallRoute(InvitationController.getPartiesThatUserCanGoTo));
   }
 }
 

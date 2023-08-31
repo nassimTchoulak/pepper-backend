@@ -26,7 +26,6 @@ const initDb = () => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* ()
 exports.initDb = initDb;
 const syncDbModels = () => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
     yield pepperDb.sync({ force: true });
-    console.log(" SSCU ");
 });
 exports.syncDbModels = syncDbModels;
 //# sourceMappingURL=pepperDb.js.map

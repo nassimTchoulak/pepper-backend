@@ -37,6 +37,7 @@ const createFakeSeller = async (password = casual.password as any): Promise<Sell
     location: casual.address,
     description: casual.description
   });
+  console.log(seller);
 
   return seller.get({ plain: true });
 }
@@ -62,7 +63,7 @@ const createFakeInvitationWithSeller = async (): Promise<Invitation> => {
     delivery: casual.address2,
   });
   
-  await seller.addInvitations(invitation);
+  await seller.addInvitation(invitation);
   const createdInvitation = await Invitation.findOne({ where: { id: invitation.id }, raw: false });
   if (!createdInvitation) {
     throw 'Fake invitation creation failed';
@@ -82,7 +83,7 @@ const createFakeInvitation = async (organizerInfo: Seller | ISeller): Promise<In
     description: casual.description,
     delivery: casual.address2,
   });
-  await seller?.addInvitations(party);
+  await seller?.addInvitation(party);
   const createdInvitation = await Invitation.findOne({ where: { id: party.id }, raw: false });
   if (!createdInvitation) {
     throw 'Fake invitation creation failed';

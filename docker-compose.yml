@@ -9,7 +9,6 @@ services:
       POSTGRES_DB: pepper
       POSTGRES_USER: pepper
       POSTGRES_PASSWORD: sayfEnnar
-      POSTGRES_HOST_AUTH_METHOD: all
     ports:
       - "127.0.0.1:5439:5432"
     volumes:

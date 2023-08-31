@@ -2,6 +2,7 @@ import { Model, DataTypes, Sequelize, BelongsToSetAssociationMixin, BelongsToGet
 import { Seller } from 'orms/seller.orm';
 import { Buyer } from './buyer.orm';
 import { Invitation } from './invitation.orm';
+import { TransactionStatus } from 'models/types';
 
 class Transaction extends Model {
   public id!: number;
@@ -14,7 +15,7 @@ class Transaction extends Model {
   public instances!: number;
   public delivery!: string;
 
-
+  public state!: TransactionStatus;
 
   public createdAt!: Date;
   public updatedAt!: Date;
@@ -29,7 +30,7 @@ class Transaction extends Model {
 }
 const initTransaction = (sequelize: Sequelize) => {
     Transaction.init({
-    id: {
+    transactionId: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true
@@ -80,6 +81,11 @@ const initTransaction = (sequelize: Sequelize) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    state: {
+      type: DataTypes.ENUM(TransactionStatus.CANCELED, TransactionStatus.OPENED, TransactionStatus.DONE, TransactionStatus.PAYED, TransactionStatus.CONFIRMED),
+      allowNull: false,
+      defaultValue: TransactionStatus.OPENED
+    }
   }, { sequelize, paranoid: true });
   
 };

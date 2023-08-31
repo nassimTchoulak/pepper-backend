@@ -30,6 +30,7 @@ const createFakeSeller = (password = casual_1.default.password) => (0, tslib_1._
         location: casual_1.default.address,
         description: casual_1.default.description
     });
+    console.log(seller);
     return seller.get({ plain: true });
 });
 exports.createFakeSeller = createFakeSeller;
@@ -52,7 +53,7 @@ const createFakeInvitationWithSeller = () => (0, tslib_1.__awaiter)(void 0, void
         description: casual_1.default.description,
         delivery: casual_1.default.address2,
     });
-    yield seller.addInvitations(invitation);
+    yield seller.addInvitation(invitation);
     const createdInvitation = yield orms_1.Invitation.findOne({ where: { id: invitation.id }, raw: false });
     if (!createdInvitation) {
         throw 'Fake invitation creation failed';
@@ -70,7 +71,7 @@ const createFakeInvitation = (organizerInfo) => (0, tslib_1.__awaiter)(void 0, v
         description: casual_1.default.description,
         delivery: casual_1.default.address2,
     });
-    yield (seller === null || seller === void 0 ? void 0 : seller.addInvitations(party));
+    yield (seller === null || seller === void 0 ? void 0 : seller.addInvitation(party));
     const createdInvitation = yield orms_1.Invitation.findOne({ where: { id: party.id }, raw: false });
     if (!createdInvitation) {
         throw 'Fake invitation creation failed';

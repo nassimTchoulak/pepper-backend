@@ -1,7 +1,8 @@
-import { Buyer, Invitation } from "orms";
-import { IInvitation, IMatch, IParty } from 'models/types';
+import { Invitation } from "orms";
+import { IInvitation } from 'models/types';
 import _ from 'lodash';
 
+/*
 const normalizeUserMatches = (userMatches: Buyer[]): IMatch[] => {
   return userMatches.map((match: Buyer): IMatch => ({
     id: match.id,
@@ -19,6 +20,7 @@ const normalizeUserMatches = (userMatches: Buyer[]): IMatch[] => {
     status: (match as unknown as any)['UserMatch.status'],
   }))
 }
+*/
 
 const normalizeInvitations = (userParties: Invitation[]): IInvitation[] => {
   const normalizedInvitations = _.map(userParties, (party) => {
@@ -27,4 +29,4 @@ const normalizeInvitations = (userParties: Invitation[]): IInvitation[] => {
   return normalizedInvitations;
 }
 
-export { normalizeUserMatches, normalizeInvitations };
+export { normalizeInvitations };

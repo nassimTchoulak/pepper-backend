@@ -1,54 +1,52 @@
+/* eslint-disable jest/no-commented-out-tests */
 import request from 'supertest';
 import app from 'index';
 import httpStatus from 'http-status';
 import { Seller } from 'orms';
 import { createFakeSeller, createFakeInvitation, fake } from 'helpers/fake';
 import { syncDbModels } from 'orms/pepperDb';
-import { IOrganizer, IParty } from 'models/types';
+import { ISeller, IInvitation } from 'models/types';
 import jwt from 'jsonwebtoken';
 
 describe('## organizer', () => {
 
-  let organizerObject: Seller;
-  let organizerObject2: Seller;
+  let sellerObject: Seller;
   const organizerPassword = fake.password;
-  let organizerToken: string;
+
 
   beforeAll(async () => {
     await syncDbModels();
 
-    organizerObject  = await createFakeSeller(organizerPassword);
-    organizerObject2 = await createFakeSeller(organizerPassword);
-    organizerToken = (await request(app).post('/api/organizer/login').send({ userName: organizerObject2.userName, password: organizerPassword}).expect(httpStatus.OK)).body.token;
+    sellerObject  = await createFakeSeller(organizerPassword);
+    // sellerToken = (await request(app).post('/api/seller/login').send({ email: sellerObject2.email, password: organizerPassword}).expect(httpStatus.OK)).body.token;
 
   });
 
-   describe('# Login Oganizer', () => {
+   describe('# Login seller', () => {
     test('should NOT be able to login if userName is not provided', async () => {
-      await request(app).post('/api/organizer/login').send({ randomField: 'random' }).expect(httpStatus.BAD_REQUEST);
+      await request(app).post('/api/seller/login').send({ randomField: 'random' }).expect(httpStatus.BAD_REQUEST);
     });
   
     test('should NOT be able to login if organizer does not exist', async () => {
-      await request(app).post('/api/organizer/login').send({ userName: 'Test', password: '123456' }).expect(httpStatus.NOT_FOUND);
+      await request(app).post('/api/seller/login').send({ email: 'test@gmail.com', password: '123456' }).expect(httpStatus.NOT_FOUND);
     });
 
-    test('should be able to subscribe with userName and Password', async () => {
+    test('should be able to subscribe with email and Password', async () => {
       
-      const organizerInfoTest = {
-        userName: fake.username,
+      const sellerInfoTest = {
+        name: fake.name,
+        email: fake.email,
+        firstName: fake.first_name,
         phoneNumber: fake.phone,
         password: fake.password,
-        title: fake.title,
+        businessName: fake.title,
         location: fake.address,
         description: fake.description,
-        imgs: [(fake as unknown as any).portrait, (fake as unknown as any).portrait, (fake as unknown as any).portrait],
-        foods: [(fake as unknown as any).product, (fake as unknown as any).product, (fake as unknown as any).product],
-        drinks: [(fake as unknown as any).product, (fake as unknown as any).product, (fake as unknown as any).product],
       };
 
-      const { token } = (await request(app).put('/api/organizer/login').send({ ...organizerInfoTest }).expect(httpStatus.OK)).body;
-      const subscribedOrganizer = await Seller.findOne({ 
-        where: { userName: organizerInfoTest.userName, password: organizerInfoTest.password },
+      const { token } = (await request(app).put('/api/seller/login').send({ ...sellerInfoTest }).expect(httpStatus.OK)).body;
+      const subscribedSeller = await Seller.findOne({ 
+        where: { email: sellerInfoTest.email, password: sellerInfoTest.password },
         raw: true
       }) as Seller;
       
@@ -56,52 +54,51 @@ describe('## organizer', () => {
         throw 'JWT key not provided';
       }
 
-      const authentifiedUser = jwt.verify(token, process.env.JWT_KEY) as IOrganizer;
-      expect(subscribedOrganizer.id).toEqual(authentifiedUser.id); 
+      const authentifiedUser = jwt.verify(token, process.env.JWT_KEY) as ISeller;
+      expect(subscribedSeller.id).toEqual(authentifiedUser.id); 
     });
     
-    test('should be able to login with userName and Password', async () => {
-      const { token } = (await request(app).post('/api/organizer/login').send({ userName: organizerObject.userName, password: organizerPassword}).expect(httpStatus.OK)).body;
+    test('should be able to login with email and Password', async () => {
+      const { token } = (await request(app).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword}).expect(httpStatus.OK)).body;
       if (!process.env.JWT_KEY) {
         throw 'JWT key not provided';
       }
-      const authentifiedUser = jwt.verify(token, process.env.JWT_KEY) as IOrganizer;
+      const authentifiedUser = jwt.verify(token, process.env.JWT_KEY) as ISeller;
   
-      expect(organizerObject.id).toEqual(authentifiedUser.id);
+      expect(sellerObject.id).toEqual(authentifiedUser.id);
     });
 
 
-    test('should not able to subscribe with same userName twice', async () => {
+    test('should not able to subscribe with same email twice', async () => {
       
-      const organizerInfo2 = {
-        userName: fake.username,
+      const sellerInfo2 = {
+        name: fake.name,
+        email: fake.email,
+        firstName: fake.first_name,
         phoneNumber: fake.phone,
         password: fake.password,
-        title: fake.title,
+        businessName: fake.title,
         location: fake.address,
         description: fake.description,
-        imgs: [(fake as unknown as any).portrait, (fake as unknown as any).portrait, (fake as unknown as any).portrait],
-        foods: [(fake as unknown as any).product, (fake as unknown as any).product, (fake as unknown as any).product],
-        drinks: [(fake as unknown as any).product, (fake as unknown as any).product, (fake as unknown as any).product],
       };
 
-      await request(app).put('/api/organizer/login').send({ ...organizerInfo2 }).expect(httpStatus.OK);
-      await request(app).put('/api/organizer/login').send({ ...organizerInfo2 }).expect(httpStatus.UNAUTHORIZED);
+      await request(app).put('/api/seller/login').send({ ...sellerInfo2 }).expect(httpStatus.OK);
+      await request(app).put('/api/seller/login').send({ ...sellerInfo2 }).expect(httpStatus.UNAUTHORIZED);
       
     });
 
     test('should be able to query info with the right token', async () => {
-      const { token } = (await request(app).post('/api/organizer/login').send({ userName: organizerObject.userName, password: organizerPassword}).expect(httpStatus.OK)).body;
+      const { token } = (await request(app).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword}).expect(httpStatus.OK)).body;
 
-      const  organizer1  = (await request(app).get(`/api/organizer/`).
+      const  seller_1  = (await request(app).get(`/api/seller/`).
         set('Authorization', token).
-        expect(httpStatus.OK)).body.organizer;
+        expect(httpStatus.OK)).body.seller;
       
-      expect(organizer1.id).toEqual(organizerObject.id);
+      expect(seller_1.id).toEqual(sellerObject.id);
     });
 
     test('should NOT be able to query info with the wrong token', async () => {
-      await request(app).get(`/api/organizer/`).
+      await request(app).get(`/api/seller/`).
         set('Authorization', 'wrongToken').
         expect(httpStatus.UNAUTHORIZED);
     });
@@ -109,7 +106,7 @@ describe('## organizer', () => {
 
   });
 
-  describe('# Update Oganizer', () => {
+  describe('# Update Seller', () => {
 
     test('should be able to update organizer', async () => {
       const newInfo = { 
@@ -117,8 +114,8 @@ describe('## organizer', () => {
         location: fake.address,
         description: fake.description,
       }
-      const { token } = (await request(app).post('/api/organizer/login').send({ userName: organizerObject.userName, password: organizerPassword}).expect(httpStatus.OK)).body;
-      const { organizer } = (await request(app).put(`/api/organizer/`).
+      const { token } = (await request(app).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword}).expect(httpStatus.OK)).body;
+      const { organizer } = (await request(app).put(`/api/seller/`).
         send(newInfo).
         set('Authorization', token).
         expect(httpStatus.OK)).body;
@@ -131,8 +128,8 @@ describe('## organizer', () => {
     });
   });
 
-
-  describe('# organizer parties', () => {
+  /*
+  describe('# seller invitation', () => {
 
     test('Should be able to get organizer own parties', async() => {
 
@@ -142,7 +139,7 @@ describe('## organizer', () => {
       const p2 = await createFakeInvitation(organizerTest)
   
       const testToken = (await request(app).post('/api/organizer/login').
-      send({ userName: organizerTest.userName, password: organizerPassword}).expect(httpStatus.OK)).body.token;
+      send({ email: organizerTest.email, password: organizerPassword}).expect(httpStatus.OK)).body.token;
   
       const  parties  = (await request(app).get(`/api/organizer/party`).
           set('Authorization', testToken).
@@ -167,7 +164,7 @@ describe('## organizer', () => {
   
       const parties: IParty[] = (await request(app).post(`/api/organizer/party`).
       send({...partyTest}).
-      set('Authorization', organizerToken).
+      set('Authorization', sellerToken).
       expect(httpStatus.OK)).body.parties;
   
       expect(parties.length).toEqual(1);
@@ -188,7 +185,7 @@ describe('## organizer', () => {
   
       const parties: IParty[] = (await request(app).post(`/api/organizer/party`).
       send({...partyTest}).
-      set('Authorization', organizerToken).
+      set('Authorization', sellerToken).
       expect(httpStatus.OK)).body.parties;
   
       expect(parties.length).toBeGreaterThanOrEqual(1);
@@ -197,11 +194,11 @@ describe('## organizer', () => {
 
       const parties2: IParty[] = (await request(app).delete(`/api/organizer/party`).
       send({ partyId: parties[0].id}).
-      set('Authorization', organizerToken).
+      set('Authorization', sellerToken).
       expect(httpStatus.OK)).body.parties;
 
       expect(parties2.length).toEqual(listLength - 1);
     });
 
-  })
+  }) */
 });

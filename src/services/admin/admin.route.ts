@@ -11,6 +11,7 @@ class AdminRoutes {
   }
 
   private _assignRoute() {
+    this._router.route('/').get(checkParametersAndCallRoute(AdminController.dummyMethod));
     this._router.route('/seller').put(checkParametersAndCallRoute(AdminController.updateStatus));
   }
 }

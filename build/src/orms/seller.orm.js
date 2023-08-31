@@ -37,7 +37,7 @@ const initSeller = (sequelize) => {
         businessName: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
-            unique: true,
+            unique: false,
         },
         password: {
             type: sequelize_1.DataTypes.STRING,
