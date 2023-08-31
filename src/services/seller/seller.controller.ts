@@ -61,7 +61,7 @@ export class SellerController {
     
     if (organizer === null) {
       res.status(httpStatus.NOT_FOUND);
-      return res.json({ message: 'Organizer could not be created!' });
+      return res.json({ message: 'seller could not be created!' });
     }
 
     if (!process.env.JWT_KEY) {
@@ -108,7 +108,7 @@ export class SellerController {
     const seller = await Seller.findOne({ where: { id: TokenSeller.id }, raw: true });
     if (!seller) {
       res.status(httpStatus.NOT_FOUND);
-      return res.json({ message: 'Organizer does not exist' });
+      return res.json({ message: 'seller does not exist' });
     }
     return res.json({ seller: _.omit(seller, ['createdAt', 'updatedAt', 'deletedAt','password']) });
   }
@@ -123,8 +123,13 @@ export class SellerController {
     description: Joi.string().required(),
   }))
   public static async updateSeller(req: SellerRequest, res: Response): Promise<Response<{ seller: ISeller }>> {
-    await Seller.update({ ...req.body }, { where:  { id: req.seller.id }});
-    const seller = await Seller.findOne({ where: { id: req.seller.id }, raw: true });
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
+    await Seller.update({ ...req.body }, { where:  { id: TokenSeller.id }});
+    const seller = await Seller.findOne({ where: { id: TokenSeller.id }, raw: true });
+    console.log("@@",TokenSeller);
     return res.json({ seller: _.omit(seller, ['createdAt', 'updatedAt', 'deletedAt','password']) });
   }
 

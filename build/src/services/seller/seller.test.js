@@ -45,7 +45,7 @@ describe('## organizer', () => {
             expect(subscribedSeller.id).toEqual(authentifiedUser.id);
         }));
         test('should be able to login with email and Password', () => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
-            const { token } = (yield (0, supertest_1.default)(index_1.default).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword }).expect(http_status_1.default.OK)).body;
+            const { token } = (yield (0, supertest_1.default)(index_1.default).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword })).body;
             if (!process.env.JWT_KEY) {
                 throw 'JWT key not provided';
             }
@@ -80,22 +80,29 @@ describe('## organizer', () => {
         }));
     });
     describe('# Update Seller', () => {
-        test('should be able to update organizer', () => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
+        test('should be able to update seller', () => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
             const newInfo = {
-                title: fake_1.fake.title,
+                firstName: fake_1.fake.first_name,
                 location: fake_1.fake.address,
                 description: fake_1.fake.description,
+                name: fake_1.fake.name,
+                businessName: fake_1.fake.name,
+                password: fake_1.fake.password
             };
             const { token } = (yield (0, supertest_1.default)(index_1.default).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword }).expect(http_status_1.default.OK)).body;
-            const { organizer } = (yield (0, supertest_1.default)(index_1.default).put(`/api/seller/`).
+            const { seller } = (yield (0, supertest_1.default)(index_1.default).put(`/api/seller/`).
                 send(newInfo).
                 set('Authorization', token).
                 expect(http_status_1.default.OK)).body;
             expect({
-                title: organizer.title,
-                location: organizer.location,
-                description: organizer.description,
-            }).toEqual(newInfo);
+                firstName: seller.firstName,
+                location: seller.location,
+                description: seller.description,
+            }).toEqual({
+                firstName: newInfo.firstName,
+                location: newInfo.location,
+                description: newInfo.description,
+            });
         }));
     });
 });

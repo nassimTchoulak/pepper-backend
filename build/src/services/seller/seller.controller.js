@@ -41,7 +41,7 @@ class SellerController {
             });
             if (organizer === null) {
                 res.status(http_status_1.default.NOT_FOUND);
-                return res.json({ message: 'Organizer could not be created!' });
+                return res.json({ message: 'seller could not be created!' });
             }
             if (!process.env.JWT_KEY) {
                 throw 'JWT key not provided';
@@ -78,15 +78,20 @@ class SellerController {
             const seller = yield orms_1.Seller.findOne({ where: { id: TokenSeller.id }, raw: true });
             if (!seller) {
                 res.status(http_status_1.default.NOT_FOUND);
-                return res.json({ message: 'Organizer does not exist' });
+                return res.json({ message: 'seller does not exist' });
             }
             return res.json({ seller: lodash_1.default.omit(seller, ['createdAt', 'updatedAt', 'deletedAt', 'password']) });
         });
     }
     static updateSeller(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            yield orms_1.Seller.update(Object.assign({}, req.body), { where: { id: req.seller.id } });
-            const seller = yield orms_1.Seller.findOne({ where: { id: req.seller.id }, raw: true });
+            if (!process.env.JWT_KEY) {
+                throw 'JWT key not provided';
+            }
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            yield orms_1.Seller.update(Object.assign({}, req.body), { where: { id: TokenSeller.id } });
+            const seller = yield orms_1.Seller.findOne({ where: { id: TokenSeller.id }, raw: true });
+            console.log("@@", TokenSeller);
             return res.json({ seller: lodash_1.default.omit(seller, ['createdAt', 'updatedAt', 'deletedAt', 'password']) });
         });
     }

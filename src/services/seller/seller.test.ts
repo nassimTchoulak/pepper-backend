@@ -13,12 +13,12 @@ describe('## organizer', () => {
   let sellerObject: Seller;
   const organizerPassword = fake.password;
 
+  
 
   beforeAll(async () => {
     await syncDbModels();
 
     sellerObject  = await createFakeSeller(organizerPassword);
-    // sellerToken = (await request(app).post('/api/seller/login').send({ email: sellerObject2.email, password: organizerPassword}).expect(httpStatus.OK)).body.token;
 
   });
 
@@ -59,7 +59,8 @@ describe('## organizer', () => {
     });
     
     test('should be able to login with email and Password', async () => {
-      const { token } = (await request(app).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword}).expect(httpStatus.OK)).body;
+      const { token } = (await request(app).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword})).body;
+
       if (!process.env.JWT_KEY) {
         throw 'JWT key not provided';
       }
@@ -108,23 +109,30 @@ describe('## organizer', () => {
 
   describe('# Update Seller', () => {
 
-    test('should be able to update organizer', async () => {
+    test('should be able to update seller', async () => {
       const newInfo = { 
-        title: fake.title,
+        firstName: fake.first_name,
         location: fake.address,
         description: fake.description,
+        name: fake.name,
+        businessName: fake.name,
+        password: fake.password
       }
       const { token } = (await request(app).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword}).expect(httpStatus.OK)).body;
-      const { organizer } = (await request(app).put(`/api/seller/`).
+      const { seller } = (await request(app).put(`/api/seller/`).
         send(newInfo).
         set('Authorization', token).
         expect(httpStatus.OK)).body;
       expect({
-        title: organizer.title, 
-        location: organizer.location,
-        description: organizer.description,
+        firstName: seller.firstName, 
+        location: seller.location,
+        description: seller.description,
       }
-      ).toEqual(newInfo);
+      ).toEqual({
+        firstName: newInfo.firstName, 
+        location: newInfo.location,
+        description: newInfo.description,
+      });
     });
   });
 

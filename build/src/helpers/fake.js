@@ -26,11 +26,10 @@ const createFakeSeller = (password = casual_1.default.password) => (0, tslib_1._
         businessName: casual_1.default.username,
         email: casual_1.default.email,
         name: casual_1.default.name,
-        password: casual_1.default.password,
+        password: password,
         location: casual_1.default.address,
         description: casual_1.default.description
     });
-    console.log(seller);
     return seller.get({ plain: true });
 });
 exports.createFakeSeller = createFakeSeller;

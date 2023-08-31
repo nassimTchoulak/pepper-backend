@@ -33,11 +33,10 @@ const createFakeSeller = async (password = casual.password as any): Promise<Sell
     businessName: casual.username,
     email: casual.email,
     name: casual.name,
-    password: casual.password,
+    password: password,
     location: casual.address,
     description: casual.description
   });
-  console.log(seller);
 
   return seller.get({ plain: true });
 }
