@@ -23,9 +23,10 @@ const normalizeUserMatches = (userMatches: Buyer[]): IMatch[] => {
 */
 
 const normalizeInvitations = (userParties: Invitation[]): IInvitation[] => {
-  const normalizedInvitations = _.map(userParties, (party) => {
-   return _.omit(party, ['createdAt', 'updatedAt', 'deletedAt']) as unknown as IInvitation;
+  let normalizedInvitations = _.map(userParties, (invitation) => {
+    return _.omit(invitation, ['updatedAt', 'deletedAt']) as unknown as IInvitation;
   });
+  normalizedInvitations = _.filter(normalizedInvitations, (o:IInvitation) => { return o.id != undefined; });
   return normalizedInvitations;
 }
 

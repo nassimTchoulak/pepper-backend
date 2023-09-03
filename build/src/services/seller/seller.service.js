@@ -6,7 +6,7 @@ const buyer_helper_1 = require("services/buyer/buyer.helper");
 class SellerService {
     static getSellerInvitations(seller) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const invitations = yield seller.getInvitations({ order: [['createdAt', 'DESC']] });
+            const invitations = yield seller.getInvitations({ order: [['createdAt', 'DESC']], raw: true });
             const normalizedParties = (0, buyer_helper_1.normalizeInvitations)(invitations);
             return normalizedParties;
         });

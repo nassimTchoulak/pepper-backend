@@ -67,14 +67,14 @@ const createFakeInvitationWithSeller = async (): Promise<Invitation> => {
   if (!createdInvitation) {
     throw 'Fake invitation creation failed';
   }
-  return createdInvitation;
+  return createdInvitation.get({ plain: true });
 }
 
 const createFakeInvitation = async (organizerInfo: Seller | ISeller): Promise<Invitation> => {
 
   const seller = await Seller.findOne({ where: { id: organizerInfo.id }, raw: false });
 
-  const party = await Invitation.create({
+  const invitation = await Invitation.create({
     product: casual.name,
     date: moment(),
     price: casual.integer(0, 100),
@@ -82,12 +82,12 @@ const createFakeInvitation = async (organizerInfo: Seller | ISeller): Promise<In
     description: casual.description,
     delivery: casual.address2,
   });
-  await seller?.addInvitation(party);
-  const createdInvitation = await Invitation.findOne({ where: { id: party.id }, raw: false });
+  await seller?.addInvitation(invitation);
+  const createdInvitation = await Invitation.findOne({ where: { id: invitation.id }, raw: false });
   if (!createdInvitation) {
     throw 'Fake invitation creation failed';
   }
-  return createdInvitation;
+  return invitation;
 }
 
 // TO-DO: add fake transactions

@@ -10,6 +10,7 @@ import _ from 'lodash';
 import { SellerService } from 'services/seller/seller.service';
 import { Op } from 'sequelize';
 
+// useful when parsing the entire ISeller to be modified
 interface SellerRequest extends Request {
   seller: ISeller
 };
@@ -68,7 +69,7 @@ export class SellerController {
       throw 'JWT key not provided';
     }
 
-    const token = jwt.sign(organizer, process.env.JWT_KEY);
+    const token = jwt.sign(organizer, process.env.JWT_KEY, { expiresIn: '1000s'});
     return res.json({ token });
   }
 
@@ -94,7 +95,7 @@ export class SellerController {
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
     }
-    const token = jwt.sign(seller, process.env.JWT_KEY, { expiresIn: '5s'});
+    const token = jwt.sign(seller, process.env.JWT_KEY, { expiresIn: '1000s'});
     return res.json({ token });
   }
 
@@ -117,7 +118,7 @@ export class SellerController {
   @validation(Joi.object({
     name:  Joi.string().required(),
     firstName:  Joi.string().required(),
-    password:  Joi.string().required(),
+    password:  Joi.string().optional(),
     businessName: Joi.string().required(),
     location: Joi.string().required(),
     description: Joi.string().required(),
@@ -129,7 +130,6 @@ export class SellerController {
     const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
     await Seller.update({ ...req.body }, { where:  { id: TokenSeller.id }});
     const seller = await Seller.findOne({ where: { id: TokenSeller.id }, raw: true });
-    console.log("@@",TokenSeller);
     return res.json({ seller: _.omit(seller, ['createdAt', 'updatedAt', 'deletedAt','password']) });
   }
 
@@ -143,8 +143,12 @@ export class SellerController {
     description: Joi.string().required(),
     delivery: Joi.string().required(),
   }))
-  public static async createNewInvitation(req: SellerRequest, res: Response): Promise<Response<{ parties: IInvitation[] }>> {
-    const seller = await Seller.findOne({ where: { id: req.seller.id }});
+  public static async createNewInvitation(req: SellerRequest, res: Response): Promise<Response<{ invitation: IInvitation }>> {
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
+    const seller = await Seller.findOne({ where: { id: TokenSeller.id }, raw: false});
 
     if (!seller) {
       res.status(httpStatus.NOT_FOUND);
@@ -161,44 +165,57 @@ export class SellerController {
     });
 
     await seller.addInvitation(invitation);
-    const normalizedParties = await SellerService.getSellerInvitations(seller)
-    return res.json({ invitations: normalizedParties });
+    return res.json({ invitation: invitation });
   }
 
   @validation(Joi.object({}))
-  public static async getSellerInvitations(req: SellerRequest, res: Response): Promise<Response<{ parties: IInvitation[] }>> {
-    const seller = await Seller.findOne({ where: { id: req.seller.id }});
+  public static async getSellerInvitations(req: SellerRequest, res: Response): Promise<Response<{ invitations: IInvitation[] }>> {
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
+    const seller = await Seller.findOne({ where: { id: TokenSeller.id }});
 
     if (!seller) {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'User does not exist' });
     }
 
-    const invitations = await SellerService.getSellerInvitations(seller)
-    return res.json({ parties: invitations });
+    const invitations = await SellerService.getSellerInvitations(seller);
+
+
+    return res.json({ invitations: invitations });
   }
 
   @validation(Joi.object({
-    invitationId: Joi.number().required(),
+    id: Joi.number().required(),
   }))
-  public static async deleteInvitation(req: SellerRequest, res: Response): Promise<Response<{ parties: IInvitation[] }>> {
-    const seller = await Seller.findOne({ where: { id: req.seller.id }});
+  public static async deleteInvitation(req: SellerRequest, res: Response): Promise<Response<{ invitation: IInvitation }>> {
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as ISeller;
+    const seller = await Seller.findOne({ where: { id: TokenSeller.id }});
+    if (!seller) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'seller does not exist' });
+    }
 
-
-    const invitation = await Invitation.findByPk(req.body.invitationId);
+    const invitation = await Invitation.findByPk(req.body.id);
     
     const invitationSeller = await invitation?.getSeller();
 
-    if ((invitationSeller != undefined) && (invitation != null) && (invitationSeller.id == req.seller.id)){
-      await invitation.destroy();
+    if ((invitationSeller != null) && (invitation != null) && (invitationSeller.id == seller.id)){
+      const result = await invitation.update({active : false});
+      
+      return res.json({ invitation: result.get({plain: true}) });
+    }
+    else
+    {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'No matching invitation found' });
     }
 
-    if (!seller) {
-      res.status(httpStatus.NOT_FOUND);
-      return res.json({ message: 'User does not exist' });
-    }
-    const remainingInvitations = await SellerService.getSellerInvitations(seller)
-    return res.json({ invitations: remainingInvitations });
   }
 
 } 

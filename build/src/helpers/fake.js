@@ -57,12 +57,12 @@ const createFakeInvitationWithSeller = () => (0, tslib_1.__awaiter)(void 0, void
     if (!createdInvitation) {
         throw 'Fake invitation creation failed';
     }
-    return createdInvitation;
+    return createdInvitation.get({ plain: true });
 });
 exports.createFakeInvitationWithSeller = createFakeInvitationWithSeller;
 const createFakeInvitation = (organizerInfo) => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
     const seller = yield orms_1.Seller.findOne({ where: { id: organizerInfo.id }, raw: false });
-    const party = yield orms_1.Invitation.create({
+    const invitation = yield orms_1.Invitation.create({
         product: casual_1.default.name,
         date: (0, moment_1.default)(),
         price: casual_1.default.integer(0, 100),
@@ -70,12 +70,12 @@ const createFakeInvitation = (organizerInfo) => (0, tslib_1.__awaiter)(void 0, v
         description: casual_1.default.description,
         delivery: casual_1.default.address2,
     });
-    yield (seller === null || seller === void 0 ? void 0 : seller.addInvitation(party));
-    const createdInvitation = yield orms_1.Invitation.findOne({ where: { id: party.id }, raw: false });
+    yield (seller === null || seller === void 0 ? void 0 : seller.addInvitation(invitation));
+    const createdInvitation = yield orms_1.Invitation.findOne({ where: { id: invitation.id }, raw: false });
     if (!createdInvitation) {
         throw 'Fake invitation creation failed';
     }
-    return createdInvitation;
+    return invitation;
 });
 exports.createFakeInvitation = createFakeInvitation;
 //# sourceMappingURL=fake.js.map

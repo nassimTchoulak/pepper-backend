@@ -4,9 +4,10 @@ exports.normalizeInvitations = void 0;
 const tslib_1 = require("tslib");
 const lodash_1 = (0, tslib_1.__importDefault)(require("lodash"));
 const normalizeInvitations = (userParties) => {
-    const normalizedInvitations = lodash_1.default.map(userParties, (party) => {
-        return lodash_1.default.omit(party, ['createdAt', 'updatedAt', 'deletedAt']);
+    let normalizedInvitations = lodash_1.default.map(userParties, (invitation) => {
+        return lodash_1.default.omit(invitation, ['updatedAt', 'deletedAt']);
     });
+    normalizedInvitations = lodash_1.default.filter(normalizedInvitations, (o) => { return o.id != undefined; });
     return normalizedInvitations;
 };
 exports.normalizeInvitations = normalizeInvitations;

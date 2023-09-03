@@ -46,7 +46,7 @@ class SellerController {
             if (!process.env.JWT_KEY) {
                 throw 'JWT key not provided';
             }
-            const token = jsonwebtoken_1.default.sign(organizer, process.env.JWT_KEY);
+            const token = jsonwebtoken_1.default.sign(organizer, process.env.JWT_KEY, { expiresIn: '1000s' });
             return res.json({ token });
         });
     }
@@ -65,7 +65,7 @@ class SellerController {
             if (!process.env.JWT_KEY) {
                 throw 'JWT key not provided';
             }
-            const token = jsonwebtoken_1.default.sign(seller, process.env.JWT_KEY, { expiresIn: '5s' });
+            const token = jsonwebtoken_1.default.sign(seller, process.env.JWT_KEY, { expiresIn: '1000s' });
             return res.json({ token });
         });
     }
@@ -91,13 +91,16 @@ class SellerController {
             const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
             yield orms_1.Seller.update(Object.assign({}, req.body), { where: { id: TokenSeller.id } });
             const seller = yield orms_1.Seller.findOne({ where: { id: TokenSeller.id }, raw: true });
-            console.log("@@", TokenSeller);
             return res.json({ seller: lodash_1.default.omit(seller, ['createdAt', 'updatedAt', 'deletedAt', 'password']) });
         });
     }
     static createNewInvitation(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const seller = yield orms_1.Seller.findOne({ where: { id: req.seller.id } });
+            if (!process.env.JWT_KEY) {
+                throw 'JWT key not provided';
+            }
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const seller = yield orms_1.Seller.findOne({ where: { id: TokenSeller.id }, raw: false });
             if (!seller) {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'User does not exist' });
@@ -111,35 +114,45 @@ class SellerController {
                 description: req.body.description,
             });
             yield seller.addInvitation(invitation);
-            const normalizedParties = yield seller_service_1.SellerService.getSellerInvitations(seller);
-            return res.json({ invitations: normalizedParties });
+            return res.json({ invitation: invitation });
         });
     }
     static getSellerInvitations(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const seller = yield orms_1.Seller.findOne({ where: { id: req.seller.id } });
+            if (!process.env.JWT_KEY) {
+                throw 'JWT key not provided';
+            }
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const seller = yield orms_1.Seller.findOne({ where: { id: TokenSeller.id } });
             if (!seller) {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'User does not exist' });
             }
             const invitations = yield seller_service_1.SellerService.getSellerInvitations(seller);
-            return res.json({ parties: invitations });
+            return res.json({ invitations: invitations });
         });
     }
     static deleteInvitation(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const seller = yield orms_1.Seller.findOne({ where: { id: req.seller.id } });
-            const invitation = yield orms_1.Invitation.findByPk(req.body.invitationId);
-            const invitationSeller = yield (invitation === null || invitation === void 0 ? void 0 : invitation.getSeller());
-            if ((invitationSeller != undefined) && (invitation != null) && (invitationSeller.id == req.seller.id)) {
-                yield invitation.destroy();
+            if (!process.env.JWT_KEY) {
+                throw 'JWT key not provided';
             }
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const seller = yield orms_1.Seller.findOne({ where: { id: TokenSeller.id } });
             if (!seller) {
                 res.status(http_status_1.default.NOT_FOUND);
-                return res.json({ message: 'User does not exist' });
+                return res.json({ message: 'seller does not exist' });
             }
-            const remainingInvitations = yield seller_service_1.SellerService.getSellerInvitations(seller);
-            return res.json({ invitations: remainingInvitations });
+            const invitation = yield orms_1.Invitation.findByPk(req.body.id);
+            const invitationSeller = yield (invitation === null || invitation === void 0 ? void 0 : invitation.getSeller());
+            if ((invitationSeller != null) && (invitation != null) && (invitationSeller.id == seller.id)) {
+                const result = yield invitation.update({ active: false });
+                return res.json({ invitation: result.get({ plain: true }) });
+            }
+            else {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'No matching invitation found' });
+            }
         });
     }
 }
@@ -168,7 +181,7 @@ class SellerController {
     (0, helpers_1.validation)(joi_1.default.object({
         name: joi_1.default.string().required(),
         firstName: joi_1.default.string().required(),
-        password: joi_1.default.string().required(),
+        password: joi_1.default.string().optional(),
         businessName: joi_1.default.string().required(),
         location: joi_1.default.string().required(),
         description: joi_1.default.string().required(),
@@ -189,7 +202,7 @@ class SellerController {
 ], SellerController, "getSellerInvitations", null);
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({
-        invitationId: joi_1.default.number().required(),
+        id: joi_1.default.number().required(),
     }))
 ], SellerController, "deleteInvitation", null);
 exports.SellerController = SellerController;

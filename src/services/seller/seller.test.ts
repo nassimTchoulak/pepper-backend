@@ -7,12 +7,12 @@ import { createFakeSeller, createFakeInvitation, fake } from 'helpers/fake';
 import { syncDbModels } from 'orms/pepperDb';
 import { ISeller, IInvitation } from 'models/types';
 import jwt from 'jsonwebtoken';
+import moment from 'moment';
 
-describe('## organizer', () => {
+describe('## seller', () => {
 
   let sellerObject: Seller;
   const organizerPassword = fake.password;
-
   
 
   beforeAll(async () => {
@@ -116,7 +116,7 @@ describe('## organizer', () => {
         description: fake.description,
         name: fake.name,
         businessName: fake.name,
-        password: fake.password
+        // password: fake.password
       }
       const { token } = (await request(app).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword}).expect(httpStatus.OK)).body;
       const { seller } = (await request(app).put(`/api/seller/`).
@@ -136,22 +136,30 @@ describe('## organizer', () => {
     });
   });
 
-  /*
+  
   describe('# seller invitation', () => {
 
-    test('Should be able to get organizer own parties', async() => {
+    /*
+    beforeAll( async() => {
+      const { sellerToken } = (await request(app).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword}).expect(httpStatus.OK)).body;
+    })
+    */
 
-      const organizerTest = await createFakeSeller(organizerPassword)
+    test('Should be able to get seller own invitations', async() => {
+
+      const sellerTest = await createFakeSeller(organizerPassword)
   
-      const p1 = await createFakeInvitation(organizerTest)
-      const p2 = await createFakeInvitation(organizerTest)
+      const p1 = await createFakeInvitation(sellerTest)
+      const p2 = await createFakeInvitation(sellerTest)
   
-      const testToken = (await request(app).post('/api/organizer/login').
-      send({ email: organizerTest.email, password: organizerPassword}).expect(httpStatus.OK)).body.token;
+      const result_req = (await request(app).post('/api/seller/login').
+      send({ email: sellerTest.email, password: organizerPassword}).expect(httpStatus.OK));
+
+      const testToken = result_req.body.token;
   
-      const  parties  = (await request(app).get(`/api/organizer/party`).
+      const  parties  = (await request(app).get(`/api/seller/invitation`).
           set('Authorization', testToken).
-          expect(httpStatus.OK)).body.parties;
+          expect(httpStatus.OK)).body.invitations;
   
       expect(parties.length).toEqual(2);
       expect(parties[0].id).toEqual(p2.id);
@@ -159,54 +167,67 @@ describe('## organizer', () => {
       
     });
   
-    test('Should be able to create new party for organizer', async() => {
+    test('Should be able to create new invitation for organizer', async() => {
   
       const partyTest = {
-        theme: fake.title,
-        date: new Date(fake.date('YYYY-MM-DD')),
-        price: fake.integer(0, 20),
-        people: fake.integer(20, 40),
-        minAge: fake.integer(20, 30),
-        maxAge: fake.integer(30, 50),
+        product: fake.name,
+        date: moment(),
+        price: fake.integer(0, 100),
+        instances: fake.integer(20, 40),
+        description: fake.description,
+        delivery: fake.address2,
       }
+
+      const { token } = (await request(app).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword})).body;
   
-      const parties: IParty[] = (await request(app).post(`/api/organizer/party`).
+      const invitation: IInvitation = (await request(app).post(`/api/seller/invitation`).
       send({...partyTest}).
-      set('Authorization', sellerToken).
-      expect(httpStatus.OK)).body.parties;
+      set('Authorization', token).
+      expect(httpStatus.OK)).body.invitation;
   
-      expect(parties.length).toEqual(1);
-      expect(parties[0].theme).toEqual(partyTest.theme);
-      expect(parties[0].price).toEqual(partyTest.price);
+      expect(invitation).toBeDefined();
+      expect(invitation.product).toEqual(partyTest.product);
+      expect(invitation.price).toEqual(partyTest.price);
     });
 
-    test('Should be able to create delete party for organizer', async() => {
+    
+    test('Should be able to create delete invitation for seller', async() => {
   
       const partyTest = {
-        theme: fake.title,
-        date: new Date(fake.date('YYYY-MM-DD')),
-        price: fake.integer(0, 20),
-        people: fake.integer(20, 40),
-        minAge: fake.integer(20, 30),
-        maxAge: fake.integer(30, 50),
+        product: fake.name,
+        date: moment(),
+        price: fake.integer(0, 100),
+        instances: fake.integer(20, 40),
+        description: fake.description,
+        delivery: fake.address2,
       }
-  
-      const parties: IParty[] = (await request(app).post(`/api/organizer/party`).
+
+      const { token } = (await request(app).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword})).body;
+
+      const request_val = (await request(app).post(`/api/seller/invitation`).
       send({...partyTest}).
-      set('Authorization', sellerToken).
-      expect(httpStatus.OK)).body.parties;
+      set('Authorization', token).
+      expect(httpStatus.OK));
+      
+      // console.log(request_val);
+      
+      const invitation: IInvitation = request_val.body.invitation;
   
-      expect(parties.length).toBeGreaterThanOrEqual(1);
+      expect(invitation.active).toBe(true);
 
-      const listLength = parties.length;
+      
+      const req_reuslt = (await request(app).delete(`/api/seller/invitation`).
+      send({ id: invitation.id}).
+      set('Authorization', token));
 
-      const parties2: IParty[] = (await request(app).delete(`/api/organizer/party`).
-      send({ partyId: parties[0].id}).
-      set('Authorization', sellerToken).
-      expect(httpStatus.OK)).body.parties;
+      // console.log("@@z@", req_reuslt);
 
-      expect(parties2.length).toEqual(listLength - 1);
+      const delete_invitation = req_reuslt.body.invitation;
+
+      expect(delete_invitation.active).toEqual(false);
+      
     });
+    
 
-  }) */
+  }) 
 });
