@@ -36,6 +36,7 @@ export interface IBuyerBase {
   phoneNumber: string,
   address: string,
   status: UserStatus,
+  email: string,
 }
 
 export interface ISellerBase {

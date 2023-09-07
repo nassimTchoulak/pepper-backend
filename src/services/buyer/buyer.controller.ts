@@ -4,10 +4,11 @@ import { validation } from 'helpers/helpers';
 import { Buyer, Invitation, Seller } from 'orms';
 import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
-import { Gender, IBuyer } from 'models/types';
+import { Gender, IBuyer, UserStatus } from 'models/types';
 import _ from 'lodash';
 import 'dotenv/config';
 import AuthHelper from 'helpers/auth';
+import { Op, where } from 'sequelize';
 
 interface UserRequest extends Request {
   user: Buyer
@@ -16,9 +17,13 @@ interface UserRequest extends Request {
 export class BuyerController {
   @validation(Joi.object({
     phoneNumber: Joi.string().required(),
+    email: Joi.string().required(),
   }))
   public static async createLoginVerificationAndCheckIfUserExisits(req: Request, res: Response): Promise<Response<{ userExists: boolean }>> {
-    const user = await Buyer.findOne({ where: { phoneNumber: req.query.phoneNumber }, raw: true});
+    const user = await Buyer.findOne({ where: {[Op.or]: [
+      { phoneNumber: req.body.phoneNumber },
+      { email: req.body.email }
+    ]} , raw: true})
     // FIX: fix type
     await AuthHelper.createVerification(req.query.phoneNumber as string);
     return res.json({ userExists: !!user });
@@ -30,12 +35,23 @@ export class BuyerController {
     code: Joi.string().required(),
     name: Joi.string().required(),
     firstName: Joi.string().required(),
+    password: Joi.string().required(),
+    birthDay: Joi.date().required(),
     gender: Joi.string().valid(...Object.values(Gender)).required(),
     address: Joi.string().optional(),
     description: Joi.string().optional(),
   }))
   public static async subscribe(req: Request, res: Response): Promise<Response<{ token: string }>> {
     const isVerified = await AuthHelper.checkVerification(req.body.phoneNumber, req.body.code);
+    const buyerTest = await Buyer.findOne({ where: {[Op.or]: [
+      { phoneNumber: req.body.phoneNumber },
+      { email: req.body.email }
+    ]} , raw: true})
+
+    if (buyerTest !== null) {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'phoneNumber or email already exists' });
+    }
 
     if (!isVerified) {
       res.status(httpStatus.UNAUTHORIZED);
@@ -43,7 +59,11 @@ export class BuyerController {
     }
 
     await Buyer.create({
+      email: req.body.email,
       name: req.body.name,
+      firstName: req.body.firstName,
+      password: req.body.password,
+      birthDay: req.body.birthDay,
       gender: req.body.gender,
       phoneNumber: req.body.phoneNumber,
       address: req.body.address,
@@ -61,43 +81,84 @@ export class BuyerController {
       throw 'JWT key not provided';
     }
 
-    const token = jwt.sign(user, process.env.JWT_KEY);
+    // TO-DO send email here
+
+    const token = jwt.sign(user, process.env.JWT_KEY, {expiresIn: "24h"});
     return res.json({ token });
   }
 
   @validation(Joi.object({
-    phoneNumber: Joi.string().required(),
-    code: Joi.string().required(),
+    email: Joi.string().required().allow(''),
+    phoneNumber: Joi.string().required().allow(''),
+    password: Joi.string().required(),
   }))
   public static async login(req: Request, res: Response): Promise<Response<{ token: string }>> {
-    const user = await Buyer.findOne({ where: { phoneNumber: req.body.phoneNumber }, raw: true});
-    if (!user) {
-      res.status(httpStatus.UNAUTHORIZED);
-      return res.json({ message: 'User does not exist' });
-    }
-
-
-    const isVerified = await AuthHelper.checkVerification(req.body.phoneNumber, req.body.code);
-
-    if (!isVerified) {
-      res.status(httpStatus.UNAUTHORIZED);
-      return res.json({ message: 'Verification code not valid' });
-    }
+    const user = await Buyer.findOne({ where: {[Op.or]: [
+      { phoneNumber: req.body.phoneNumber },
+      { email: req.body.email }
+    ]} , raw: true})
 
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
     }
-    const token = jwt.sign(user, process.env.JWT_KEY);
+
+    if (user === null) {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'User does not exist' });
+    }
+
+    if (user.status !== UserStatus.Accepted) {
+      // send tmp token
+      const token = jwt.sign(user, process.env.JWT_KEY, {expiresIn:"600s"});
+      return res.json({ token });
+    }
+
+    const token = jwt.sign(user, process.env.JWT_KEY, {expiresIn:"24h"});
+    return res.json({ token });
+  }
+
+  @validation(Joi.object({
+    codeEmail: Joi.number().required()
+  }))
+  public static async validateEmail(req: UserRequest, res: Response): Promise<Response<{ token: string }>> {
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const buyer = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as IBuyer;
+
+    // nothing to activate
+    if (buyer.status !== UserStatus.Pending)
+    {
+      return res.json({ token: req.headers.authorization || "" });
+    }
+    const user = await Buyer.findOne({ where: { email: buyer.email}, raw: false });
+    if (!user) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'User does not exist' });
+    }
+    // update the user
+    // user.update({})
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const user_data = user.get({plain: true});
+    const token = jwt.sign(user_data, process.env.JWT_KEY);
     return res.json({ token });
   }
 
   @validation(Joi.object({}))
   public static async getBuyer(req: UserRequest, res: Response): Promise<Response<{ user: IBuyer }>> {
-    const user = await Buyer.findOne({ where: { id: req.user.id }, raw: true });
+
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const buyer = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as IBuyer;
+    const user = await Buyer.findOne({ where: { email: buyer.email }, raw: true });
     if (!user) {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'User does not exist' });
     }
+    // TO-DO: omit password
     return res.json({ user: _.omit(user, ['createdAt', 'updatedAt', 'deletedAt']) });
   }
 
@@ -106,7 +167,8 @@ export class BuyerController {
     description: Joi.string().optional(),
     name: Joi.string().optional(),
     firstName: Joi.string().optional(),
-
+    birthday: Joi.date().optional(),
+    password: Joi.string().optional(),
   }))
   public static async updateBuyer(req: UserRequest, res: Response): Promise<Response<{ user: IBuyer }>> {
     await Buyer.update({ ...req.body }, { where:  { id: req.user.id }});

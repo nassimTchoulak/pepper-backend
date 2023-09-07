@@ -18,6 +18,7 @@ class UserRoutes {
         this._router.route('/').put(acl_1.authorizeForBuyer, (0, helpers_1.checkParametersAndCallRoute)(buyer_controller_1.BuyerController.updateBuyer));
         this._router.route('/login').get((0, helpers_1.checkParametersAndCallRoute)(buyer_controller_1.BuyerController.createLoginVerificationAndCheckIfUserExisits));
         this._router.route('/login').put((0, helpers_1.checkParametersAndCallRoute)(buyer_controller_1.BuyerController.subscribe));
+        this._router.route('/login').patch(acl_1.authorizeForBuyer, (0, helpers_1.checkParametersAndCallRoute)(buyer_controller_1.BuyerController.validateEmail));
         this._router.route('/login').post((0, helpers_1.checkParametersAndCallRoute)(buyer_controller_1.BuyerController.login));
     }
 }

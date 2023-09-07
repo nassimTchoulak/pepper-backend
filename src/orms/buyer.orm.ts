@@ -24,7 +24,6 @@ class Buyer extends Model {
   public addInvitation!: HasManyAddAssociationMixin<Invitation, number>;
   public hasInvitation!: HasManyHasAssociationMixin<Invitation, number>;
   public countInvitations!: HasManyCountAssociationsMixin;
-  public InvitationParty!: HasManyRemoveAssociationMixin<Invitation, number>;
 }
 
 const initBuyer = (sequelize: Sequelize) => {

@@ -7,10 +7,11 @@ import { Buyer, Invitation } from 'orms';
 import { createFakeBuyer, createFakeInvitationWithSeller, fake } from 'helpers/fake';
 import { syncDbModels } from 'orms/pepperDb';
 import jwt from 'jsonwebtoken';
-import { Gender } from 'models/types';
+import { Gender, IBuyer } from 'models/types';
 import _ from 'lodash';
 import { } from 'services/buyer/buyer.helper';
 import 'dotenv/config';
+import moment from 'moment';
 
 describe('## User', () => {
   let user1: Buyer;
@@ -41,58 +42,60 @@ describe('## User', () => {
   // TODO: mock twilio and test verification
   describe('# Login', () => {
     test('should NOT be able to login if phoneNumber is not provided', async () => {
-      await request(app).post('/api/user/login').send({ randomField: 'random' }).expect(httpStatus.BAD_REQUEST);
+      await request(app).post('/api/buyer/login').send({ randomField: 'random' }).expect(httpStatus.BAD_REQUEST);
     });
   
-    test('should NOT be able to login if phoneNumber does not exist', async () => {
-      await request(app).post('/api/user/login').send({ phoneNumber: '0000000000', code: '123456' }).expect(httpStatus.UNAUTHORIZED);
+    test('should NOT be able to login if phoneNumber / email / password does not exist', async () => {
+      await request(app).post('/api/buyer/login').send({ email:"test", phoneNumber: '0000000000', password: '123456' }).expect(httpStatus.UNAUTHORIZED);
     });
 
-    test('should be able to see if user with phoneNumber does NOT exists if he actually does NOT exist', async () => {
-      const { userExists } = (await request(app).get('/api/user/login').query({ phoneNumber: '0000000000' }).expect(httpStatus.OK)).body;
+    test('should be able to see if buyer with phoneNumber does NOT exists if he actually does NOT exist', async () => {
+      const res = (await request(app).get('/api/buyer/login').query({ email: 'test', phoneNumber: '00000010000' }));
+      console.log(res);
+      const { userExists } = (await request(app).get('/api/buyer/login').send({ email: 'test', phoneNumber: '00000010000' }).expect(httpStatus.OK)).body;
       expect(userExists).toBe(false);
     });
 
-    test('should be able to see if user with phoneNumber exists if he actually does exist', async () => {
-      const { userExists } = (await request(app).get('/api/user/login').query({ phoneNumber: user1.phoneNumber }).expect(httpStatus.OK)).body;
+    test('should be able to see if buyer with phoneNumber exists if he actually does exist', async () => {
+      const { userExists } = (await request(app).get('/api/buyer/login').send({ phoneNumber: user1.phoneNumber, email: user1.email }).expect(httpStatus.OK)).body;
       expect(userExists).toBe(true);
     });
 
-    /*
+    
 
     test('should be able to subscribe with phoneNumber', async () => {
-      const userInfo = {
+      const buyerInfo = {
         name: fake.first_name,
+        firstName: fake.name,
         gender: (fake as unknown as any).gender,
-        phoneNumber: '0000000000',
+        phoneNumber: (fake as unknown as any).phoneNumber,
+        email: fake.email,
+        password: fake.password,
         address: fake.address,
-        description: fake.description,
-        job: fake.company_name,
-        imgs: [(fake as unknown as any).portrait, (fake as unknown as any).portrait, (fake as unknown as any).portrait],
-        interests: [fake.word, fake.word, fake.word],
+        birthDay: moment()
       };
 
-      const { token } = (await request(app).put('/api/user/login').send({ ...userInfo, code: '123456' }).expect(httpStatus.OK)).body;
-      const subscribedUser = await Buyer.findOne({ where: { phoneNumber: '0000000000'}}) as unknown as Buyer;
+      const { token } = (await request(app).put('/api/buyer/login').send({ ...buyerInfo, code: '123456' }).expect(httpStatus.OK)).body;
+      const subscribedUser = await Buyer.findOne({ where: { phoneNumber: buyerInfo.phoneNumber}}) as unknown as IBuyer;
       
       if (!process.env.JWT_KEY) {
         throw 'JWT key not provided';
       }
 
-      const authentifiedUser = jwt.verify(token, process.env.JWT_KEY) as IUser;
+      const authentifiedUser = jwt.verify(token, process.env.JWT_KEY) as IBuyer;
       expect(subscribedUser.id).toEqual(authentifiedUser.id);
     });
   
     test('should be able to login if phoneNumber exists', async () => {
-      const { token } = (await request(app).post('/api/user/login').send({ phoneNumber: user1.phoneNumber, code: '123456' }).expect(httpStatus.OK)).body;
+      const { token } = (await request(app).post('/api/buyer/login').send({ phoneNumber: user1.phoneNumber, password:user1.password, email: '' }).expect(httpStatus.OK)).body;
       if (!process.env.JWT_KEY) {
         throw 'JWT key not provided';
       }
-      const authentifiedUser = jwt.verify(token, process.env.JWT_KEY) as IUser;
+      const authentifiedUser = jwt.verify(token, process.env.JWT_KEY) as IBuyer;
   
       expect(user1.id).toEqual(authentifiedUser.id);
     });
-    */
+    
   });
 
   /*
