@@ -12,6 +12,7 @@ const lodash_1 = (0, tslib_1.__importDefault)(require("lodash"));
 require("dotenv/config");
 const auth_1 = (0, tslib_1.__importDefault)(require("helpers/auth"));
 const sequelize_1 = require("sequelize");
+const mailer_1 = require("services/mailer/mailer");
 ;
 class BuyerController {
     static createLoginVerificationAndCheckIfUserExisits(req, res) {
@@ -58,6 +59,7 @@ class BuyerController {
             if (!process.env.JWT_KEY) {
                 throw 'JWT key not provided';
             }
+            (0, mailer_1.sendEmailVerificationCode)(user.email, user.emailCode, user.firstName);
             const token = jsonwebtoken_1.default.sign(user, process.env.JWT_KEY, { expiresIn: "24h" });
             return res.json({ token });
         });
@@ -89,7 +91,7 @@ class BuyerController {
                 throw 'JWT key not provided';
             }
             const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
-            if (buyer.status !== types_1.UserStatus.Pending) {
+            if (buyer.status != types_1.UserStatus.Pending) {
                 return res.json({ token: req.headers.authorization || "" });
             }
             const user = yield orms_1.Buyer.findOne({ where: { email: buyer.email }, raw: false });
@@ -97,6 +99,11 @@ class BuyerController {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'User does not exist' });
             }
+            if (user.emailCode !== parseInt(req.body.emailCode)) {
+                res.status(http_status_1.default.UNAUTHORIZED);
+                return res.json({ message: 'wrong code' });
+            }
+            user.update({ status: types_1.UserStatus.Accepted });
             if (!process.env.JWT_KEY) {
                 throw 'JWT key not provided';
             }
@@ -116,7 +123,7 @@ class BuyerController {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'User does not exist' });
             }
-            return res.json({ user: lodash_1.default.omit(user, ['createdAt', 'updatedAt', 'deletedAt']) });
+            return res.json({ user: lodash_1.default.omit(user, ['createdAt', 'updatedAt', 'deletedAt', 'emailCode']) });
         });
     }
     static updateBuyer(req, res) {
@@ -156,7 +163,7 @@ class BuyerController {
 ], BuyerController, "login", null);
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({
-        codeEmail: joi_1.default.number().required()
+        emailCode: joi_1.default.number().required()
     }))
 ], BuyerController, "validateEmail", null);
 (0, tslib_1.__decorate)([

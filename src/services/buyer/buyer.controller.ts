@@ -9,6 +9,7 @@ import _ from 'lodash';
 import 'dotenv/config';
 import AuthHelper from 'helpers/auth';
 import { Op, where } from 'sequelize';
+import { sendEmailVerificationCode } from 'services/mailer/mailer';
 
 interface UserRequest extends Request {
   user: Buyer
@@ -82,6 +83,7 @@ export class BuyerController {
     }
 
     // TO-DO send email here
+    sendEmailVerificationCode(user.email, user.emailCode, user.firstName);
 
     const token = jwt.sign(user, process.env.JWT_KEY, {expiresIn: "24h"});
     return res.json({ token });
@@ -118,7 +120,7 @@ export class BuyerController {
   }
 
   @validation(Joi.object({
-    codeEmail: Joi.number().required()
+    emailCode: Joi.number().required()
   }))
   public static async validateEmail(req: UserRequest, res: Response): Promise<Response<{ token: string }>> {
     if (!process.env.JWT_KEY) {
@@ -127,7 +129,7 @@ export class BuyerController {
     const buyer = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as IBuyer;
 
     // nothing to activate
-    if (buyer.status !== UserStatus.Pending)
+    if (buyer.status != UserStatus.Pending)
     {
       return res.json({ token: req.headers.authorization || "" });
     }
@@ -136,8 +138,13 @@ export class BuyerController {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'User does not exist' });
     }
+
+    if (user.emailCode !== parseInt(req.body.emailCode)) {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'wrong code' });
+    }
     // update the user
-    // user.update({})
+    user.update({status: UserStatus.Accepted})
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
     }
@@ -159,7 +166,7 @@ export class BuyerController {
       return res.json({ message: 'User does not exist' });
     }
     // TO-DO: omit password
-    return res.json({ user: _.omit(user, ['createdAt', 'updatedAt', 'deletedAt']) });
+    return res.json({ user: _.omit(user, ['createdAt', 'updatedAt', 'deletedAt', 'emailCode']) });
   }
 
   @validation(Joi.object({

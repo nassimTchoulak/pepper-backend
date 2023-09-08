@@ -56,6 +56,13 @@ const initSeller = (sequelize) => {
             allowNull: false,
             defaultValue: types_1.UserStatus.Pending
         },
+        emailCode: {
+            type: sequelize_1.DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: () => {
+                return Math.floor(Math.random() * (9999 - 1000 + 1) + 1000);
+            }
+        },
     }, { sequelize, paranoid: true });
 };
 exports.initSeller = initSeller;

@@ -7,7 +7,7 @@ import { Buyer, Invitation } from 'orms';
 import { createFakeBuyer, createFakeInvitationWithSeller, fake } from 'helpers/fake';
 import { syncDbModels } from 'orms/pepperDb';
 import jwt from 'jsonwebtoken';
-import { Gender, IBuyer } from 'models/types';
+import { Gender, IBuyer, UserStatus } from 'models/types';
 import _ from 'lodash';
 import { } from 'services/buyer/buyer.helper';
 import 'dotenv/config';
@@ -95,6 +95,35 @@ describe('## User', () => {
   
       expect(user1.id).toEqual(authentifiedUser.id);
     });
+
+    test('should not be able to validate wrong emailCode', async () => {
+      const { token } = (await request(app).post('/api/buyer/login').send({ phoneNumber: user1.phoneNumber, password:user1.password, email: '' }).expect(httpStatus.OK)).body;
+      if (!process.env.JWT_KEY) {
+        throw 'JWT key not provided';
+      }
+      (await request(app).patch(`/api/buyer/login`).
+        send({emailCode: 1234}).
+        set('Authorization', token).
+        expect(httpStatus.UNAUTHORIZED));
+    });
+
+    test('should be able to validate correct emailCode', async () => {
+      const { token } = (await request(app).post('/api/buyer/login').send({ phoneNumber: user1.phoneNumber, password:user1.password, email: '' }).expect(httpStatus.OK)).body;
+      if (!process.env.JWT_KEY) {
+        throw 'JWT key not provided';
+      }
+      const authentifiedUser = jwt.verify(token, process.env.JWT_KEY) as IBuyer;
+      const buyerObject = await Buyer.findByPk(authentifiedUser.id)
+      const result_request = (await request(app).patch(`/api/buyer/login`).
+        send({emailCode: buyerObject?.emailCode}).
+        set('Authorization', token).
+        expect(httpStatus.OK)).body;
+
+        const validated_user = jwt.verify(result_request.token, process.env.JWT_KEY) as IBuyer;
+        expect(validated_user.status).toBe(UserStatus.Accepted);
+        expect(validated_user.id).toBe(authentifiedUser.id);
+    });
+
     
   });
 

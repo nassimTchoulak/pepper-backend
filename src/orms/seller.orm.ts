@@ -16,6 +16,7 @@ class Seller extends Model {
   public location!: string;
   public description!: string;
   public status!: UserStatus;
+  public emailCode !: number;
 
   public createdAt!: Date;
   public updatedAt!: Date;
@@ -75,6 +76,13 @@ const initSeller = (sequelize: Sequelize) => {
       type: DataTypes.ENUM( UserStatus.Accepted, UserStatus.Started, UserStatus.Rejected, UserStatus.Pending ),
       allowNull: false,
       defaultValue: UserStatus.Pending 
+    },
+    emailCode: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: ()=>{
+        return Math.floor(Math.random() * (9999 - 1000 + 1) + 1000)
+      }
     },
   }, { sequelize, paranoid: true });
 };

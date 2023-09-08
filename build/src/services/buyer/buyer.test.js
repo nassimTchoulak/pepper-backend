@@ -79,6 +79,31 @@ describe('## User', () => {
             const authentifiedUser = jsonwebtoken_1.default.verify(token, process.env.JWT_KEY);
             expect(user1.id).toEqual(authentifiedUser.id);
         }));
+        test('should not be able to validate wrong emailCode', () => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
+            const { token } = (yield (0, supertest_1.default)(index_1.default).post('/api/buyer/login').send({ phoneNumber: user1.phoneNumber, password: user1.password, email: '' }).expect(http_status_1.default.OK)).body;
+            if (!process.env.JWT_KEY) {
+                throw 'JWT key not provided';
+            }
+            (yield (0, supertest_1.default)(index_1.default).patch(`/api/buyer/login`).
+                send({ emailCode: 1234 }).
+                set('Authorization', token).
+                expect(http_status_1.default.UNAUTHORIZED));
+        }));
+        test('should be able to validate correct emailCode', () => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
+            const { token } = (yield (0, supertest_1.default)(index_1.default).post('/api/buyer/login').send({ phoneNumber: user1.phoneNumber, password: user1.password, email: '' }).expect(http_status_1.default.OK)).body;
+            if (!process.env.JWT_KEY) {
+                throw 'JWT key not provided';
+            }
+            const authentifiedUser = jsonwebtoken_1.default.verify(token, process.env.JWT_KEY);
+            const buyerObject = yield orms_1.Buyer.findByPk(authentifiedUser.id);
+            const result_request = (yield (0, supertest_1.default)(index_1.default).patch(`/api/buyer/login`).
+                send({ emailCode: buyerObject === null || buyerObject === void 0 ? void 0 : buyerObject.emailCode }).
+                set('Authorization', token).
+                expect(http_status_1.default.OK)).body;
+            const validated_user = jsonwebtoken_1.default.verify(result_request.token, process.env.JWT_KEY);
+            expect(validated_user.status).toBe(types_1.UserStatus.Accepted);
+            expect(validated_user.id).toBe(authentifiedUser.id);
+        }));
     });
 });
 //# sourceMappingURL=buyer.test.js.map

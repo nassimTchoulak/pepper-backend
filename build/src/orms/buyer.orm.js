@@ -54,7 +54,14 @@ const initBuyer = (sequelize) => {
             type: sequelize_1.DataTypes.ENUM(types_1.UserStatus.Pending, types_1.UserStatus.Accepted, types_1.UserStatus.Rejected, types_1.UserStatus.Started),
             allowNull: false,
             defaultValue: types_1.UserStatus.Pending,
-        }
+        },
+        emailCode: {
+            type: sequelize_1.DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: () => {
+                return Math.floor(Math.random() * (9999 - 1000 + 1) + 1000);
+            }
+        },
     }, { sequelize, paranoid: true });
 };
 exports.initBuyer = initBuyer;
