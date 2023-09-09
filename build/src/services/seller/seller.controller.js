@@ -12,10 +12,17 @@ require("dotenv/config");
 const lodash_1 = (0, tslib_1.__importDefault)(require("lodash"));
 const seller_service_1 = require("services/seller/seller.service");
 const sequelize_1 = require("sequelize");
+const mailer_1 = require("services/mailer/mailer");
+const auth_1 = (0, tslib_1.__importDefault)(require("helpers/auth"));
 ;
 class SellerController {
     static subscribe(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+            const isVerified = yield auth_1.default.checkVerification(req.body.phoneNumber, req.body.code);
+            if (!isVerified) {
+                res.status(http_status_1.default.UNAUTHORIZED);
+                return res.json({ message: 'Verification code not valid' });
+            }
             const organizerTest = yield orms_1.Seller.findOne({ where: { [sequelize_1.Op.or]: [
                         { phoneNumber: req.body.phoneNumber },
                         { email: req.body.email }
@@ -43,6 +50,7 @@ class SellerController {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'seller could not be created!' });
             }
+            (0, mailer_1.sendEmailVerificationCodeSeller)(organizer.email, organizer.emailCode, organizer.firstName);
             if (!process.env.JWT_KEY) {
                 throw 'JWT key not provided';
             }
@@ -80,7 +88,7 @@ class SellerController {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'seller does not exist' });
             }
-            return res.json({ seller: lodash_1.default.omit(seller, ['createdAt', 'updatedAt', 'deletedAt', 'password']) });
+            return res.json({ seller: lodash_1.default.omit(seller, ['createdAt', 'updatedAt', 'deletedAt', 'password', 'emailCode']) });
         });
     }
     static updateSeller(req, res) {
@@ -92,6 +100,30 @@ class SellerController {
             yield orms_1.Seller.update(Object.assign({}, req.body), { where: { id: TokenSeller.id } });
             const seller = yield orms_1.Seller.findOne({ where: { id: TokenSeller.id }, raw: true });
             return res.json({ seller: lodash_1.default.omit(seller, ['createdAt', 'updatedAt', 'deletedAt', 'password']) });
+        });
+    }
+    static validateSellerEmail(req, res) {
+        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+            if (!process.env.JWT_KEY) {
+                throw 'JWT key not provided';
+            }
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const user = yield orms_1.Seller.findOne({ where: { email: TokenSeller.email }, raw: false });
+            if (!user) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'User does not exist' });
+            }
+            if (user.emailCode !== parseInt(req.body.emailCode)) {
+                res.status(http_status_1.default.UNAUTHORIZED);
+                return res.json({ message: 'wrong code' });
+            }
+            user.update({ status: types_1.UserStatus.Accepted });
+            if (!process.env.JWT_KEY) {
+                throw 'JWT key not provided';
+            }
+            const user_data = user.get({ plain: true });
+            const token = jsonwebtoken_1.default.sign(user_data, process.env.JWT_KEY);
+            return res.json({ token });
         });
     }
     static createNewInvitation(req, res) {
@@ -166,6 +198,7 @@ class SellerController {
         businessName: joi_1.default.string().required(),
         location: joi_1.default.string().required(),
         description: joi_1.default.string().required(),
+        code: joi_1.default.string().required()
     }))
 ], SellerController, "subscribe", null);
 (0, tslib_1.__decorate)([
@@ -187,6 +220,11 @@ class SellerController {
         description: joi_1.default.string().required(),
     }))
 ], SellerController, "updateSeller", null);
+(0, tslib_1.__decorate)([
+    (0, helpers_1.validation)(joi_1.default.object({
+        emailCode: joi_1.default.number().required()
+    }))
+], SellerController, "validateSellerEmail", null);
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({
         product: joi_1.default.string().required(),

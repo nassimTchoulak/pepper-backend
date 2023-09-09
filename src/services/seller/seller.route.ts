@@ -15,7 +15,9 @@ class SellerRoutes {
     this._router.route('/').get(authorizeForSeller,checkParametersAndCallRoute(SellerController.getSeller));
     this._router.route('/').put(authorizeForSeller,checkParametersAndCallRoute(SellerController.updateSeller));
     this._router.route('/login').put(checkParametersAndCallRoute(SellerController.subscribe));
+    this._router.route('/login').patch(authorizeForSeller, checkParametersAndCallRoute(SellerController.validateSellerEmail));
     this._router.route('/login').post(checkParametersAndCallRoute(SellerController.login));
+
     this._router.route('/invitation').post(authorizeForSeller,checkParametersAndCallRoute(SellerController.createNewInvitation));
     this._router.route('/invitation').get(authorizeForSeller,checkParametersAndCallRoute(SellerController.getSellerInvitations));
     this._router.route('/invitation').delete(authorizeForSeller,checkParametersAndCallRoute(SellerController.deleteInvitation));

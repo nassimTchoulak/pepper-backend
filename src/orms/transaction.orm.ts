@@ -3,6 +3,8 @@ import { Seller } from 'orms/seller.orm';
 import { Buyer } from './buyer.orm';
 import { Invitation } from './invitation.orm';
 import { TransactionStatus } from 'models/types';
+import { randomHash } from 'helpers/helpers';
+import moment from 'moment';
 
 class Transaction extends Model {
   public id!: number;
@@ -34,6 +36,13 @@ const initTransaction = (sequelize: Sequelize) => {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true
+    },
+    uuid: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: ()=>{
+        return randomHash(2) + moment().format("YY-MM-DD") + randomHash(3)
+      }
     },
     buyerId: {
       type: DataTypes.INTEGER,
@@ -80,6 +89,13 @@ const initTransaction = (sequelize: Sequelize) => {
     delivery: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    activationKey: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: ()=>{
+        return randomHash(6)
+      }
     },
     state: {
       type: DataTypes.ENUM(TransactionStatus.CANCELED, TransactionStatus.OPENED, TransactionStatus.DONE, TransactionStatus.PAYED, TransactionStatus.CONFIRMED),

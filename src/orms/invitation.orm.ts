@@ -3,6 +3,7 @@ import { Seller } from 'orms/seller.orm';
 import { Transaction } from './transaction.orm';
 import { Buyer } from './buyer.orm';
 import { TransactionStatus } from 'models/types';
+import { randomHash } from 'helpers/helpers';
 
 class Invitation extends Model {
   public id!: number;
@@ -57,6 +58,13 @@ const initInvitation = (sequelize: Sequelize) => {
     delivery: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    uuid: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: ()=>{
+        return randomHash(7)
+      }
     },
     active: {
       type: DataTypes.BOOLEAN,

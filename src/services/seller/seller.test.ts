@@ -42,6 +42,7 @@ describe('## seller', () => {
         businessName: fake.title,
         location: fake.address,
         description: fake.description,
+        code: "123456"
       };
 
       const { token } = (await request(app).put('/api/seller/login').send({ ...sellerInfoTest }).expect(httpStatus.OK)).body;
@@ -81,6 +82,7 @@ describe('## seller', () => {
         businessName: fake.title,
         location: fake.address,
         description: fake.description,
+        code: "123456"
       };
 
       await request(app).put('/api/seller/login').send({ ...sellerInfo2 }).expect(httpStatus.OK);

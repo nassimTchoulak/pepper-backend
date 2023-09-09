@@ -33,6 +33,7 @@ describe('## seller', () => {
                 businessName: fake_1.fake.title,
                 location: fake_1.fake.address,
                 description: fake_1.fake.description,
+                code: "123456"
             };
             const { token } = (yield (0, supertest_1.default)(index_1.default).put('/api/seller/login').send(Object.assign({}, sellerInfoTest)).expect(http_status_1.default.OK)).body;
             const subscribedSeller = yield orms_1.Seller.findOne({
@@ -63,6 +64,7 @@ describe('## seller', () => {
                 businessName: fake_1.fake.title,
                 location: fake_1.fake.address,
                 description: fake_1.fake.description,
+                code: "123456"
             };
             yield (0, supertest_1.default)(index_1.default).put('/api/seller/login').send(Object.assign({}, sellerInfo2)).expect(http_status_1.default.OK);
             yield (0, supertest_1.default)(index_1.default).put('/api/seller/login').send(Object.assign({}, sellerInfo2)).expect(http_status_1.default.UNAUTHORIZED);

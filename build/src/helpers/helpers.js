@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uploadToS3 = exports.parseFiles = exports.checkParametersAndCallRoute = exports.validation = void 0;
+exports.randomHash = exports.uploadToS3 = exports.parseFiles = exports.checkParametersAndCallRoute = exports.validation = void 0;
 const tslib_1 = require("tslib");
 require("dotenv/config");
 const http_status_1 = (0, tslib_1.__importDefault)(require("http-status"));
@@ -74,4 +74,16 @@ function uploadToS3(file) {
     });
 }
 exports.uploadToS3 = uploadToS3;
+function randomHash(length) {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    let counter = 0;
+    while (counter < length) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        counter += 1;
+    }
+    return result;
+}
+exports.randomHash = randomHash;
 //# sourceMappingURL=helpers.js.map

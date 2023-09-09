@@ -59,7 +59,7 @@ class BuyerController {
             if (!process.env.JWT_KEY) {
                 throw 'JWT key not provided';
             }
-            (0, mailer_1.sendEmailVerificationCode)(user.email, user.emailCode, user.firstName);
+            (0, mailer_1.sendEmailVerificationCodeBuyer)(user.email, user.emailCode, user.firstName);
             const token = jsonwebtoken_1.default.sign(user, process.env.JWT_KEY, { expiresIn: "24h" });
             return res.json({ token });
         });
@@ -123,7 +123,7 @@ class BuyerController {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'User does not exist' });
             }
-            return res.json({ user: lodash_1.default.omit(user, ['createdAt', 'updatedAt', 'deletedAt', 'emailCode']) });
+            return res.json({ user: lodash_1.default.omit(user, ['createdAt', 'updatedAt', 'deletedAt', 'emailCode', 'password']) });
         });
     }
     static updateBuyer(req, res) {

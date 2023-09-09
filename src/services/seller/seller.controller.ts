@@ -9,6 +9,8 @@ import 'dotenv/config';
 import _ from 'lodash';
 import { SellerService } from 'services/seller/seller.service';
 import { Op } from 'sequelize';
+import { sendEmailVerificationCodeSeller } from 'services/mailer/mailer';
+import AuthHelper from 'helpers/auth';
 
 // useful when parsing the entire ISeller to be modified
 interface SellerRequest extends Request {
@@ -26,11 +28,18 @@ export class SellerController {
     businessName: Joi.string().required(),
     location: Joi.string().required(),
     description: Joi.string().required(),
+    code: Joi.string().required()
   }))
   
   public static async subscribe(req: Request, res: Response): Promise<Response<{ token: string }>> {
 
     // TO-DO : Add other tests such as phoneNumber and location
+    const isVerified = await AuthHelper.checkVerification(req.body.phoneNumber, req.body.code);
+
+    if (!isVerified) {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'Verification code not valid' });
+    }
     const organizerTest = await Seller.findOne({ where: {[Op.or]: [
       { phoneNumber: req.body.phoneNumber },
       { email: req.body.email }
@@ -64,6 +73,8 @@ export class SellerController {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'seller could not be created!' });
     }
+
+    sendEmailVerificationCodeSeller(organizer.email, organizer.emailCode, organizer.firstName);
 
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
@@ -111,7 +122,7 @@ export class SellerController {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'seller does not exist' });
     }
-    return res.json({ seller: _.omit(seller, ['createdAt', 'updatedAt', 'deletedAt','password']) });
+    return res.json({ seller: _.omit(seller, ['createdAt', 'updatedAt', 'deletedAt','password', 'emailCode']) });
   }
 
 
@@ -133,6 +144,33 @@ export class SellerController {
     return res.json({ seller: _.omit(seller, ['createdAt', 'updatedAt', 'deletedAt','password']) });
   }
 
+  @validation(Joi.object({
+    emailCode: Joi.number().required()
+  }))
+  public static async validateSellerEmail(req: SellerRequest, res: Response): Promise<Response<{ token: string }>> {
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
+    const user = await Seller.findOne({ where: { email: TokenSeller.email}, raw: false });
+    if (!user) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'User does not exist' });
+    }
+
+    if (user.emailCode !== parseInt(req.body.emailCode)) {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'wrong code' });
+    }
+    // update the user
+    user.update({status: UserStatus.Accepted})
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const user_data = user.get({plain: true});
+    const token = jwt.sign(user_data, process.env.JWT_KEY);
+    return res.json({ token });
+  }
 
   
   @validation(Joi.object({

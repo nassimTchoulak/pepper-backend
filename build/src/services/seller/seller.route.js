@@ -17,6 +17,7 @@ class SellerRoutes {
         this._router.route('/').get(acl_1.authorizeForSeller, (0, helpers_1.checkParametersAndCallRoute)(seller_controller_1.SellerController.getSeller));
         this._router.route('/').put(acl_1.authorizeForSeller, (0, helpers_1.checkParametersAndCallRoute)(seller_controller_1.SellerController.updateSeller));
         this._router.route('/login').put((0, helpers_1.checkParametersAndCallRoute)(seller_controller_1.SellerController.subscribe));
+        this._router.route('/login').patch(acl_1.authorizeForSeller, (0, helpers_1.checkParametersAndCallRoute)(seller_controller_1.SellerController.validateSellerEmail));
         this._router.route('/login').post((0, helpers_1.checkParametersAndCallRoute)(seller_controller_1.SellerController.login));
         this._router.route('/invitation').post(acl_1.authorizeForSeller, (0, helpers_1.checkParametersAndCallRoute)(seller_controller_1.SellerController.createNewInvitation));
         this._router.route('/invitation').get(acl_1.authorizeForSeller, (0, helpers_1.checkParametersAndCallRoute)(seller_controller_1.SellerController.getSellerInvitations));

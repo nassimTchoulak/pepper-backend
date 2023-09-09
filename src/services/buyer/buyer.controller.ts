@@ -9,7 +9,7 @@ import _ from 'lodash';
 import 'dotenv/config';
 import AuthHelper from 'helpers/auth';
 import { Op, where } from 'sequelize';
-import { sendEmailVerificationCode } from 'services/mailer/mailer';
+import { sendEmailVerificationCodeBuyer } from 'services/mailer/mailer';
 
 interface UserRequest extends Request {
   user: Buyer
@@ -83,7 +83,7 @@ export class BuyerController {
     }
 
     // TO-DO send email here
-    sendEmailVerificationCode(user.email, user.emailCode, user.firstName);
+    sendEmailVerificationCodeBuyer(user.email, user.emailCode, user.firstName);
 
     const token = jwt.sign(user, process.env.JWT_KEY, {expiresIn: "24h"});
     return res.json({ token });
@@ -166,7 +166,7 @@ export class BuyerController {
       return res.json({ message: 'User does not exist' });
     }
     // TO-DO: omit password
-    return res.json({ user: _.omit(user, ['createdAt', 'updatedAt', 'deletedAt', 'emailCode']) });
+    return res.json({ user: _.omit(user, ['createdAt', 'updatedAt', 'deletedAt', 'emailCode', 'password']) });
   }
 
   @validation(Joi.object({

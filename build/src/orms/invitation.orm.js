@@ -5,6 +5,7 @@ const sequelize_1 = require("sequelize");
 const seller_orm_1 = require("orms/seller.orm");
 const transaction_orm_1 = require("./transaction.orm");
 const buyer_orm_1 = require("./buyer.orm");
+const helpers_1 = require("helpers/helpers");
 class Invitation extends sequelize_1.Model {
 }
 exports.Invitation = Invitation;
@@ -38,6 +39,13 @@ const initInvitation = (sequelize) => {
         delivery: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
+        },
+        uuid: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false,
+            defaultValue: () => {
+                return (0, helpers_1.randomHash)(7);
+            }
         },
         active: {
             type: sequelize_1.DataTypes.BOOLEAN,
