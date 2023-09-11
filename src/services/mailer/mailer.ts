@@ -86,6 +86,6 @@ export async function sendEmailVerificationCodeSeller(destinationMail: string, e
       
       
       `, // plain text body
-    });
+    })
   }
   

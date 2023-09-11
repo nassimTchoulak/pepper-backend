@@ -13,6 +13,8 @@ class PartyRoutes {
 
   private _assignRoute() {
     this._router.route('/').get(authorizeForBuyer,checkParametersAndCallRoute(InvitationController.getPartiesThatUserCanGoTo));
+    this._router.route('/create').post(authorizeForBuyer,checkParametersAndCallRoute(InvitationController.createTransactionFromInvitation));
+    
   }
 }
 

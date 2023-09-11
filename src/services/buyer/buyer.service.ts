@@ -1,10 +1,14 @@
 import { Buyer, Invitation, Seller } from "orms";
 import { normalizeInvitations } from 'services/buyer/buyer.helper';
-import { UserStatus, TransactionStatus } from 'models/types';
+import { UserStatus, TransactionStatus, IBuyerBase } from 'models/types';
 import { Op } from 'sequelize';
 import _ from 'lodash';
 export class BuyerService {
 
+  /** remove password and ...At from sequilize to send */
+  public static cleanBuyerToSend(user: Buyer): IBuyerBase {
+    return _.omit(user, ['createdAt', 'deletedAt', 'updatedAt', 'password', 'birthDay', 'emailCode']) as unknown as IBuyerBase
+  }
   /*
   public static async getUserParties(user: Buyer): Promise<IParty[]> {
     const parties = await user.getParties({ attributes: { exclude: ['createdAt', 'deletedAt', 'updatedAt'] } });

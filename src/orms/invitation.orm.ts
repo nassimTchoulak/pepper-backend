@@ -1,4 +1,4 @@
-import { Model, DataTypes, Sequelize, BelongsToSetAssociationMixin, BelongsToGetAssociationMixin, HasManyRemoveAssociationMixin, HasManyAddAssociationMixin, HasManyCountAssociationsMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin } from 'sequelize';
+import { Model, DataTypes, Sequelize, BelongsToSetAssociationMixin, BelongsToGetAssociationMixin, HasManyRemoveAssociationMixin, HasManyAddAssociationMixin, HasManyCountAssociationsMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin, BelongsToManyGetAssociationsMixin, BelongsToManyAddAssociationMixin, BelongsToManyHasAssociationMixin, BelongsToManyCountAssociationsMixin, BelongsToManyRemoveAssociationMixin, BelongsToManyAddAssociationsMixin, BelongsToManyCreateAssociationMixin } from 'sequelize';
 import { Seller } from 'orms/seller.orm';
 import { Transaction } from './transaction.orm';
 import { Buyer } from './buyer.orm';
@@ -22,11 +22,11 @@ class Invitation extends Model {
   public getSeller!: BelongsToGetAssociationMixin<Seller>;
   public setSeller!: BelongsToSetAssociationMixin<Seller, number>; 
 
-  public getTransactions!: HasManyGetAssociationsMixin<Transaction>;
-  public addTransaction!: HasManyAddAssociationMixin<Transaction, number>;
-  public hasTransaction!: HasManyHasAssociationMixin<Transaction, number>;
-  public countTransaction!: HasManyCountAssociationsMixin;
-  public removeTransaction!: HasManyRemoveAssociationMixin<Transaction, number>;
+  public getTransactions!: BelongsToManyGetAssociationsMixin<Buyer>;
+  public addTransaction!: BelongsToManyCreateAssociationMixin<Buyer>;
+  public hasTransaction!: BelongsToManyHasAssociationMixin<Buyer, number>;
+  public countTransaction!: BelongsToManyCountAssociationsMixin;
+  public removeTransaction!: BelongsToManyRemoveAssociationMixin<Buyer, number>;
 }
 const initInvitation = (sequelize: Sequelize) => {
   Invitation.init({
@@ -77,7 +77,10 @@ const initInvitation = (sequelize: Sequelize) => {
 
 const associateInvitation = () => {
   Invitation.belongsTo(Seller);
-  Invitation.belongsToMany(Buyer, { through: Transaction, as: 'transaction' });
+  Invitation.belongsToMany(Buyer, { through: { model: Transaction, unique: false }, as: 'transaction' });
+
+  Transaction.belongsTo(Buyer, { as: 'Buyer'})
+  Transaction.belongsTo(Invitation, { as: 'Invitation'})
 }
 
 export { initInvitation , associateInvitation , Invitation };

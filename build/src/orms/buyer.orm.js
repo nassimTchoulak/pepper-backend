@@ -66,7 +66,7 @@ const initBuyer = (sequelize) => {
 };
 exports.initBuyer = initBuyer;
 const associateTransaction = () => {
-    Buyer.belongsToMany(invitation_orm_1.Invitation, { through: transaction_orm_1.Transaction, as: 'transactions', uniqueKey: 'transactionId' });
+    Buyer.belongsToMany(invitation_orm_1.Invitation, { through: { model: transaction_orm_1.Transaction, unique: false }, as: 'transaction' });
 };
 exports.associateTransaction = associateTransaction;
 //# sourceMappingURL=buyer.orm.js.map

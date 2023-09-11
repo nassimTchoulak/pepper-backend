@@ -15,6 +15,7 @@ class PartyRoutes {
     }
     _assignRoute() {
         this._router.route('/').get(acl_1.authorizeForBuyer, (0, helpers_1.checkParametersAndCallRoute)(invitation_controller_1.InvitationController.getPartiesThatUserCanGoTo));
+        this._router.route('/create').post(acl_1.authorizeForBuyer, (0, helpers_1.checkParametersAndCallRoute)(invitation_controller_1.InvitationController.createTransactionFromInvitation));
     }
 }
 exports.default = new PartyRoutes().build();

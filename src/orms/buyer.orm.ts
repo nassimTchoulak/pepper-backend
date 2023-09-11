@@ -1,4 +1,4 @@
-import { Model, DataTypes, Sequelize, HasManyGetAssociationsMixin, HasManyCountAssociationsMixin, HasManyHasAssociationMixin, HasManyAddAssociationMixin, HasManySetAssociationsMixin, Association, HasManyRemoveAssociationMixin, NOW } from 'sequelize';
+import { Model, DataTypes, Sequelize, HasManyGetAssociationsMixin, HasManyCountAssociationsMixin, HasManyHasAssociationMixin, HasManyAddAssociationMixin, HasManySetAssociationsMixin, Association, HasManyRemoveAssociationMixin, NOW, BelongsToManyHasAssociationsMixin, BelongsToManyAddAssociationMixin } from 'sequelize';
 import { Gender, UserStatus } from 'models/types';
 import { Invitation } from 'orms/invitation.orm';
 import { Transaction } from './transaction.orm';
@@ -21,10 +21,10 @@ class Buyer extends Model {
   public updatedAt!: Date;
   public deletedAt!: Date;
 
-  public getInvitations!: HasManyGetAssociationsMixin<Invitation>;
-  public addInvitation!: HasManyAddAssociationMixin<Invitation, number>;
-  public hasInvitation!: HasManyHasAssociationMixin<Invitation, number>;
-  public countInvitations!: HasManyCountAssociationsMixin;
+  // public getInvitations!: HasManyGetAssociationsMixin<Invitation>;
+  // public addInvitation!: BelongsToManyAddAssociationMixin<Invitation, number>;
+  // public hasInvitation!: BelongsToManyHasAssociationsMixin<Invitation, number>;
+  // public countInvitations!: HasManyCountAssociationsMixin;
 }
 
 const initBuyer = (sequelize: Sequelize) => {
@@ -86,7 +86,7 @@ const initBuyer = (sequelize: Sequelize) => {
 };
 
 const associateTransaction = () => {
-  Buyer.belongsToMany(Invitation, { through: Transaction, as: 'transactions', uniqueKey: 'transactionId' });
+  Buyer.belongsToMany(Invitation, { through: { model: Transaction, unique: false }, as: 'transaction' });
 }
 
 export { initBuyer as initBuyer, associateTransaction , Buyer as Buyer };

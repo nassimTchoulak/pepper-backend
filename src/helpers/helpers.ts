@@ -6,6 +6,7 @@ import _ from 'lodash';
 import formidable from 'formidable';
 import AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
+import moment from 'moment';
 
 export function validation(schema: Joi.Schema) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -86,4 +87,20 @@ export function randomHash(length: number) {
     counter += 1;
   }
   return result;
+}
+
+export function randomHashUpper(length: number) {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const charactersLength = characters.length;
+  let counter = 0;
+  while (counter < length) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    counter += 1;
+  }
+  return result;
+}
+
+export function transactionUUid() {
+  return randomHashUpper(2) + moment().format("-YY-MM-DD-") + randomHashUpper(3)
 }

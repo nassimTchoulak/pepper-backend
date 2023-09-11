@@ -1,20 +1,19 @@
-import { Model, DataTypes, Sequelize, BelongsToSetAssociationMixin, BelongsToGetAssociationMixin,  } from 'sequelize';
+import { Model, DataTypes, Sequelize, BelongsToSetAssociationMixin, BelongsToGetAssociationMixin, NOW,  } from 'sequelize';
 import { Seller } from 'orms/seller.orm';
 import { Buyer } from './buyer.orm';
 import { Invitation } from './invitation.orm';
 import { TransactionStatus } from 'models/types';
-import { randomHash } from 'helpers/helpers';
+import { randomHash, randomHashUpper } from 'helpers/helpers';
 import moment from 'moment';
 
 class Transaction extends Model {
   public id!: number;
-  public operation!: string;
-  public code!: string;
-  public product!: string;
-  public description!: string;
+  public uuid!: number;
+  public activationKey!: string;
+  // public product!: string;
+  // public description!: string;
   public date!: Date;
-  public price!: number;
-  public instances!: number;
+  // public price!: number;
   public delivery!: string;
 
   public state!: TransactionStatus;
@@ -23,8 +22,8 @@ class Transaction extends Model {
   public updatedAt!: Date;
   public deletedAt!: Date;
 
-  public getSeller!: BelongsToGetAssociationMixin<Seller>;
-  public setSeller!: BelongsToSetAssociationMixin<Seller, number>; 
+  public getInvitation!: BelongsToGetAssociationMixin<Invitation>;
+  public setInvitation!: BelongsToSetAssociationMixin<Invitation, number>; 
 
   public getBuyer!: BelongsToGetAssociationMixin<Buyer>;
   public setBuyer!: BelongsToSetAssociationMixin<Buyer, number>; 
@@ -32,7 +31,7 @@ class Transaction extends Model {
 }
 const initTransaction = (sequelize: Sequelize) => {
     Transaction.init({
-    transactionId: {
+      id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true
@@ -40,51 +39,15 @@ const initTransaction = (sequelize: Sequelize) => {
     uuid: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: ()=>{
-        return randomHash(2) + moment().format("YY-MM-DD") + randomHash(3)
-      }
-    },
-    buyerId: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: Buyer, 
-        key: 'id'
-      }
-    },
-    invitationId: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: Invitation,
-        key: 'id'
-      }
-    },
-    operation: {
-      type: DataTypes.STRING,
-      allowNull: false,
       unique: true,
+      defaultValue: ()=>{
+        return randomHashUpper(2) + moment().format("-YY-MM-DD-") + randomHashUpper(3)
+      }
     },
-    code: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    product: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    description: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
     date: {
       type: DataTypes.DATE,
       allowNull: false,
-    },
-    price: {
-      type: DataTypes.FLOAT,
-      allowNull: false,
-    },
-    instances: {
-      type: DataTypes.INTEGER,
+      defaultValue: NOW()
     },
     delivery: {
       type: DataTypes.STRING,
@@ -94,7 +57,7 @@ const initTransaction = (sequelize: Sequelize) => {
       type: DataTypes.STRING,
       allowNull: false,
       defaultValue: ()=>{
-        return randomHash(6)
+        return randomHashUpper(6)
       }
     },
     state: {

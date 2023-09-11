@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.randomHash = exports.uploadToS3 = exports.parseFiles = exports.checkParametersAndCallRoute = exports.validation = void 0;
+exports.transactionUUid = exports.randomHashUpper = exports.randomHash = exports.uploadToS3 = exports.parseFiles = exports.checkParametersAndCallRoute = exports.validation = void 0;
 const tslib_1 = require("tslib");
 require("dotenv/config");
 const http_status_1 = (0, tslib_1.__importDefault)(require("http-status"));
@@ -8,6 +8,7 @@ const lodash_1 = (0, tslib_1.__importDefault)(require("lodash"));
 const formidable_1 = (0, tslib_1.__importDefault)(require("formidable"));
 const aws_sdk_1 = (0, tslib_1.__importDefault)(require("aws-sdk"));
 const uuid_1 = require("uuid");
+const moment_1 = (0, tslib_1.__importDefault)(require("moment"));
 function validation(schema) {
     return (target, property) => {
         target[property].schema = schema;
@@ -86,4 +87,20 @@ function randomHash(length) {
     return result;
 }
 exports.randomHash = randomHash;
+function randomHashUpper(length) {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const charactersLength = characters.length;
+    let counter = 0;
+    while (counter < length) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        counter += 1;
+    }
+    return result;
+}
+exports.randomHashUpper = randomHashUpper;
+function transactionUUid() {
+    return randomHashUpper(2) + (0, moment_1.default)().format("-YY-MM-DD-") + randomHashUpper(3);
+}
+exports.transactionUUid = transactionUUid;
 //# sourceMappingURL=helpers.js.map

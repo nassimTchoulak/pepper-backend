@@ -6,14 +6,14 @@ export interface IInvitation {
   price: number,
   instances: number,
   delivery: string,
-  active: boolean
+  active: boolean,
+  SellerId: number
 };
 
 
 export interface ITransaction {
   id: number,
-  operation: string
-  code: string,
+  uuid: string
   product: string,
   description: string,
   date: Date,
@@ -21,9 +21,19 @@ export interface ITransaction {
   instances: number,
   delivery: string,
   state: TransactionStatus,
+  BuyerId: number,
+  InvitationId: number
 };
 
 export interface ITransactionBuyer extends IInvitation, ITransaction, ISellerBase{};
+
+export interface IFullTransaction extends ITransaction{
+  Invitation: IInvitation
+}
+
+export interface IFullPlusSeller extends IFullTransaction{
+  Seller: ISellerBase
+}
 
 export interface ITransactionSeller extends IInvitation, ITransaction, IBuyerBase{};
 
@@ -46,7 +56,6 @@ export interface ISellerBase {
   email: string,
   firstName: string,
   businessName: string,
-  gender: Gender,
   location: string,
   description: string,
   status: UserStatus

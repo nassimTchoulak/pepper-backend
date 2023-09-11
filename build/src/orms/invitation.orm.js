@@ -57,7 +57,9 @@ const initInvitation = (sequelize) => {
 exports.initInvitation = initInvitation;
 const associateInvitation = () => {
     Invitation.belongsTo(seller_orm_1.Seller);
-    Invitation.belongsToMany(buyer_orm_1.Buyer, { through: transaction_orm_1.Transaction, as: 'transaction' });
+    Invitation.belongsToMany(buyer_orm_1.Buyer, { through: { model: transaction_orm_1.Transaction, unique: false }, as: 'transaction' });
+    transaction_orm_1.Transaction.belongsTo(buyer_orm_1.Buyer, { as: 'Buyer' });
+    transaction_orm_1.Transaction.belongsTo(Invitation, { as: 'Invitation' });
 };
 exports.associateInvitation = associateInvitation;
 //# sourceMappingURL=invitation.orm.js.map
