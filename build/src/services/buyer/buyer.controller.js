@@ -13,6 +13,7 @@ require("dotenv/config");
 const auth_1 = (0, tslib_1.__importDefault)(require("helpers/auth"));
 const sequelize_1 = require("sequelize");
 const mailer_1 = require("services/mailer/mailer");
+const transaction_orm_1 = require("orms/transaction.orm");
 ;
 class BuyerController {
     static createLoginVerificationAndCheckIfUserExisits(req, res) {
@@ -133,6 +134,32 @@ class BuyerController {
             return res.json({ user: lodash_1.default.omit(user, ['createdAt', 'updatedAt', 'deletedAt']) });
         });
     }
+    static getAllTransactions(req, res) {
+        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+            if (!process.env.JWT_KEY) {
+                throw 'JWT key not provided';
+            }
+            const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const transactions = yield transaction_orm_1.Transaction.findAll({ where: { BuyerId: buyer.id },
+                include: [{ model: orms_1.Invitation, as: 'Invitation' }] });
+            return res.json({ transactions });
+        });
+    }
+    static getTransactionsDetail(req, res) {
+        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+            if (!process.env.JWT_KEY) {
+                throw 'JWT key not provided';
+            }
+            const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const transaction = yield transaction_orm_1.Transaction.findOne({ where: { uuid: req.params.uuid, BuyerId: buyer.id },
+                include: [{ model: orms_1.Invitation, as: 'Invitation', include: [{ model: orms_1.Seller, as: 'Seller' }] }] });
+            if (transaction === null) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'transaction does not exist' });
+            }
+            return res.json({ transaction });
+        });
+    }
 }
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({
@@ -179,5 +206,11 @@ class BuyerController {
         password: joi_1.default.string().optional(),
     }))
 ], BuyerController, "updateBuyer", null);
+(0, tslib_1.__decorate)([
+    (0, helpers_1.validation)(joi_1.default.object({}))
+], BuyerController, "getAllTransactions", null);
+(0, tslib_1.__decorate)([
+    (0, helpers_1.validation)(joi_1.default.object({}))
+], BuyerController, "getTransactionsDetail", null);
 exports.BuyerController = BuyerController;
 //# sourceMappingURL=buyer.controller.js.map

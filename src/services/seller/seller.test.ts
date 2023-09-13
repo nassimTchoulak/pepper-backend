@@ -164,8 +164,8 @@ describe('## seller', () => {
           expect(httpStatus.OK)).body.invitations;
   
       expect(parties.length).toEqual(2);
-      expect(parties[0].id).toEqual(p2.id);
-      expect(parties[1].id).toEqual(p1.id);
+      expect(parties[1].id).toEqual(p2.id);
+      expect(parties[0].id).toEqual(p1.id);
       
     });
   

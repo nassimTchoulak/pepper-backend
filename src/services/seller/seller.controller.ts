@@ -11,6 +11,7 @@ import { SellerService } from 'services/seller/seller.service';
 import { Op } from 'sequelize';
 import { sendEmailVerificationCodeSeller } from 'services/mailer/mailer';
 import AuthHelper from 'helpers/auth';
+import { Transaction } from 'orms/transaction.orm';
 
 // useful when parsing the entire ISeller to be modified
 interface SellerRequest extends Request {
@@ -80,7 +81,7 @@ export class SellerController {
       throw 'JWT key not provided';
     }
 
-    const token = jwt.sign(organizer, process.env.JWT_KEY, { expiresIn: '1000s'});
+    const token = jwt.sign(organizer, process.env.JWT_KEY, { expiresIn: '24h'});
     return res.json({ token });
   }
 
@@ -106,7 +107,7 @@ export class SellerController {
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
     }
-    const token = jwt.sign(seller, process.env.JWT_KEY, { expiresIn: '1000s'});
+    const token = jwt.sign(seller, process.env.JWT_KEY, { expiresIn: '24h'});
     return res.json({ token });
   }
 
@@ -219,8 +220,19 @@ export class SellerController {
       return res.json({ message: 'User does not exist' });
     }
 
-    const invitations = await SellerService.getSellerInvitations(seller);
-
+    /*
+    const invitations = await Invitation.findAll({ where: {SellerId: TokenSeller.id }, 
+      include: [{ model: Transaction, as: 'ITransaction', required: true }], nest: true, raw: true, paranoid: true})
+      */
+      const invitations = await Invitation.findAll({
+        include: [
+            { model: Transaction, as: 'InvitationTransactions'},
+            { model: Transaction, as: 'InvitationTransactions', paranoid: true, required: false}
+        ],
+        where: {
+          SellerId: TokenSeller.id
+        }
+    });
 
     return res.json({ invitations: invitations });
   }

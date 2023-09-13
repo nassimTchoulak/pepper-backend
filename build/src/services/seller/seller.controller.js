@@ -10,10 +10,10 @@ const jsonwebtoken_1 = (0, tslib_1.__importDefault)(require("jsonwebtoken"));
 const types_1 = require("models/types");
 require("dotenv/config");
 const lodash_1 = (0, tslib_1.__importDefault)(require("lodash"));
-const seller_service_1 = require("services/seller/seller.service");
 const sequelize_1 = require("sequelize");
 const mailer_1 = require("services/mailer/mailer");
 const auth_1 = (0, tslib_1.__importDefault)(require("helpers/auth"));
+const transaction_orm_1 = require("orms/transaction.orm");
 ;
 class SellerController {
     static subscribe(req, res) {
@@ -54,7 +54,7 @@ class SellerController {
             if (!process.env.JWT_KEY) {
                 throw 'JWT key not provided';
             }
-            const token = jsonwebtoken_1.default.sign(organizer, process.env.JWT_KEY, { expiresIn: '1000s' });
+            const token = jsonwebtoken_1.default.sign(organizer, process.env.JWT_KEY, { expiresIn: '24h' });
             return res.json({ token });
         });
     }
@@ -73,7 +73,7 @@ class SellerController {
             if (!process.env.JWT_KEY) {
                 throw 'JWT key not provided';
             }
-            const token = jsonwebtoken_1.default.sign(seller, process.env.JWT_KEY, { expiresIn: '1000s' });
+            const token = jsonwebtoken_1.default.sign(seller, process.env.JWT_KEY, { expiresIn: '24h' });
             return res.json({ token });
         });
     }
@@ -160,7 +160,15 @@ class SellerController {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'User does not exist' });
             }
-            const invitations = yield seller_service_1.SellerService.getSellerInvitations(seller);
+            const invitations = yield orms_1.Invitation.findAll({
+                include: [
+                    { model: transaction_orm_1.Transaction, as: 'InvitationTransactions' },
+                    { model: transaction_orm_1.Transaction, as: 'InvitationTransactions', paranoid: true, required: false }
+                ],
+                where: {
+                    SellerId: TokenSeller.id
+                }
+            });
             return res.json({ invitations: invitations });
         });
     }

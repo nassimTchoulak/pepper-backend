@@ -20,6 +20,8 @@ class UserRoutes {
         this._router.route('/login').put((0, helpers_1.checkParametersAndCallRoute)(buyer_controller_1.BuyerController.subscribe));
         this._router.route('/login').patch(acl_1.authorizeForBuyer, (0, helpers_1.checkParametersAndCallRoute)(buyer_controller_1.BuyerController.validateEmail));
         this._router.route('/login').post((0, helpers_1.checkParametersAndCallRoute)(buyer_controller_1.BuyerController.login));
+        this._router.route('/transactions').get(acl_1.authorizeForBuyer, (0, helpers_1.checkParametersAndCallRoute)(buyer_controller_1.BuyerController.getAllTransactions));
+        this._router.route('/transaction/:uuid').get(acl_1.authorizeForBuyer, (0, helpers_1.checkParametersAndCallRoute)(buyer_controller_1.BuyerController.getTransactionsDetail));
     }
 }
 exports.default = new UserRoutes().build();

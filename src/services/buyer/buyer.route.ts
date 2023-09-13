@@ -27,6 +27,13 @@ class UserRoutes {
     this._router.route('/login').put(checkParametersAndCallRoute(BuyerController.subscribe));
     this._router.route('/login').patch(authorizeForBuyer ,checkParametersAndCallRoute(BuyerController.validateEmail));
     this._router.route('/login').post(checkParametersAndCallRoute(BuyerController.login));
+
+
+    /**
+     * Invitations and transaction routes
+     */
+    this._router.route('/transactions').get(authorizeForBuyer ,checkParametersAndCallRoute(BuyerController.getAllTransactions));
+    this._router.route('/transaction/:uuid').get(authorizeForBuyer ,checkParametersAndCallRoute(BuyerController.getTransactionsDetail));
     /*
     this._router.route('/matches').get(authorizeForBuyer,checkParametersAndCallRoute(UserController.getMatches));
     this._router.route('/matches').post(authorizeForBuyer,checkParametersAndCallRoute(UserController.addMatch));

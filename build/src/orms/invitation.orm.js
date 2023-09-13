@@ -60,6 +60,7 @@ const associateInvitation = () => {
     Invitation.belongsToMany(buyer_orm_1.Buyer, { through: { model: transaction_orm_1.Transaction, unique: false }, as: 'transaction' });
     transaction_orm_1.Transaction.belongsTo(buyer_orm_1.Buyer, { as: 'Buyer' });
     transaction_orm_1.Transaction.belongsTo(Invitation, { as: 'Invitation' });
+    Invitation.hasMany(transaction_orm_1.Transaction, { as: 'InvitationTransactions' });
 };
 exports.associateInvitation = associateInvitation;
 //# sourceMappingURL=invitation.orm.js.map

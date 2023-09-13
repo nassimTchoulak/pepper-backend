@@ -4,12 +4,13 @@ import { validation } from 'helpers/helpers';
 import { Buyer, Invitation, Seller } from 'orms';
 import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
-import { Gender, IBuyer, UserStatus } from 'models/types';
-import _ from 'lodash';
+import { Gender, IBuyer, ITransaction, UserStatus } from 'models/types';
+import _, { includes } from 'lodash';
 import 'dotenv/config';
 import AuthHelper from 'helpers/auth';
 import { Op, where } from 'sequelize';
 import { sendEmailVerificationCodeBuyer } from 'services/mailer/mailer';
+import { Transaction } from 'orms/transaction.orm';
 
 interface UserRequest extends Request {
   user: Buyer
@@ -181,6 +182,42 @@ export class BuyerController {
     await Buyer.update({ ...req.body }, { where:  { id: req.user.id }});
     const user = await Buyer.findOne({ where: { id: req.user.id }, raw: true });
     return res.json({ user: _.omit(user, ['createdAt', 'updatedAt', 'deletedAt']) });
+  }
+
+
+
+  /***
+   * Transaction Getter for Buyer
+   */
+  @validation(Joi.object({}))
+  public static async getAllTransactions(req: UserRequest, res: Response): Promise<Response<{ transactions: ITransaction[] }>> {
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const buyer = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as IBuyer;
+
+    const transactions = await Transaction.findAll({ where: {BuyerId: buyer.id}, 
+      include: [{model: Invitation, as:'Invitation'} ]})
+
+    return res.json({transactions})
+  }
+
+  @validation(Joi.object({}))
+  public static async getTransactionsDetail(req: UserRequest, res: Response): Promise<Response<{ transaction: ITransaction }>> {
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const buyer = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as IBuyer;
+
+    const transaction = await Transaction.findOne({ where :{uuid: req.params.uuid, BuyerId: buyer.id}, 
+      include: [{model: Invitation, as:'Invitation', include:[{model: Seller, as: 'Seller'}]}] })
+    
+    if (transaction === null) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'transaction does not exist' });
+    }
+
+    return res.json({transaction})
   }
   /*
   @validation(Joi.object({}))

@@ -119,8 +119,8 @@ describe('## seller', () => {
                 set('Authorization', testToken).
                 expect(http_status_1.default.OK)).body.invitations;
             expect(parties.length).toEqual(2);
-            expect(parties[0].id).toEqual(p2.id);
-            expect(parties[1].id).toEqual(p1.id);
+            expect(parties[1].id).toEqual(p2.id);
+            expect(parties[0].id).toEqual(p1.id);
         }));
         test('Should be able to create new invitation for organizer', () => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
             const partyTest = {

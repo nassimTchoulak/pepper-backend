@@ -81,6 +81,8 @@ const associateInvitation = () => {
 
   Transaction.belongsTo(Buyer, { as: 'Buyer'})
   Transaction.belongsTo(Invitation, { as: 'Invitation'})
+
+  Invitation.hasMany(Transaction, { as: 'InvitationTransactions'})
 }
 
 export { initInvitation , associateInvitation , Invitation };
