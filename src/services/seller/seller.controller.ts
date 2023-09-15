@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import Joi from 'joi';
 import { validation } from 'helpers/helpers';
-import { Seller, Invitation } from 'orms';
+import { Seller, Invitation, Buyer } from 'orms';
 import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
 import { ISeller, IInvitation, UserStatus } from 'models/types';
 import 'dotenv/config';
-import _ from 'lodash';
+import _, { includes } from 'lodash';
 import { SellerService } from 'services/seller/seller.service';
 import { Op } from 'sequelize';
 import { sendEmailVerificationCodeSeller } from 'services/mailer/mailer';
@@ -235,6 +235,67 @@ export class SellerController {
     });
 
     return res.json({ invitations: invitations });
+  }
+
+  @validation(Joi.object({
+    uuid: Joi.string().required()
+  }))
+  public static async getSellerOneInvitation(req: SellerRequest, res: Response): Promise<Response<{ invitations: IInvitation[] }>> {
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
+    const seller = await Seller.findOne({ where: { id: TokenSeller.id }});
+
+    if (!seller) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'User does not exist' });
+    }
+
+    const invitation = await Invitation.findOne({
+        include: [
+            { model: Transaction, as: 'InvitationTransactions'},
+            { model: Transaction, as: 'InvitationTransactions', paranoid: true, required: false}
+        ],
+        where: {
+          uuid: req.body.uuid,
+          SellerId: TokenSeller.id
+        }
+    });
+
+    if (!invitation){
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'Invitation not found for Seller' });
+    }
+
+    return res.json({ invitation });
+  }
+
+  @validation(Joi.object({
+    uuid: Joi.string().required()
+  }))
+  public static async getSellerOneTransaction(req: SellerRequest, res: Response): Promise<Response<{ invitations: IInvitation[] }>> {
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
+    const seller = await Seller.findOne({ where: { id: TokenSeller.id }});
+
+    if (!seller) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'User does not exist' });
+    }
+
+    const transaction_invitation = await Transaction.findOne({ where: {uuid: req.body.uuid}, 
+      include:[{ model: Invitation, as:'Invitation'}, { model: Buyer, as: 'Buyer'}], nest: true, raw: true})
+    
+    // TO-DO check that it belongs to the seller
+    if (!transaction_invitation){
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'Transaction not found' });
+    }
+
+    return res.json({ transaction: transaction_invitation });
   }
 
   @validation(Joi.object({

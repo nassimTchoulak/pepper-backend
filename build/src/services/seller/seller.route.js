@@ -22,6 +22,8 @@ class SellerRoutes {
         this._router.route('/invitation').post(acl_1.authorizeForSeller, (0, helpers_1.checkParametersAndCallRoute)(seller_controller_1.SellerController.createNewInvitation));
         this._router.route('/invitation').get(acl_1.authorizeForSeller, (0, helpers_1.checkParametersAndCallRoute)(seller_controller_1.SellerController.getSellerInvitations));
         this._router.route('/invitation').delete(acl_1.authorizeForSeller, (0, helpers_1.checkParametersAndCallRoute)(seller_controller_1.SellerController.deleteInvitation));
+        this._router.route('/invitation/detail').get(acl_1.authorizeForSeller, (0, helpers_1.checkParametersAndCallRoute)(seller_controller_1.SellerController.getSellerOneInvitation));
+        this._router.route('/invitation/transaction').get(acl_1.authorizeForSeller, (0, helpers_1.checkParametersAndCallRoute)(seller_controller_1.SellerController.getSellerOneTransaction));
     }
 }
 exports.default = new SellerRoutes().build();

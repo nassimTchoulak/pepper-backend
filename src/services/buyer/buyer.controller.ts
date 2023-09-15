@@ -179,8 +179,13 @@ export class BuyerController {
     password: Joi.string().optional(),
   }))
   public static async updateBuyer(req: UserRequest, res: Response): Promise<Response<{ user: IBuyer }>> {
-    await Buyer.update({ ...req.body }, { where:  { id: req.user.id }});
-    const user = await Buyer.findOne({ where: { id: req.user.id }, raw: true });
+    // use token
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const buyer = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as IBuyer;
+    await Buyer.update({ ...req.body }, { where:  { email: buyer.email }});
+    const user = await Buyer.findOne({ where: { id: buyer.id }, raw: true });
     return res.json({ user: _.omit(user, ['createdAt', 'updatedAt', 'deletedAt']) });
   }
 
@@ -202,19 +207,21 @@ export class BuyerController {
     return res.json({transactions})
   }
 
-  @validation(Joi.object({}))
+  @validation(Joi.object({
+    uuid: Joi.string().required()
+  }))
   public static async getTransactionsDetail(req: UserRequest, res: Response): Promise<Response<{ transaction: ITransaction }>> {
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
     }
     const buyer = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as IBuyer;
 
-    const transaction = await Transaction.findOne({ where :{uuid: req.params.uuid, BuyerId: buyer.id}, 
+    const transaction = await Transaction.findOne({ where :{uuid: req.body.uuid, BuyerId: buyer.id}, 
       include: [{model: Invitation, as:'Invitation', include:[{model: Seller, as: 'Seller'}]}] })
     
     if (transaction === null) {
       res.status(httpStatus.NOT_FOUND);
-      return res.json({ message: 'transaction does not exist' });
+      return res.json({ message: 'transaction does not exist for user' });
     }
 
     return res.json({transaction})

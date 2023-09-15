@@ -12,6 +12,7 @@ class Invitation extends Model {
   public date!: Date;
   public price!: number;
   public instances!: number;
+  public autoAccept !: boolean;
   public delivery!: string;
   public active!: boolean;
 
@@ -58,6 +59,11 @@ const initInvitation = (sequelize: Sequelize) => {
     delivery: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    autoAccept: { /// buyer may proceed directly to payment
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
     },
     uuid: {
       type: DataTypes.STRING,

@@ -73,10 +73,21 @@ export interface ISeller extends ISellerBase {
 
 export enum TransactionStatus {
   OPENED = 'opened',
-  CONFIRMED = 'confirmed',
+  ACCEPTED = 'accepted',
   PAYED = 'payed',
-  DONE = 'done',
+  FULFILLED = 'fulfilled',
   CANCELED = 'canceled',
+  CHANGED_MIND_EARLY = 'changed-mind-early',
+  CHANGED_MIND_LATE = 'changed-mind-late',
+  GHOSTED = 'ghosted',
+  SELLER_CANCEL ='seller-cancel'
+}
+
+export enum TransactionOutcome {
+  CLOSED_FAILED = 'closed-failed',
+  CLOSED_SUCCESS = 'closed-success',
+  CANCELED = 'canceled',
+  ONGOING = 'ongoing'
 }
 
 export enum Gender {

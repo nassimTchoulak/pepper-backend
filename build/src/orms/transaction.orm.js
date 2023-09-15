@@ -37,13 +37,18 @@ const initTransaction = (sequelize) => {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
             defaultValue: () => {
-                return (0, helpers_1.randomHashUpper)(6);
+                return (0, helpers_1.randomHashUpper)(7);
             }
         },
         state: {
-            type: sequelize_1.DataTypes.ENUM(types_1.TransactionStatus.CANCELED, types_1.TransactionStatus.OPENED, types_1.TransactionStatus.DONE, types_1.TransactionStatus.PAYED, types_1.TransactionStatus.CONFIRMED),
+            type: sequelize_1.DataTypes.ENUM(types_1.TransactionStatus.CANCELED, types_1.TransactionStatus.OPENED, types_1.TransactionStatus.FULFILLED, types_1.TransactionStatus.PAYED, types_1.TransactionStatus.ACCEPTED, types_1.TransactionStatus.CHANGED_MIND_EARLY, types_1.TransactionStatus.CHANGED_MIND_LATE, types_1.TransactionStatus.SELLER_CANCEL, types_1.TransactionStatus.GHOSTED),
             allowNull: false,
             defaultValue: types_1.TransactionStatus.OPENED
+        },
+        outcome: {
+            type: sequelize_1.DataTypes.ENUM(types_1.TransactionOutcome.CANCELED, types_1.TransactionOutcome.ONGOING, types_1.TransactionOutcome.CLOSED_FAILED, types_1.TransactionOutcome.CLOSED_SUCCESS),
+            allowNull: false,
+            defaultValue: types_1.TransactionOutcome.ONGOING
         }
     }, { sequelize, paranoid: true });
 };

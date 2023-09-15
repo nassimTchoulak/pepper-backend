@@ -21,6 +21,9 @@ class SellerRoutes {
     this._router.route('/invitation').post(authorizeForSeller,checkParametersAndCallRoute(SellerController.createNewInvitation));
     this._router.route('/invitation').get(authorizeForSeller,checkParametersAndCallRoute(SellerController.getSellerInvitations));
     this._router.route('/invitation').delete(authorizeForSeller,checkParametersAndCallRoute(SellerController.deleteInvitation));
+
+    this._router.route('/invitation/detail').get(authorizeForSeller,checkParametersAndCallRoute(SellerController.getSellerOneInvitation));
+    this._router.route('/invitation/transaction').get(authorizeForSeller,checkParametersAndCallRoute(SellerController.getSellerOneTransaction));
   }
 }
 

@@ -5,7 +5,7 @@ import { Buyer, Invitation, Seller } from 'orms';
 import httpStatus from 'http-status';
 // import { UserService } from 'services/buyer/buyer.service';
 import 'dotenv/config';
-import { IBuyer, IFullPlusSeller, IFullTransaction, IInvitation, ISellerBase, ITransaction } from 'models/types';
+import { IBuyer, IFullPlusSeller, IFullTransaction, IInvitation, ISellerBase, ITransaction, TransactionStatus } from 'models/types';
 import { HasManyAddAssociationsMixinOptions, where } from 'sequelize';
 import { Transaction } from 'orms/transaction.orm';
 import jwt from 'jsonwebtoken';
@@ -17,19 +17,13 @@ interface UserRequest extends Request {
 };
 
 export class InvitationController {
-  // TODO: add pagination
-  @validation(Joi.object({}))
-  public static async getPartiesThatUserCanGoTo(req: UserRequest, res: Response): Promise<Response<{ parties: IInvitation[] }>> {
-    const user = await Buyer.findOne({ where: { id: req.user.id }});
-    // user?.addInvitation()
-
-    if (!user) {
-      res.status(httpStatus.NOT_FOUND);
-      return res.json({ message: 'User does not exist' });
-    }
-    // const normalizedParties = await UserService.getPartiesUserCanGoTo(user);
-    return res.json({ parties: [] });
-  }
+  /**
+   * Transaction life line is as follow:
+   * 1- creation by Buyer from Invitation "Opened"
+   * 2- approval from Seller [set delivery time approx] (TO-DO: Auto Bypass with additional fields in Invitation) "Accepted"
+   * 3- Payment by Buyer "Payed"
+   * 4- validation (Public) "Done"
+   */
 
   @validation(Joi.object({
     InvitationUuid: Joi.string().required(),
@@ -70,7 +64,52 @@ export class InvitationController {
 
     return res.json({transaction : {... transaction //, Seller : SellerService.cleanSellerToSend(seller)
     }});
-    
-    // return res.json({})
+  }
+
+    /**
+   * 
+   * @param transactionUuid the uuid of the transaction created
+   * @param res 
+   * @returns 
+   */
+  @validation(Joi.object({
+    transactionUuid: Joi.string().required()
+  }))
+  public static async payTheTransaction(req: UserRequest, res: Response): Promise<Response<{ invitation: IFullPlusSeller }>> {
+    const uuid = req.body.uuid;
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const buyer_token = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as IBuyer;
+
+    const transaction = await Transaction.findOne({ where : { uuid: uuid, BuyerId: buyer_token.id}})
+    if (!transaction) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'transaction does not exist' });
+    }
+    if (transaction.state !== TransactionStatus.ACCEPTED) 
+    {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'Cant pay a transaction that is not in accepted state' });
+    }
+    const result = await transaction.update({ state : TransactionStatus.PAYED})
+    return res.json({ transaction: result.get({plain: true}) })
+  }
+
+  @validation(Joi.object({}))
+  public static async getPublicInvitationInfo(req: UserRequest, res: Response): Promise<Response<{ invitation: IFullPlusSeller }>> {
+    const uuid = req.params.uuid;
+    if (!uuid) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'Invitation does not exist wrong request' });
+    }
+
+    const invitation = await Invitation.findOne({ where : { uuid: uuid }, 
+      include : { model: Seller, as: 'Seller'}, nest: true, raw: true})
+    if (!invitation) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'Invitation does not exist' });
+    }
+    return res.json({ invitation })
   }
 }

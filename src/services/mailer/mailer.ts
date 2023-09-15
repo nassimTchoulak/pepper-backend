@@ -48,11 +48,6 @@ export async function sendEmailVerificationCodeBuyer(destinationMail: string, em
 }
 
 
-
-
-
-
-
 // async..await is not allowed in global scope, must use a wrapper
 export async function sendEmailVerificationCodeSeller(destinationMail: string, emailCode: number, firstName: string) {
     // send mail with defined transport object

@@ -129,8 +129,12 @@ class BuyerController {
     }
     static updateBuyer(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            yield orms_1.Buyer.update(Object.assign({}, req.body), { where: { id: req.user.id } });
-            const user = yield orms_1.Buyer.findOne({ where: { id: req.user.id }, raw: true });
+            if (!process.env.JWT_KEY) {
+                throw 'JWT key not provided';
+            }
+            const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            yield orms_1.Buyer.update(Object.assign({}, req.body), { where: { email: buyer.email } });
+            const user = yield orms_1.Buyer.findOne({ where: { id: buyer.id }, raw: true });
             return res.json({ user: lodash_1.default.omit(user, ['createdAt', 'updatedAt', 'deletedAt']) });
         });
     }
@@ -151,11 +155,11 @@ class BuyerController {
                 throw 'JWT key not provided';
             }
             const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
-            const transaction = yield transaction_orm_1.Transaction.findOne({ where: { uuid: req.params.uuid, BuyerId: buyer.id },
+            const transaction = yield transaction_orm_1.Transaction.findOne({ where: { uuid: req.body.uuid, BuyerId: buyer.id },
                 include: [{ model: orms_1.Invitation, as: 'Invitation', include: [{ model: orms_1.Seller, as: 'Seller' }] }] });
             if (transaction === null) {
                 res.status(http_status_1.default.NOT_FOUND);
-                return res.json({ message: 'transaction does not exist' });
+                return res.json({ message: 'transaction does not exist for user' });
             }
             return res.json({ transaction });
         });
@@ -210,7 +214,9 @@ class BuyerController {
     (0, helpers_1.validation)(joi_1.default.object({}))
 ], BuyerController, "getAllTransactions", null);
 (0, tslib_1.__decorate)([
-    (0, helpers_1.validation)(joi_1.default.object({}))
+    (0, helpers_1.validation)(joi_1.default.object({
+        uuid: joi_1.default.string().required()
+    }))
 ], BuyerController, "getTransactionsDetail", null);
 exports.BuyerController = BuyerController;
 //# sourceMappingURL=buyer.controller.js.map

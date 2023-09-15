@@ -7,20 +7,11 @@ const helpers_1 = require("helpers/helpers");
 const orms_1 = require("orms");
 const http_status_1 = (0, tslib_1.__importDefault)(require("http-status"));
 require("dotenv/config");
+const types_1 = require("models/types");
 const transaction_orm_1 = require("orms/transaction.orm");
 const jsonwebtoken_1 = (0, tslib_1.__importDefault)(require("jsonwebtoken"));
 ;
 class InvitationController {
-    static getPartiesThatUserCanGoTo(req, res) {
-        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            const user = yield orms_1.Buyer.findOne({ where: { id: req.user.id } });
-            if (!user) {
-                res.status(http_status_1.default.NOT_FOUND);
-                return res.json({ message: 'User does not exist' });
-            }
-            return res.json({ parties: [] });
-        });
-    }
     static createTransactionFromInvitation(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
             const invitation = yield orms_1.Invitation.findOne({ where: { uuid: req.body.InvitationUuid } });
@@ -51,15 +42,56 @@ class InvitationController {
             return res.json({ transaction: Object.assign({}, transaction) });
         });
     }
+    static payTheTransaction(req, res) {
+        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+            const uuid = req.body.uuid;
+            if (!process.env.JWT_KEY) {
+                throw 'JWT key not provided';
+            }
+            const buyer_token = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const transaction = yield transaction_orm_1.Transaction.findOne({ where: { uuid: uuid, BuyerId: buyer_token.id } });
+            if (!transaction) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'transaction does not exist' });
+            }
+            if (transaction.state !== types_1.TransactionStatus.ACCEPTED) {
+                res.status(http_status_1.default.UNAUTHORIZED);
+                return res.json({ message: 'Cant pay a transaction that is not in accepted state' });
+            }
+            const result = yield transaction.update({ state: types_1.TransactionStatus.PAYED });
+            return res.json({ transaction: result.get({ plain: true }) });
+        });
+    }
+    static getPublicInvitationInfo(req, res) {
+        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+            const uuid = req.params.uuid;
+            if (!uuid) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'Invitation does not exist wrong request' });
+            }
+            const invitation = yield orms_1.Invitation.findOne({ where: { uuid: uuid },
+                include: { model: orms_1.Seller, as: 'Seller' }, nest: true, raw: true });
+            if (!invitation) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'Invitation does not exist' });
+            }
+            return res.json({ invitation });
+        });
+    }
 }
-(0, tslib_1.__decorate)([
-    (0, helpers_1.validation)(joi_1.default.object({}))
-], InvitationController, "getPartiesThatUserCanGoTo", null);
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({
         InvitationUuid: joi_1.default.string().required(),
         delivery: joi_1.default.string().required(),
     }))
 ], InvitationController, "createTransactionFromInvitation", null);
+(0, tslib_1.__decorate)([
+    (0, helpers_1.validation)(joi_1.default.object({
+        transactionUuid: joi_1.default.string().required()
+    }))
+], InvitationController, "payTheTransaction", null);
+(0, tslib_1.__decorate)([
+    (0, helpers_1.validation)(joi_1.default.object({}))
+], InvitationController, "getPublicInvitationInfo", null);
 exports.InvitationController = InvitationController;
 //# sourceMappingURL=invitation.controller.js.map

@@ -172,6 +172,54 @@ class SellerController {
             return res.json({ invitations: invitations });
         });
     }
+    static getSellerOneInvitation(req, res) {
+        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+            if (!process.env.JWT_KEY) {
+                throw 'JWT key not provided';
+            }
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const seller = yield orms_1.Seller.findOne({ where: { id: TokenSeller.id } });
+            if (!seller) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'User does not exist' });
+            }
+            const invitation = yield orms_1.Invitation.findOne({
+                include: [
+                    { model: transaction_orm_1.Transaction, as: 'InvitationTransactions' },
+                    { model: transaction_orm_1.Transaction, as: 'InvitationTransactions', paranoid: true, required: false }
+                ],
+                where: {
+                    uuid: req.body.uuid,
+                    SellerId: TokenSeller.id
+                }
+            });
+            if (!invitation) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'Invitation not found for Seller' });
+            }
+            return res.json({ invitation });
+        });
+    }
+    static getSellerOneTransaction(req, res) {
+        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+            if (!process.env.JWT_KEY) {
+                throw 'JWT key not provided';
+            }
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const seller = yield orms_1.Seller.findOne({ where: { id: TokenSeller.id } });
+            if (!seller) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'User does not exist' });
+            }
+            const transaction_invitation = yield transaction_orm_1.Transaction.findOne({ where: { uuid: req.body.uuid },
+                include: [{ model: orms_1.Invitation, as: 'Invitation' }, { model: orms_1.Buyer, as: 'Buyer' }], nest: true, raw: true });
+            if (!transaction_invitation) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'Transaction not found' });
+            }
+            return res.json({ transaction: transaction_invitation });
+        });
+    }
     static deleteInvitation(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
             if (!process.env.JWT_KEY) {
@@ -246,6 +294,16 @@ class SellerController {
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({}))
 ], SellerController, "getSellerInvitations", null);
+(0, tslib_1.__decorate)([
+    (0, helpers_1.validation)(joi_1.default.object({
+        uuid: joi_1.default.string().required()
+    }))
+], SellerController, "getSellerOneInvitation", null);
+(0, tslib_1.__decorate)([
+    (0, helpers_1.validation)(joi_1.default.object({
+        uuid: joi_1.default.string().required()
+    }))
+], SellerController, "getSellerOneTransaction", null);
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({
         id: joi_1.default.number().required(),

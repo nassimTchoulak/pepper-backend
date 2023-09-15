@@ -2,7 +2,7 @@ import { Model, DataTypes, Sequelize, BelongsToSetAssociationMixin, BelongsToGet
 import { Seller } from 'orms/seller.orm';
 import { Buyer } from './buyer.orm';
 import { Invitation } from './invitation.orm';
-import { TransactionStatus } from 'models/types';
+import { TransactionOutcome, TransactionStatus } from 'models/types';
 import { randomHash, randomHashUpper } from 'helpers/helpers';
 import moment from 'moment';
 
@@ -17,6 +17,7 @@ class Transaction extends Model {
   public delivery!: string;
 
   public state!: TransactionStatus;
+  public outcome!: TransactionOutcome;
 
   public createdAt!: Date;
   public updatedAt!: Date;
@@ -57,13 +58,19 @@ const initTransaction = (sequelize: Sequelize) => {
       type: DataTypes.STRING,
       allowNull: false,
       defaultValue: ()=>{
-        return randomHashUpper(6)
+        return randomHashUpper(7)
       }
     },
     state: {
-      type: DataTypes.ENUM(TransactionStatus.CANCELED, TransactionStatus.OPENED, TransactionStatus.DONE, TransactionStatus.PAYED, TransactionStatus.CONFIRMED),
+      type: DataTypes.ENUM(TransactionStatus.CANCELED, TransactionStatus.OPENED, TransactionStatus.FULFILLED, TransactionStatus.PAYED,
+         TransactionStatus.ACCEPTED, TransactionStatus.CHANGED_MIND_EARLY, TransactionStatus.CHANGED_MIND_LATE, TransactionStatus.SELLER_CANCEL, TransactionStatus.GHOSTED),
       allowNull: false,
       defaultValue: TransactionStatus.OPENED
+    },
+    outcome : {
+      type: DataTypes.ENUM( TransactionOutcome.CANCELED, TransactionOutcome.ONGOING, TransactionOutcome.CLOSED_FAILED, TransactionOutcome.CLOSED_SUCCESS),
+      allowNull: false,
+      defaultValue: TransactionOutcome.ONGOING
     }
   }, { sequelize, paranoid: true });
   

@@ -33,16 +33,7 @@ class UserRoutes {
      * Invitations and transaction routes
      */
     this._router.route('/transactions').get(authorizeForBuyer ,checkParametersAndCallRoute(BuyerController.getAllTransactions));
-    this._router.route('/transaction/:uuid').get(authorizeForBuyer ,checkParametersAndCallRoute(BuyerController.getTransactionsDetail));
-    /*
-    this._router.route('/matches').get(authorizeForBuyer,checkParametersAndCallRoute(UserController.getMatches));
-    this._router.route('/matches').post(authorizeForBuyer,checkParametersAndCallRoute(UserController.addMatch));
-    this._router.route('/matches').delete(authorizeForBuyer,checkParametersAndCallRoute(UserController.deleteMatch));
-    this._router.route('/parties').get(authorizeForBuyer,checkParametersAndCallRoute(UserController.getParties));
-    this._router.route('/parties').post(authorizeForBuyer,checkParametersAndCallRoute(UserController.addParty));
-    this._router.route('/parties').put(authorizeForBuyer,checkParametersAndCallRoute(UserController.attendParty));
-    this._router.route('/parties').delete(authorizeForBuyer,checkParametersAndCallRoute(UserController.cancelParty));
-    */
+    this._router.route('/transaction').get(authorizeForBuyer ,checkParametersAndCallRoute(BuyerController.getTransactionsDetail));
   }
 }
 

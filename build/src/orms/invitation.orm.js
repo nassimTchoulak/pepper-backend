@@ -40,6 +40,11 @@ const initInvitation = (sequelize) => {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
         },
+        autoAccept: {
+            type: sequelize_1.DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
+        },
         uuid: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
