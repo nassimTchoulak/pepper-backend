@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.History = exports.Claim = exports.Buyer = exports.Seller = exports.Invitation = void 0;
+exports.Transaction = exports.History = exports.Claim = exports.Buyer = exports.Seller = exports.Invitation = void 0;
 const tslib_1 = require("tslib");
 const pepperDb_1 = require("orms/pepperDb");
 const invitation_orm_1 = require("orms/invitation.orm");
@@ -31,4 +31,6 @@ var claim_orm_2 = require("orms/claim.orm");
 Object.defineProperty(exports, "Claim", { enumerable: true, get: function () { return claim_orm_2.Claim; } });
 var history_orm_2 = require("orms/history.orm");
 Object.defineProperty(exports, "History", { enumerable: true, get: function () { return history_orm_2.History; } });
+var transaction_orm_2 = require("orms/transaction.orm");
+Object.defineProperty(exports, "Transaction", { enumerable: true, get: function () { return transaction_orm_2.Transaction; } });
 //# sourceMappingURL=index.js.map

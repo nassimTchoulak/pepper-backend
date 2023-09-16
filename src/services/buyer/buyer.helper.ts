@@ -26,7 +26,7 @@ const normalizeInvitations = (userParties: Invitation[]): IInvitation[] => {
   let normalizedInvitations = _.map(userParties, (invitation) => {
     return _.omit(invitation, ['updatedAt', 'deletedAt']) as unknown as IInvitation;
   });
-  normalizedInvitations = _.filter(normalizedInvitations, (o:IInvitation) => { return o.id != undefined; });
+  normalizedInvitations = _.filter(normalizedInvitations, (o:IInvitation) => { return o.uuid != undefined; });
   return normalizedInvitations;
 }
 

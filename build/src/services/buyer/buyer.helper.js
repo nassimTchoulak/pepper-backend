@@ -7,7 +7,7 @@ const normalizeInvitations = (userParties) => {
     let normalizedInvitations = lodash_1.default.map(userParties, (invitation) => {
         return lodash_1.default.omit(invitation, ['updatedAt', 'deletedAt']);
     });
-    normalizedInvitations = lodash_1.default.filter(normalizedInvitations, (o) => { return o.id != undefined; });
+    normalizedInvitations = lodash_1.default.filter(normalizedInvitations, (o) => { return o.uuid != undefined; });
     return normalizedInvitations;
 };
 exports.normalizeInvitations = normalizeInvitations;

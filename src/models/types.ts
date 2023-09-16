@@ -1,29 +1,37 @@
 export interface IInvitation {
-  id: number,
+  uuid: string,
   product: string,
   description: string,
-  date: Date,
   price: number,
   instances: number,
   delivery: string,
   active: boolean,
-  SellerId: number
+  date: Date,
+  createdAt: Date,
+  updatedAt: Date,
+  autoAccept: boolean
 };
 
 
 export interface ITransaction {
-  id: number,
   uuid: string
-  product: string,
-  description: string,
-  date: Date,
-  price: number,
-  instances: number,
   delivery: string,
   state: TransactionStatus,
-  BuyerId: number,
-  InvitationId: number
+  outcome: TransactionOutcome,
+  activationKey: string,
+  date: Date,
+  createdAt: Date,
+  updatedAt: Date,
 };
+
+export interface IInvitationTransaction extends IInvitation {
+  InvitationTransactions: ITransaction[]
+}
+
+export interface ITransactionSellerSide extends ITransaction {
+  Invitation: IInvitation,
+  Buyer: IBuyerBase
+}
 
 export interface ITransactionBuyer extends IInvitation, ITransaction, ISellerBase{};
 

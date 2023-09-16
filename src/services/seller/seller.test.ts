@@ -164,8 +164,8 @@ describe('## seller', () => {
           expect(httpStatus.OK)).body.invitations;
   
       expect(parties.length).toEqual(2);
-      expect(parties[1].id).toEqual(p2.id);
-      expect(parties[0].id).toEqual(p1.id);
+      expect(parties[1].uuid).toEqual(p2.uuid);
+      expect(parties[0].uuid).toEqual(p1.uuid);
       
     });
   
@@ -181,7 +181,7 @@ describe('## seller', () => {
       }
 
       const { token } = (await request(app).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword})).body;
-  
+      
       const invitation: IInvitation = (await request(app).post(`/api/seller/invitation`).
       send({...partyTest}).
       set('Authorization', token).
@@ -190,6 +190,7 @@ describe('## seller', () => {
       expect(invitation).toBeDefined();
       expect(invitation.product).toEqual(partyTest.product);
       expect(invitation.price).toEqual(partyTest.price);
+      
     });
 
     
@@ -219,7 +220,7 @@ describe('## seller', () => {
 
       
       const req_reuslt = (await request(app).delete(`/api/seller/invitation`).
-      send({ id: invitation.id}).
+      send({ uuid: invitation.uuid}).
       set('Authorization', token));
 
       // console.log("@@z@", req_reuslt);

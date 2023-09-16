@@ -9,11 +9,11 @@ const http_status_1 = (0, tslib_1.__importDefault)(require("http-status"));
 const jsonwebtoken_1 = (0, tslib_1.__importDefault)(require("jsonwebtoken"));
 const types_1 = require("models/types");
 require("dotenv/config");
-const lodash_1 = (0, tslib_1.__importDefault)(require("lodash"));
 const sequelize_1 = require("sequelize");
 const mailer_1 = require("services/mailer/mailer");
 const auth_1 = (0, tslib_1.__importDefault)(require("helpers/auth"));
 const transaction_orm_1 = require("orms/transaction.orm");
+const attributes_visibility_1 = require("models/attributes.visibility");
 ;
 class SellerController {
     static subscribe(req, res) {
@@ -88,7 +88,7 @@ class SellerController {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'seller does not exist' });
             }
-            return res.json({ seller: lodash_1.default.omit(seller, ['createdAt', 'updatedAt', 'deletedAt', 'password', 'emailCode']) });
+            return res.json({ seller: attributes_visibility_1.SellerVisibility.AdaptSellerForSeller(seller) });
         });
     }
     static updateSeller(req, res) {
@@ -99,7 +99,11 @@ class SellerController {
             const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
             yield orms_1.Seller.update(Object.assign({}, req.body), { where: { id: TokenSeller.id } });
             const seller = yield orms_1.Seller.findOne({ where: { id: TokenSeller.id }, raw: true });
-            return res.json({ seller: lodash_1.default.omit(seller, ['createdAt', 'updatedAt', 'deletedAt', 'password']) });
+            if (!seller) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'seller does not exist' });
+            }
+            return res.json({ seller: attributes_visibility_1.SellerVisibility.AdaptSellerForSeller(seller) });
         });
     }
     static validateSellerEmail(req, res) {
@@ -146,7 +150,7 @@ class SellerController {
                 description: req.body.description,
             });
             yield seller.addInvitation(invitation);
-            return res.json({ invitation: invitation });
+            return res.json({ invitation: attributes_visibility_1.SellerVisibility.AdaptSimpleInvitationToSeller(invitation) });
         });
     }
     static getSellerInvitations(req, res) {
@@ -169,7 +173,7 @@ class SellerController {
                     SellerId: TokenSeller.id
                 }
             });
-            return res.json({ invitations: invitations });
+            return res.json({ invitations: attributes_visibility_1.SellerVisibility.AdaptListOfInvitationTransactionToSeller(invitations) });
         });
     }
     static getSellerOneInvitation(req, res) {
@@ -197,7 +201,7 @@ class SellerController {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'Invitation not found for Seller' });
             }
-            return res.json({ invitation });
+            return res.json({ invitation: attributes_visibility_1.SellerVisibility.AdaptInvitationTransactionToSeller(invitation) });
         });
     }
     static getSellerOneTransaction(req, res) {
@@ -217,7 +221,12 @@ class SellerController {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'Transaction not found' });
             }
-            return res.json({ transaction: transaction_invitation });
+            if (transaction_invitation.Invitation.SellerId !== TokenSeller.id) {
+                res.status(http_status_1.default.UNAUTHORIZED);
+                return res.json({ message: 'Transaction can only be accessed by it\'s seller ' });
+            }
+            const casted_transaction = transaction_invitation;
+            return res.json({ transaction: attributes_visibility_1.SellerVisibility.AdaptSellerFullTransactionToSeller(casted_transaction) });
         });
     }
     static deleteInvitation(req, res) {
@@ -231,11 +240,11 @@ class SellerController {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'seller does not exist' });
             }
-            const invitation = yield orms_1.Invitation.findByPk(req.body.id);
+            const invitation = yield orms_1.Invitation.findOne({ where: { uuid: req.body.uuid } });
             const invitationSeller = yield (invitation === null || invitation === void 0 ? void 0 : invitation.getSeller());
             if ((invitationSeller != null) && (invitation != null) && (invitationSeller.id == seller.id)) {
                 const result = yield invitation.update({ active: false });
-                return res.json({ invitation: result.get({ plain: true }) });
+                return res.json({ invitation: attributes_visibility_1.SellerVisibility.AdaptSimpleInvitationToSeller(result) });
             }
             else {
                 res.status(http_status_1.default.NOT_FOUND);
@@ -268,12 +277,12 @@ class SellerController {
 ], SellerController, "getSeller", null);
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({
-        name: joi_1.default.string().required(),
-        firstName: joi_1.default.string().required(),
+        name: joi_1.default.string().optional(),
+        firstName: joi_1.default.string().optional(),
         password: joi_1.default.string().optional(),
-        businessName: joi_1.default.string().required(),
-        location: joi_1.default.string().required(),
-        description: joi_1.default.string().required(),
+        businessName: joi_1.default.string().optional(),
+        location: joi_1.default.string().optional(),
+        description: joi_1.default.string().optional(),
     }))
 ], SellerController, "updateSeller", null);
 (0, tslib_1.__decorate)([
@@ -306,7 +315,7 @@ class SellerController {
 ], SellerController, "getSellerOneTransaction", null);
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({
-        id: joi_1.default.number().required(),
+        uuid: joi_1.default.string().required(),
     }))
 ], SellerController, "deleteInvitation", null);
 exports.SellerController = SellerController;

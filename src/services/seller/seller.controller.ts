@@ -4,7 +4,7 @@ import { validation } from 'helpers/helpers';
 import { Seller, Invitation, Buyer } from 'orms';
 import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
-import { ISeller, IInvitation, UserStatus } from 'models/types';
+import { ISeller, IInvitation, UserStatus, IInvitationTransaction, ISellerBase, ITransactionSellerSide } from 'models/types';
 import 'dotenv/config';
 import _, { includes } from 'lodash';
 import { SellerService } from 'services/seller/seller.service';
@@ -12,6 +12,7 @@ import { Op } from 'sequelize';
 import { sendEmailVerificationCodeSeller } from 'services/mailer/mailer';
 import AuthHelper from 'helpers/auth';
 import { Transaction } from 'orms/transaction.orm';
+import { SellerVisibility } from 'models/attributes.visibility';
 
 // useful when parsing the entire ISeller to be modified
 interface SellerRequest extends Request {
@@ -123,26 +124,30 @@ export class SellerController {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'seller does not exist' });
     }
-    return res.json({ seller: _.omit(seller, ['createdAt', 'updatedAt', 'deletedAt','password', 'emailCode']) });
+    return res.json({ seller: SellerVisibility.AdaptSellerForSeller(seller) });
   }
 
 
   @validation(Joi.object({
-    name:  Joi.string().required(),
-    firstName:  Joi.string().required(),
+    name:  Joi.string().optional(),
+    firstName:  Joi.string().optional(),
     password:  Joi.string().optional(),
-    businessName: Joi.string().required(),
-    location: Joi.string().required(),
-    description: Joi.string().required(),
+    businessName: Joi.string().optional(),
+    location: Joi.string().optional(),
+    description: Joi.string().optional(),
   }))
-  public static async updateSeller(req: SellerRequest, res: Response): Promise<Response<{ seller: ISeller }>> {
+  public static async updateSeller(req: SellerRequest, res: Response): Promise<Response<{ seller: ISellerBase }>> {
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
     }
     const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
     await Seller.update({ ...req.body }, { where:  { id: TokenSeller.id }});
     const seller = await Seller.findOne({ where: { id: TokenSeller.id }, raw: true });
-    return res.json({ seller: _.omit(seller, ['createdAt', 'updatedAt', 'deletedAt','password']) });
+    if (!seller) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'seller does not exist' });
+    }
+    return res.json({ seller: SellerVisibility.AdaptSellerForSeller(seller) });
   }
 
   @validation(Joi.object({
@@ -204,11 +209,11 @@ export class SellerController {
     });
 
     await seller.addInvitation(invitation);
-    return res.json({ invitation: invitation });
+    return res.json({ invitation: SellerVisibility.AdaptSimpleInvitationToSeller(invitation) });
   }
 
   @validation(Joi.object({}))
-  public static async getSellerInvitations(req: SellerRequest, res: Response): Promise<Response<{ invitations: IInvitation[] }>> {
+  public static async getSellerInvitations(req: SellerRequest, res: Response): Promise<Response<{ invitations: IInvitationTransaction[] }>> {
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
     }
@@ -234,13 +239,13 @@ export class SellerController {
         }
     });
 
-    return res.json({ invitations: invitations });
+    return res.json({ invitations: SellerVisibility.AdaptListOfInvitationTransactionToSeller(invitations) });
   }
 
   @validation(Joi.object({
     uuid: Joi.string().required()
   }))
-  public static async getSellerOneInvitation(req: SellerRequest, res: Response): Promise<Response<{ invitations: IInvitation[] }>> {
+  public static async getSellerOneInvitation(req: SellerRequest, res: Response): Promise<Response<{ invitation: IInvitationTransaction }>> {
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
     }
@@ -268,13 +273,13 @@ export class SellerController {
       return res.json({ message: 'Invitation not found for Seller' });
     }
 
-    return res.json({ invitation });
+    return res.json({ invitation:SellerVisibility.AdaptInvitationTransactionToSeller(invitation) });
   }
 
   @validation(Joi.object({
     uuid: Joi.string().required()
   }))
-  public static async getSellerOneTransaction(req: SellerRequest, res: Response): Promise<Response<{ invitations: IInvitation[] }>> {
+  public static async getSellerOneTransaction(req: SellerRequest, res: Response): Promise<Response<{ invitations: ITransactionSellerSide }>> {
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
     }
@@ -287,19 +292,25 @@ export class SellerController {
     }
 
     const transaction_invitation = await Transaction.findOne({ where: {uuid: req.body.uuid}, 
-      include:[{ model: Invitation, as:'Invitation'}, { model: Buyer, as: 'Buyer'}], nest: true, raw: true})
+      include:[{ model: Invitation, as:'Invitation'}, { model: Buyer, as: 'Buyer'}], nest: true, raw: true}) as unknown as { Invitation: { SellerId: number }};
     
-    // TO-DO check that it belongs to the seller
     if (!transaction_invitation){
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'Transaction not found' });
     }
 
-    return res.json({ transaction: transaction_invitation });
+    if (transaction_invitation.Invitation.SellerId !== TokenSeller.id) {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'Transaction can only be accessed by it\'s seller '});
+    }
+
+    const casted_transaction = transaction_invitation as unknown as ITransactionSellerSide;
+
+    return res.json({ transaction: SellerVisibility.AdaptSellerFullTransactionToSeller(casted_transaction)});
   }
 
   @validation(Joi.object({
-    id: Joi.number().required(),
+    uuid: Joi.string().required(),
   }))
   public static async deleteInvitation(req: SellerRequest, res: Response): Promise<Response<{ invitation: IInvitation }>> {
     if (!process.env.JWT_KEY) {
@@ -312,14 +323,14 @@ export class SellerController {
       return res.json({ message: 'seller does not exist' });
     }
 
-    const invitation = await Invitation.findByPk(req.body.id);
+    const invitation = await Invitation.findOne({ where: { uuid: req.body.uuid}});
     
     const invitationSeller = await invitation?.getSeller();
 
     if ((invitationSeller != null) && (invitation != null) && (invitationSeller.id == seller.id)){
       const result = await invitation.update({active : false});
       
-      return res.json({ invitation: result.get({plain: true}) });
+      return res.json({ invitation: SellerVisibility.AdaptSimpleInvitationToSeller(result) });
     }
     else
     {

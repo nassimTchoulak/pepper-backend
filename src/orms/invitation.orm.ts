@@ -6,7 +6,9 @@ import { TransactionStatus } from 'models/types';
 import { randomHash } from 'helpers/helpers';
 
 class Invitation extends Model {
+
   public id!: number;
+  public uuid!: string;
   public product!: string;
   public description!: string;
   public date!: Date;
