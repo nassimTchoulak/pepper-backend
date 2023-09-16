@@ -4,13 +4,14 @@ import { validation } from 'helpers/helpers';
 import { Buyer, Invitation, Seller } from 'orms';
 import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
-import { Gender, IBuyer, ITransaction, UserStatus } from 'models/types';
+import { Gender, IBuyer, IBuyerBase, IInvitation, ITransaction, ITransactionNoSeller, ITransactionWithSeller, UserStatus } from 'models/types';
 import _, { includes } from 'lodash';
 import 'dotenv/config';
 import AuthHelper from 'helpers/auth';
 import { Op, where } from 'sequelize';
 import { sendEmailVerificationCodeBuyer } from 'services/mailer/mailer';
 import { Transaction } from 'orms/transaction.orm';
+import { BuyerVisibility } from 'models/attributes.visibility';
 
 interface UserRequest extends Request {
   user: Buyer
@@ -155,7 +156,7 @@ export class BuyerController {
   }
 
   @validation(Joi.object({}))
-  public static async getBuyer(req: UserRequest, res: Response): Promise<Response<{ user: IBuyer }>> {
+  public static async getBuyer(req: UserRequest, res: Response): Promise<Response<{ user: IBuyerBase }>> {
 
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
@@ -167,7 +168,7 @@ export class BuyerController {
       return res.json({ message: 'User does not exist' });
     }
     // TO-DO: omit password
-    return res.json({ user: _.omit(user, ['createdAt', 'updatedAt', 'deletedAt', 'emailCode', 'password']) });
+    return res.json({ user: BuyerVisibility.adaptBuyerToBuyer(user) });
   }
 
   @validation(Joi.object({
@@ -186,7 +187,11 @@ export class BuyerController {
     const buyer = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as IBuyer;
     await Buyer.update({ ...req.body }, { where:  { email: buyer.email }});
     const user = await Buyer.findOne({ where: { id: buyer.id }, raw: true });
-    return res.json({ user: _.omit(user, ['createdAt', 'updatedAt', 'deletedAt']) });
+    if (!user) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'User does not exist' });
+    }
+    return res.json({ user: BuyerVisibility.adaptBuyerToBuyer(user) });
   }
 
 
@@ -195,36 +200,35 @@ export class BuyerController {
    * Transaction Getter for Buyer
    */
   @validation(Joi.object({}))
-  public static async getAllTransactions(req: UserRequest, res: Response): Promise<Response<{ transactions: ITransaction[] }>> {
+  public static async getAllTransactions(req: UserRequest, res: Response): Promise<Response<{ transactions: ITransactionNoSeller[] }>> {
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
     }
     const buyer = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as IBuyer;
 
     const transactions = await Transaction.findAll({ where: {BuyerId: buyer.id}, 
-      include: [{model: Invitation, as:'Invitation'} ]})
+      include: [{model: Invitation, as:'Invitation'} ], raw: true, nest: true})
 
-    return res.json({transactions})
+    return res.json({transactions: BuyerVisibility.adaptListOfTransactionNoSellerToBuyer(transactions)})
   }
 
   @validation(Joi.object({
     uuid: Joi.string().required()
   }))
-  public static async getTransactionsDetail(req: UserRequest, res: Response): Promise<Response<{ transaction: ITransaction }>> {
+  public static async getTransactionDetail(req: UserRequest, res: Response): Promise<Response<{ transaction: ITransactionWithSeller }>> {
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
     }
     const buyer = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as IBuyer;
 
     const transaction = await Transaction.findOne({ where :{uuid: req.body.uuid, BuyerId: buyer.id}, 
-      include: [{model: Invitation, as:'Invitation', include:[{model: Seller, as: 'Seller'}]}] })
+      include: [{model: Invitation, as:'Invitation', include:[{model: Seller, as: 'Seller'}]}], raw: true, nest: true })
     
     if (transaction === null) {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'transaction does not exist for user' });
     }
-
-    return res.json({transaction})
+    return res.json({transaction : BuyerVisibility.adaptTransactionWithSellerToBuyer(transaction)})
   }
   /*
   @validation(Joi.object({}))

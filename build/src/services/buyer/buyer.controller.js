@@ -8,12 +8,12 @@ const orms_1 = require("orms");
 const http_status_1 = (0, tslib_1.__importDefault)(require("http-status"));
 const jsonwebtoken_1 = (0, tslib_1.__importDefault)(require("jsonwebtoken"));
 const types_1 = require("models/types");
-const lodash_1 = (0, tslib_1.__importDefault)(require("lodash"));
 require("dotenv/config");
 const auth_1 = (0, tslib_1.__importDefault)(require("helpers/auth"));
 const sequelize_1 = require("sequelize");
 const mailer_1 = require("services/mailer/mailer");
 const transaction_orm_1 = require("orms/transaction.orm");
+const attributes_visibility_1 = require("models/attributes.visibility");
 ;
 class BuyerController {
     static createLoginVerificationAndCheckIfUserExisits(req, res) {
@@ -124,7 +124,7 @@ class BuyerController {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'User does not exist' });
             }
-            return res.json({ user: lodash_1.default.omit(user, ['createdAt', 'updatedAt', 'deletedAt', 'emailCode', 'password']) });
+            return res.json({ user: attributes_visibility_1.BuyerVisibility.adaptBuyerToBuyer(user) });
         });
     }
     static updateBuyer(req, res) {
@@ -135,7 +135,11 @@ class BuyerController {
             const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
             yield orms_1.Buyer.update(Object.assign({}, req.body), { where: { email: buyer.email } });
             const user = yield orms_1.Buyer.findOne({ where: { id: buyer.id }, raw: true });
-            return res.json({ user: lodash_1.default.omit(user, ['createdAt', 'updatedAt', 'deletedAt']) });
+            if (!user) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'User does not exist' });
+            }
+            return res.json({ user: attributes_visibility_1.BuyerVisibility.adaptBuyerToBuyer(user) });
         });
     }
     static getAllTransactions(req, res) {
@@ -145,23 +149,23 @@ class BuyerController {
             }
             const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
             const transactions = yield transaction_orm_1.Transaction.findAll({ where: { BuyerId: buyer.id },
-                include: [{ model: orms_1.Invitation, as: 'Invitation' }] });
-            return res.json({ transactions });
+                include: [{ model: orms_1.Invitation, as: 'Invitation' }], raw: true, nest: true });
+            return res.json({ transactions: attributes_visibility_1.BuyerVisibility.adaptListOfTransactionNoSellerToBuyer(transactions) });
         });
     }
-    static getTransactionsDetail(req, res) {
+    static getTransactionDetail(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
             if (!process.env.JWT_KEY) {
                 throw 'JWT key not provided';
             }
             const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
             const transaction = yield transaction_orm_1.Transaction.findOne({ where: { uuid: req.body.uuid, BuyerId: buyer.id },
-                include: [{ model: orms_1.Invitation, as: 'Invitation', include: [{ model: orms_1.Seller, as: 'Seller' }] }] });
+                include: [{ model: orms_1.Invitation, as: 'Invitation', include: [{ model: orms_1.Seller, as: 'Seller' }] }], raw: true, nest: true });
             if (transaction === null) {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'transaction does not exist for user' });
             }
-            return res.json({ transaction });
+            return res.json({ transaction: attributes_visibility_1.BuyerVisibility.adaptTransactionWithSellerToBuyer(transaction) });
         });
     }
 }
@@ -217,6 +221,6 @@ class BuyerController {
     (0, helpers_1.validation)(joi_1.default.object({
         uuid: joi_1.default.string().required()
     }))
-], BuyerController, "getTransactionsDetail", null);
+], BuyerController, "getTransactionDetail", null);
 exports.BuyerController = BuyerController;
 //# sourceMappingURL=buyer.controller.js.map

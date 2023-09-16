@@ -33,7 +33,7 @@ class UserRoutes {
      * Invitations and transaction routes
      */
     this._router.route('/transactions').get(authorizeForBuyer ,checkParametersAndCallRoute(BuyerController.getAllTransactions));
-    this._router.route('/transaction').get(authorizeForBuyer ,checkParametersAndCallRoute(BuyerController.getTransactionsDetail));
+    this._router.route('/transaction').get(authorizeForBuyer ,checkParametersAndCallRoute(BuyerController.getTransactionDetail));
   }
 }
 

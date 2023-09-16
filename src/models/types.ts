@@ -24,6 +24,7 @@ export interface ITransaction {
   updatedAt: Date,
 };
 
+// Seller interfaces
 export interface IInvitationTransaction extends IInvitation {
   InvitationTransactions: ITransaction[]
 }
@@ -33,17 +34,19 @@ export interface ITransactionSellerSide extends ITransaction {
   Buyer: IBuyerBase
 }
 
-export interface ITransactionBuyer extends IInvitation, ITransaction, ISellerBase{};
-
-export interface IFullTransaction extends ITransaction{
-  Invitation: IInvitation
-}
-
-export interface IFullPlusSeller extends IFullTransaction{
+// Buyer interfaces
+export interface IInvitationComplete extends IInvitation {
   Seller: ISellerBase
 }
 
-export interface ITransactionSeller extends IInvitation, ITransaction, IBuyerBase{};
+export interface ITransactionWithSeller extends ITransaction {
+  Invitation: IInvitationComplete
+}
+
+export interface ITransactionNoSeller extends ITransaction {
+  Invitation: IInvitation
+}
+
 
 export interface IBuyerBase {
   id: number,
@@ -69,13 +72,15 @@ export interface ISellerBase {
   status: UserStatus
 }
 
+
+// TO-DO: remove IBuyer & ISeller
 export interface IBuyer extends IBuyerBase {
-  transactions: ITransactionBuyer[],
+  transactions: ITransaction[],
 };
 
 export interface ISeller extends ISellerBase {
   invitations : IInvitation[],
-  transactions: ITransactionSeller[]
+  transactions: ITransactionSellerSide[]
 }
 
 

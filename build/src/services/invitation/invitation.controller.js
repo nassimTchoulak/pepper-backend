@@ -10,6 +10,7 @@ require("dotenv/config");
 const types_1 = require("models/types");
 const transaction_orm_1 = require("orms/transaction.orm");
 const jsonwebtoken_1 = (0, tslib_1.__importDefault)(require("jsonwebtoken"));
+const attributes_visibility_1 = require("models/attributes.visibility");
 ;
 class InvitationController {
     static createTransactionFromInvitation(req, res) {
@@ -39,7 +40,11 @@ class InvitationController {
                 where: { uuid: transactionInfo.uuid },
                 include: [{ model: orms_1.Invitation, as: 'Invitation', include: [{ model: orms_1.Seller, as: 'Seller' }] }], nest: true, raw: true
             });
-            return res.json({ transaction: Object.assign({}, transaction) });
+            if (!transaction) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'Transaction not found' });
+            }
+            return res.json({ transaction: attributes_visibility_1.BuyerVisibility.adaptTransactionWithSellerToBuyer(transaction) });
         });
     }
     static payTheTransaction(req, res) {
@@ -59,7 +64,7 @@ class InvitationController {
                 return res.json({ message: 'Cant pay a transaction that is not in accepted state' });
             }
             const result = yield transaction.update({ state: types_1.TransactionStatus.PAYED });
-            return res.json({ transaction: result.get({ plain: true }) });
+            return res.json({ transaction: attributes_visibility_1.BuyerVisibility.adaptTransactionWithSellerToBuyer(result.get({ plain: true })) });
         });
     }
     static getPublicInvitationInfo(req, res) {
@@ -75,7 +80,7 @@ class InvitationController {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'Invitation does not exist' });
             }
-            return res.json({ invitation });
+            return res.json({ invitation: attributes_visibility_1.BuyerVisibility.adaptInvitationToBuyer(invitation) });
         });
     }
 }

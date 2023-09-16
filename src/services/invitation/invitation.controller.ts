@@ -1,16 +1,15 @@
 import { Request, Response } from 'express';
 import Joi from 'joi';
-import { randomHash, transactionUUid, validation } from 'helpers/helpers';
+import { transactionUUid, validation } from 'helpers/helpers';
 import { Buyer, Invitation, Seller } from 'orms';
 import httpStatus from 'http-status';
 // import { UserService } from 'services/buyer/buyer.service';
 import 'dotenv/config';
-import { IBuyer, IFullPlusSeller, IFullTransaction, IInvitation, ISellerBase, ITransaction, TransactionStatus } from 'models/types';
-import { HasManyAddAssociationsMixinOptions, where } from 'sequelize';
+import { IBuyer, IInvitationComplete, TransactionStatus } from 'models/types';
 import { Transaction } from 'orms/transaction.orm';
 import jwt from 'jsonwebtoken';
-import { SellerService } from 'services/seller/seller.service';
-import { includes } from 'lodash';
+import { BuyerVisibility } from 'models/attributes.visibility';
+
 
 interface UserRequest extends Request {
   user: Buyer
@@ -29,7 +28,7 @@ export class InvitationController {
     InvitationUuid: Joi.string().required(),
     delivery: Joi.string().required(),
   }))
-  public static async createTransactionFromInvitation(req: UserRequest, res: Response): Promise<Response<{ transaction: IFullPlusSeller }>> {
+  public static async createTransactionFromInvitation(req: UserRequest, res: Response): Promise<Response<{ transaction: IInvitationComplete }>> {
     const invitation = await Invitation.findOne({where: { uuid: req.body.InvitationUuid }})
     if (!invitation) {
       res.status(httpStatus.NOT_FOUND);
@@ -58,16 +57,17 @@ export class InvitationController {
     const transaction = await Transaction.findOne({
       where: { uuid: transactionInfo.uuid },
       include: [{ model: Invitation, as: 'Invitation', include: [{ model: Seller, as : 'Seller'}] }], nest: true, raw: true
-    }) as unknown as IFullTransaction;  // .then((res)=>console.log(res)).catch((err)=>console.log(err))
+    });
+    if (!transaction) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'Transaction not found' });
+    }
 
-    //const seller = await Seller.findOne({ where: {id: transaction?.Invitation.SellerId}, raw: true}); 
-
-    return res.json({transaction : {... transaction //, Seller : SellerService.cleanSellerToSend(seller)
-    }});
+    return res.json({transaction : BuyerVisibility.adaptTransactionWithSellerToBuyer(transaction) });
   }
 
     /**
-   * 
+   * TO-DO
    * @param transactionUuid the uuid of the transaction created
    * @param res 
    * @returns 
@@ -75,7 +75,7 @@ export class InvitationController {
   @validation(Joi.object({
     transactionUuid: Joi.string().required()
   }))
-  public static async payTheTransaction(req: UserRequest, res: Response): Promise<Response<{ invitation: IFullPlusSeller }>> {
+  public static async payTheTransaction(req: UserRequest, res: Response): Promise<Response<{ invitation: IInvitationComplete }>> {
     const uuid = req.body.uuid;
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
@@ -92,12 +92,12 @@ export class InvitationController {
       res.status(httpStatus.UNAUTHORIZED);
       return res.json({ message: 'Cant pay a transaction that is not in accepted state' });
     }
-    const result = await transaction.update({ state : TransactionStatus.PAYED})
-    return res.json({ transaction: result.get({plain: true}) })
+    const result = await transaction.update({ state : TransactionStatus.PAYED })
+    return res.json({ transaction: BuyerVisibility.adaptTransactionWithSellerToBuyer(result.get({plain: true})) })
   }
 
   @validation(Joi.object({}))
-  public static async getPublicInvitationInfo(req: UserRequest, res: Response): Promise<Response<{ invitation: IFullPlusSeller }>> {
+  public static async getPublicInvitationInfo(req: UserRequest, res: Response): Promise<Response<{ invitation: IInvitationComplete }>> {
     const uuid = req.params.uuid;
     if (!uuid) {
       res.status(httpStatus.NOT_FOUND);
@@ -110,6 +110,6 @@ export class InvitationController {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'Invitation does not exist' });
     }
-    return res.json({ invitation })
+    return res.json({ invitation : BuyerVisibility.adaptInvitationToBuyer(invitation) })
   }
 }

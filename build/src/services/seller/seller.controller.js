@@ -41,20 +41,20 @@ class SellerController {
                 description: req.body.description,
                 email: req.body.email
             });
-            const organizer = yield orms_1.Seller.findOne({
+            const seller = yield orms_1.Seller.findOne({
                 where: { email: req.body.email },
                 attributes: { exclude: ['password', 'createdAt', 'updatedAt', 'deletedAt'] },
                 raw: true,
             });
-            if (organizer === null) {
+            if (seller === null) {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'seller could not be created!' });
             }
-            (0, mailer_1.sendEmailVerificationCodeSeller)(organizer.email, organizer.emailCode, organizer.firstName);
+            (0, mailer_1.sendEmailVerificationCodeSeller)(seller.email, seller.emailCode, seller.firstName);
             if (!process.env.JWT_KEY) {
                 throw 'JWT key not provided';
             }
-            const token = jsonwebtoken_1.default.sign(organizer, process.env.JWT_KEY, { expiresIn: '24h' });
+            const token = jsonwebtoken_1.default.sign(seller, process.env.JWT_KEY, { expiresIn: '24h' });
             return res.json({ token });
         });
     }

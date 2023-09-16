@@ -65,24 +65,24 @@ export class SellerController {
       email: req.body.email
     });
 
-    const organizer = await Seller.findOne({ 
+    const seller = await Seller.findOne({ 
       where: { email: req.body.email }, 
       attributes: { exclude: ['password','createdAt','updatedAt','deletedAt'] },
       raw: true,
     });
     
-    if (organizer === null) {
+    if (seller === null) {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'seller could not be created!' });
     }
 
-    sendEmailVerificationCodeSeller(organizer.email, organizer.emailCode, organizer.firstName);
+    sendEmailVerificationCodeSeller(seller.email, seller.emailCode, seller.firstName);
 
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
     }
 
-    const token = jwt.sign(organizer, process.env.JWT_KEY, { expiresIn: '24h'});
+    const token = jwt.sign(seller, process.env.JWT_KEY, { expiresIn: '24h'});
     return res.json({ token });
   }
 
@@ -113,12 +113,12 @@ export class SellerController {
   }
 
   @validation(Joi.object({}))
-  public static async getSeller(req: SellerRequest, res: Response): Promise<Response<{ seller: ISeller }>> {
+  public static async getSeller(req: SellerRequest, res: Response): Promise<Response<{ seller: ISellerBase }>> {
 
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
     }
-    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISellerBase;
     const seller = await Seller.findOne({ where: { id: TokenSeller.id }, raw: true });
     if (!seller) {
       res.status(httpStatus.NOT_FOUND);

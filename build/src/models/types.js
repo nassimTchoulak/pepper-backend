@@ -4,8 +4,6 @@ exports.UserStatus = exports.StoreStatus = exports.Gender = exports.TransactionO
 ;
 ;
 ;
-;
-;
 var TransactionStatus;
 (function (TransactionStatus) {
     TransactionStatus["OPENED"] = "opened";

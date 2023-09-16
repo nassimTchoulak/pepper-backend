@@ -1,7 +1,7 @@
 
 import _ from "lodash";
-import { IBuyerBase, IInvitation, IInvitationTransaction, ISellerBase, ITransaction, ITransactionSellerSide } from "models/types";
-import { Invitation, Seller, Transaction } from "orms";
+import { IBuyerBase, IInvitation, IInvitationTransaction, ISellerBase, ITransaction, ITransactionSellerSide, IInvitationComplete, ITransactionWithSeller, ITransactionNoSeller } from "models/types";
+import { Buyer, Invitation, Seller, Transaction } from "orms";
 
 export class SellerVisibility{
   
@@ -36,7 +36,7 @@ export class SellerVisibility{
    * @returns ISellerBase
    */
   public static AdaptSellerForSeller(seller: Seller) : ISellerBase {
-    return _.omit(seller, ['createdAt', 'updatedAt', 'deletedAt', 'password', 'emailCode']) as unknown as ISellerBase
+    return _.omit(seller, ['createdAt', 'updatedAt', 'deletedAt', 'password', 'emailCode', 'id']) as unknown as ISellerBase
   }
 
   public static AdaptSellerFullTransactionToSeller(transaction: ITransactionSellerSide) : ITransactionSellerSide {
@@ -48,4 +48,42 @@ export class SellerVisibility{
 
   
 
+}
+
+
+export class BuyerVisibility {
+
+    public static adaptBuyerToBuyer(buyer : Buyer) : IBuyerBase {
+        return _.omit(buyer, ['createdAt', 'updatedAt', 'deletedAt', 'password', 'emailCode', 'id']) as unknown as IBuyerBase
+    }
+
+    public static adaptTransactionWithSellerToBuyer(transaction: Transaction) : ITransactionWithSeller {
+        const tmp = _.omit(transaction, ['id', 'BuyerId', 'InvitationId']) as unknown as ITransactionWithSeller
+        tmp.Invitation = _.omit(tmp.Invitation, ['id', 'SellerId']) as unknown as IInvitationComplete;
+        tmp.Invitation.Seller = _.omit(tmp.Invitation.Seller, ['id', 'password', 'emailCode', 'createdAt', 'updatedAt']) as unknown as ISellerBase;
+        return tmp;
+    }
+    public static adaptTransactionNoSellerToBuyer(transaction: Transaction) : ITransactionNoSeller {
+        const tmp = _.omit(transaction, ['id', 'BuyerId', 'InvitationId']) as unknown as ITransactionNoSeller
+        tmp.Invitation = _.omit(tmp.Invitation, ['id', 'SellerId']) as unknown as IInvitation;
+        return tmp;
+    }
+
+    public static adaptListOfTransactionWithSellerToBuyer(invitation : Transaction[]) : ITransactionWithSeller[] {
+        return _.map(invitation, (transaction) => {
+            return this.adaptTransactionWithSellerToBuyer(transaction)
+          }); 
+    }
+
+    public static adaptListOfTransactionNoSellerToBuyer(invitation : Transaction[]) : ITransactionNoSeller[] {
+        return _.map(invitation, (transaction) => {
+            return this.adaptTransactionNoSellerToBuyer(transaction)
+          }); 
+    }
+
+    public static adaptInvitationToBuyer(invitation : Invitation): IInvitationComplete {
+        const tmp =  _.omit(invitation, ['id', 'SellerId']) as unknown as IInvitationComplete;
+        tmp.Seller = _.omit(tmp.Seller, ['id', 'password', 'emailCode', 'createdAt', 'updatedAt']) as unknown as ISellerBase;
+        return tmp;
+    }
 }
