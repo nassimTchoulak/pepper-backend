@@ -113,7 +113,7 @@ export class BuyerController {
 
     if (user.status !== UserStatus.Accepted) {
       // send tmp token
-      const token = jwt.sign(user, process.env.JWT_KEY, {expiresIn:"600s"});
+      const token = jwt.sign(user, process.env.JWT_KEY, {expiresIn:"24h"});
       return res.json({ token });
     }
 

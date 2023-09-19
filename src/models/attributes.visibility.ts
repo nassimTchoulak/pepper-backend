@@ -1,6 +1,6 @@
 
 import _ from "lodash";
-import { IBuyerBase, IInvitation, IInvitationTransaction, ISellerBase, ITransaction, ITransactionSellerSide, IInvitationComplete, ITransactionWithSeller, ITransactionNoSeller } from "models/types";
+import { IBuyerBase, IInvitation, IInvitationTransaction, ISellerBase, ITransaction, ITransactionSellerSide, IInvitationComplete, ITransactionWithSeller, ITransactionNoSeller, IAdminTransaction } from "models/types";
 import { Buyer, Invitation, Seller, Transaction } from "orms";
 
 export class SellerVisibility{
@@ -41,7 +41,7 @@ export class SellerVisibility{
 
   public static AdaptSellerFullTransactionToSeller(transaction: ITransactionSellerSide) : ITransactionSellerSide {
     const tmp = _.omit(transaction, ["id", "BuyerId", "InvitationId", "deletedAt", "SellerId", "activationKey"]) as unknown as ITransactionSellerSide;
-    tmp.Buyer = _.omit(tmp.Buyer, ['birthDay', 'password', 'id', 'deletedAt', 'createdAt', 'updatedAt', 'name' ]) as unknown as IBuyerBase
+    tmp.Buyer = _.omit(tmp.Buyer, ['birthDay', 'password', 'id', 'deletedAt', 'createdAt', 'updatedAt', 'name', 'emailCode' ]) as unknown as IBuyerBase
     tmp.Invitation = _.omit(tmp.Invitation, ["id", "deletedAt", "SellerId"]) as unknown as IInvitation
     return tmp;
   }
@@ -86,4 +86,15 @@ export class BuyerVisibility {
         tmp.Seller = _.omit(tmp.Seller, ['id', 'password', 'emailCode', 'createdAt', 'updatedAt']) as unknown as ISellerBase;
         return tmp;
     }
+}
+
+
+export class AdminVisibility {
+  public static adaptTransactionWithSellerToPublic(transaction: Transaction) : IAdminTransaction {
+    const tmp = _.omit(transaction, ['id', 'BuyerId', 'InvitationId']) as unknown as IAdminTransaction
+    tmp.Buyer = _.omit(tmp.Buyer, ['birthDay', 'password', 'id', 'deletedAt', 'createdAt', 'updatedAt', 'name', 'emailCode' ]) as unknown as IBuyerBase
+    tmp.Invitation = _.omit(tmp.Invitation, ['id', 'SellerId']) as unknown as IInvitationComplete;
+    tmp.Invitation.Seller = _.omit(tmp.Invitation.Seller, ['id', 'password', 'emailCode', 'createdAt', 'updatedAt']) as unknown as ISellerBase;
+    return tmp;
+}
 }

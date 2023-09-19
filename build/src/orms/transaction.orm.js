@@ -24,7 +24,7 @@ const initTransaction = (sequelize) => {
                 return (0, helpers_1.randomHashUpper)(2) + (0, moment_1.default)().format("-YY-MM-DD-") + (0, helpers_1.randomHashUpper)(3);
             }
         },
-        date: {
+        deliveryDate: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
             defaultValue: (0, sequelize_1.NOW)()
@@ -40,8 +40,12 @@ const initTransaction = (sequelize) => {
                 return (0, helpers_1.randomHashUpper)(7);
             }
         },
+        paymentDate: {
+            type: sequelize_1.DataTypes.DATE,
+            allowNull: true
+        },
         state: {
-            type: sequelize_1.DataTypes.ENUM(types_1.TransactionStatus.CANCELED, types_1.TransactionStatus.OPENED, types_1.TransactionStatus.FULFILLED, types_1.TransactionStatus.PAYED, types_1.TransactionStatus.ACCEPTED, types_1.TransactionStatus.CHANGED_MIND_EARLY, types_1.TransactionStatus.CHANGED_MIND_LATE, types_1.TransactionStatus.SELLER_CANCEL, types_1.TransactionStatus.GHOSTED),
+            type: sequelize_1.DataTypes.ENUM(types_1.TransactionStatus.CANCELED, types_1.TransactionStatus.OPENED, types_1.TransactionStatus.FULFILLED, types_1.TransactionStatus.PAYED, types_1.TransactionStatus.BUYER_CANCEL_MID, types_1.TransactionStatus.ACCEPTED, types_1.TransactionStatus.BUYER_CANCEL_EARLY, types_1.TransactionStatus.BUYER_CANCEL_LATE, types_1.TransactionStatus.SELLER_CANCEL, types_1.TransactionStatus.GHOSTED),
             allowNull: false,
             defaultValue: types_1.TransactionStatus.OPENED
         },

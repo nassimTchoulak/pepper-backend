@@ -5,14 +5,14 @@ import { Buyer, Invitation, Seller } from 'orms';
 import httpStatus from 'http-status';
 // import { UserService } from 'services/buyer/buyer.service';
 import 'dotenv/config';
-import { IBuyer, IInvitationComplete, TransactionStatus } from 'models/types';
+import { IBuyer, IInvitationComplete, ISeller, ITransactionSellerSide, TransactionOutcome, TransactionStatus } from 'models/types';
 import { Transaction } from 'orms/transaction.orm';
 import jwt from 'jsonwebtoken';
-import { BuyerVisibility } from 'models/attributes.visibility';
+import { AdminVisibility, BuyerVisibility, SellerVisibility } from 'models/attributes.visibility';
 
 
 interface UserRequest extends Request {
-  user: Buyer
+  user: any;
 };
 
 export class InvitationController {
@@ -22,6 +22,11 @@ export class InvitationController {
    * 2- approval from Seller [set delivery time approx] (TO-DO: Auto Bypass with additional fields in Invitation) "Accepted"
    * 3- Payment by Buyer "Payed"
    * 4- validation (Public) "Done"
+   */
+
+
+  /***
+   * methods for Buyer process
    */
 
   @validation(Joi.object({
@@ -76,7 +81,7 @@ export class InvitationController {
     transactionUuid: Joi.string().required()
   }))
   public static async payTheTransaction(req: UserRequest, res: Response): Promise<Response<{ invitation: IInvitationComplete }>> {
-    const uuid = req.body.uuid;
+    const uuid = req.body.transactionUuid;
     if (!process.env.JWT_KEY) {
       throw 'JWT key not provided';
     }
@@ -92,13 +97,162 @@ export class InvitationController {
       res.status(httpStatus.UNAUTHORIZED);
       return res.json({ message: 'Cant pay a transaction that is not in accepted state' });
     }
+    const result = await transaction.update({ state : TransactionStatus.PAYED, paymentDate: new Date() })
+    return res.json({ transaction: BuyerVisibility.adaptTransactionWithSellerToBuyer(result.get({plain: true})) })
+  }
+
+
+  @validation(Joi.object({
+    transactionUuid: Joi.string().required()
+  }))
+  public static async closeTheTransaction(req: UserRequest, res: Response): Promise<Response<{ invitation: IInvitationComplete }>> {
+    const uuid = req.body.transactionUuid;
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const buyer_token = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as IBuyer;
+
+    const transaction = await Transaction.findOne({ where : { uuid: uuid, BuyerId: buyer_token.id}})
+    if (!transaction) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'transaction does not exist' });
+    }
+
+    // if the transaction is finished
+    if (transaction.state === TransactionStatus.FULFILLED) {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'transaction is already fulfilled' });
+    }
+
+    if (transaction.state === TransactionStatus.CANCELED) {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'transaction is already Canceled' });
+    }
+
+    // if early stage: Buyer can cancel directly
+    if ((transaction.state === TransactionStatus.ACCEPTED) || (transaction.state === TransactionStatus.OPENED) )
+    {
+      const result = await transaction.update({ state : TransactionStatus.CANCELED, outcome : TransactionOutcome.CANCELED  })
+      return res.json({ transaction: BuyerVisibility.adaptTransactionWithSellerToBuyer(result.get({plain: true})) })
+    }
+    
+    if (transaction.state === TransactionStatus.PAYED) {
+      // cancel a Paid transaction
+      const paymentDate = new Date(transaction.paymentDate);
+      paymentDate.setHours(paymentDate.getHours() + 3)
+      const nowDate = new Date();
+      if (paymentDate > nowDate) {
+        // payment has less than 3 hours delay
+        const result = await transaction.update({ state : TransactionStatus.BUYER_CANCEL_EARLY })
+        return res.json({ transaction: BuyerVisibility.adaptTransactionWithSellerToBuyer(result.get({plain: true})) })
+      }
+      else {
+        // add 24h to payment Day
+        paymentDate.setHours(paymentDate.getHours() + 21)
+        const delivery_time_minus_24 = new Date(transaction.deliveryDate)
+        delivery_time_minus_24.setHours(delivery_time_minus_24.getHours() - 24)
+
+        if ((nowDate < paymentDate) && (nowDate < delivery_time_minus_24)) {
+          const result = await transaction.update({ state : TransactionStatus.BUYER_CANCEL_MID })
+          return res.json({ transaction: BuyerVisibility.adaptTransactionWithSellerToBuyer(result.get({plain: true})) })
+        }
+        else {
+          const result = await transaction.update({ state : TransactionStatus.BUYER_CANCEL_LATE })
+          return res.json({ transaction: BuyerVisibility.adaptTransactionWithSellerToBuyer(result.get({plain: true})) })
+        }
+      }
+    }
     const result = await transaction.update({ state : TransactionStatus.PAYED })
     return res.json({ transaction: BuyerVisibility.adaptTransactionWithSellerToBuyer(result.get({plain: true})) })
   }
 
-  @validation(Joi.object({}))
+  /***
+   * 
+   * Methods for seller
+   */
+  @validation(Joi.object({
+    TransactionUuid: Joi.string().required(),
+    date: Joi.date().min(new Date()).required(), // TO-DO : add 24h to it
+    delivery : Joi.string().required()
+  }))
+  public static async acceptTransaction(req: UserRequest, res: Response): Promise<Response<{ invitations: ITransactionSellerSide }>> {
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
+
+    const transaction_invitation = await Transaction.findOne({ where: {uuid: req.body.TransactionUuid}, 
+      include:[{ model: Invitation, as:'Invitation'}, { model: Buyer, as: 'Buyer'}], nest: true, raw: false}) as 
+        unknown as { Invitation: { SellerId: number }, state: TransactionStatus};
+    
+    if (!transaction_invitation){
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'Transaction not found' });
+    }
+
+    if (transaction_invitation.Invitation.SellerId !== TokenSeller.id) {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'Transaction can only be accessed by it\'s seller '});
+    }
+
+    if (transaction_invitation.state !== TransactionStatus.OPENED) {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'The Transaction has been modified and can not be accepted'});
+    }
+
+    const transaction = transaction_invitation as unknown as Transaction;
+    await transaction.update({ state: TransactionStatus.ACCEPTED, delivery: req.body.delivery, deliveryDate: req.body.date})
+
+    return res.json({ transaction: SellerVisibility.AdaptSellerFullTransactionToSeller(transaction.get({ plain: true }))});
+  }
+
+
+  @validation(Joi.object({
+    TransactionUuid: Joi.string().required(),
+  }))
+  public static async rejectTransaction(req: UserRequest, res: Response): Promise<Response<{ invitations: ITransactionSellerSide }>> {
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
+
+    const transaction_invitation = await Transaction.findOne({ where: {uuid: req.body.TransactionUuid}, 
+      include:[{ model: Invitation, as:'Invitation'}, { model: Buyer, as: 'Buyer'}], nest: true, raw: false}) as 
+        unknown as { Invitation: { SellerId: number }, state: TransactionStatus};
+    
+    if (!transaction_invitation){
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'Transaction not found' });
+    }
+
+    if (transaction_invitation.Invitation.SellerId !== TokenSeller.id) {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'Transaction can only be accessed by it\'s seller '});
+    }
+
+    if ((transaction_invitation.state === TransactionStatus.OPENED) || (transaction_invitation.state === TransactionStatus.ACCEPTED) ) {
+      const transaction = transaction_invitation as unknown as Transaction;
+      await transaction.update({ state: TransactionStatus.CANCELED, outcome: TransactionOutcome.CANCELED, delivery: req.body.delivery, date: req.body.date})
+
+      return res.json({ transaction: SellerVisibility.AdaptSellerFullTransactionToSeller(transaction.get({ plain: true }))});
+    }
+    else {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'Can not cancel the Transaction '});
+    }
+
+  }
+
+
+  /***
+   * Public Invitation & transaction methods
+   */
+
+  @validation(Joi.object({
+    InvitationUuid: Joi.string().required(),
+  }))
   public static async getPublicInvitationInfo(req: UserRequest, res: Response): Promise<Response<{ invitation: IInvitationComplete }>> {
-    const uuid = req.params.uuid;
+    const uuid = req.body.InvitationUuid;
     if (!uuid) {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'Invitation does not exist wrong request' });
@@ -111,5 +265,57 @@ export class InvitationController {
       return res.json({ message: 'Invitation does not exist' });
     }
     return res.json({ invitation : BuyerVisibility.adaptInvitationToBuyer(invitation) })
+  }
+
+  @validation(Joi.object({
+    TransactionUuid: Joi.string().required(),
+    activationKey: Joi.string().required(),
+  }))
+  public static async canValidateTransaction(req: UserRequest, res: Response): Promise<Response<{ transaction: IInvitationComplete }>> {
+
+    const transaction = await Transaction.findOne({
+      where: { uuid: req.body.TransactionUuid },
+      include: [{ model: Buyer, as:'Buyer'} , { model: Invitation, as: 'Invitation', include: [{ model: Seller, as : 'Seller'}] }], nest: true, raw: true
+    });
+    if (!transaction) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'Transaction not found' });
+    }
+    if (transaction.state !== TransactionStatus.PAYED) {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'This transaction is not payed' });
+    }
+    if (transaction.activationKey !== req.body.activationKey) {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'Wrong activation key' });
+    }
+    return res.json({ transaction : AdminVisibility.adaptTransactionWithSellerToPublic(transaction) })
+  }
+
+
+  @validation(Joi.object({
+    TransactionUuid: Joi.string().required(),
+    activationKey: Joi.string().required(),
+  }))
+  public static async validateTransaction(req: UserRequest, res: Response): Promise<Response<{ transaction: IInvitationComplete }>> {
+
+    const transaction = await Transaction.findOne({
+      where: { uuid: req.body.TransactionUuid },
+      include: [ { model: Buyer, as:'Buyer'} , { model: Invitation, as: 'Invitation', include: [{ model: Seller, as : 'Seller'}] }], nest: true, raw: false
+    });
+    if (!transaction) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'Transaction not found' });
+    }
+    if (transaction.state !== TransactionStatus.PAYED) {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'This transaction is not payed' });
+    }
+    if (transaction.activationKey !== req.body.activationKey) {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'Wrong activation key' });
+    }
+    await transaction.update({ state: TransactionStatus.FULFILLED })
+    return res.json({ transaction : AdminVisibility.adaptTransactionWithSellerToPublic(transaction.get({plain: true})) })
   }
 }

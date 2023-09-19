@@ -18,20 +18,21 @@ class PartyRoutes {
 
     this._router.route('/pay').post(authorizeForBuyer, checkParametersAndCallRoute(InvitationController.payTheTransaction));
 
-    this._router.route('/cancel').post(authorizeForBuyer, checkParametersAndCallRoute(InvitationController.createTransactionFromInvitation));
+    this._router.route('/cancel').post(authorizeForBuyer, checkParametersAndCallRoute(InvitationController.closeTheTransaction));
 
     // only process operation for seller
     // Accept transaction and choose delivery date /time
     // else if automatic select in invitation the auto delay : 
-    this._router.route('/accept').post(authorizeForSeller, checkParametersAndCallRoute(InvitationController.createTransactionFromInvitation));
-    this._router.route('/refuse').post(authorizeForSeller, checkParametersAndCallRoute(InvitationController.createTransactionFromInvitation));
+    this._router.route('/accept').post(authorizeForSeller, checkParametersAndCallRoute(InvitationController.acceptTransaction));
+    this._router.route('/refuse').post(authorizeForSeller, checkParametersAndCallRoute(InvitationController.rejectTransaction));
     
     // admin & management operations
 
     // public operations
-    this._router.route('/:uuid').get( checkParametersAndCallRoute(InvitationController.getPublicInvitationInfo));
+    this._router.route('/').get( checkParametersAndCallRoute(InvitationController.getPublicInvitationInfo));
     // validate a transaction
-    this._router.route('/fulfill').post(checkParametersAndCallRoute(InvitationController.createTransactionFromInvitation));
+    this._router.route('/fulfill').get(checkParametersAndCallRoute(InvitationController.canValidateTransaction));
+    this._router.route('/fulfill').post(checkParametersAndCallRoute(InvitationController.validateTransaction));
   }
 }
 

@@ -74,7 +74,7 @@ describe('## seller', () => {
             const seller_1 = (yield (0, supertest_1.default)(index_1.default).get(`/api/seller/`).
                 set('Authorization', token).
                 expect(http_status_1.default.OK)).body.seller;
-            expect(seller_1.id).toEqual(sellerObject.id);
+            expect(seller_1.email).toEqual(sellerObject.email);
         }));
         test('should NOT be able to query info with the wrong token', () => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
             yield (0, supertest_1.default)(index_1.default).get(`/api/seller/`).

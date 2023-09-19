@@ -79,7 +79,7 @@ class BuyerController {
                 return res.json({ message: 'User does not exist' });
             }
             if (user.status !== types_1.UserStatus.Accepted) {
-                const token = jsonwebtoken_1.default.sign(user, process.env.JWT_KEY, { expiresIn: "600s" });
+                const token = jsonwebtoken_1.default.sign(user, process.env.JWT_KEY, { expiresIn: "24h" });
                 return res.json({ token });
             }
             const token = jsonwebtoken_1.default.sign(user, process.env.JWT_KEY, { expiresIn: "24h" });

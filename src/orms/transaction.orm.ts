@@ -10,9 +10,10 @@ class Transaction extends Model {
   public id!: number;
   public uuid!: number;
   public activationKey!: string;
+  public paymentDate!: Date;
   // public product!: string;
   // public description!: string;
-  public date!: Date;
+  public deliveryDate!: Date;
   // public price!: number;
   public delivery!: string;
 
@@ -45,7 +46,7 @@ const initTransaction = (sequelize: Sequelize) => {
         return randomHashUpper(2) + moment().format("-YY-MM-DD-") + randomHashUpper(3)
       }
     },
-    date: {
+    deliveryDate: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: NOW()
@@ -61,9 +62,13 @@ const initTransaction = (sequelize: Sequelize) => {
         return randomHashUpper(7)
       }
     },
+    paymentDate : {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
     state: {
-      type: DataTypes.ENUM(TransactionStatus.CANCELED, TransactionStatus.OPENED, TransactionStatus.FULFILLED, TransactionStatus.PAYED,
-         TransactionStatus.ACCEPTED, TransactionStatus.CHANGED_MIND_EARLY, TransactionStatus.CHANGED_MIND_LATE, TransactionStatus.SELLER_CANCEL, TransactionStatus.GHOSTED),
+      type: DataTypes.ENUM(TransactionStatus.CANCELED, TransactionStatus.OPENED, TransactionStatus.FULFILLED, TransactionStatus.PAYED, TransactionStatus.BUYER_CANCEL_MID,
+         TransactionStatus.ACCEPTED, TransactionStatus.BUYER_CANCEL_EARLY, TransactionStatus.BUYER_CANCEL_LATE, TransactionStatus.SELLER_CANCEL, TransactionStatus.GHOSTED),
       allowNull: false,
       defaultValue: TransactionStatus.OPENED
     },

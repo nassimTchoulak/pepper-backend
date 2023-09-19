@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BuyerVisibility = exports.SellerVisibility = void 0;
+exports.AdminVisibility = exports.BuyerVisibility = exports.SellerVisibility = void 0;
 const tslib_1 = require("tslib");
 const lodash_1 = (0, tslib_1.__importDefault)(require("lodash"));
 class SellerVisibility {
@@ -27,7 +27,7 @@ class SellerVisibility {
     }
     static AdaptSellerFullTransactionToSeller(transaction) {
         const tmp = lodash_1.default.omit(transaction, ["id", "BuyerId", "InvitationId", "deletedAt", "SellerId", "activationKey"]);
-        tmp.Buyer = lodash_1.default.omit(tmp.Buyer, ['birthDay', 'password', 'id', 'deletedAt', 'createdAt', 'updatedAt', 'name']);
+        tmp.Buyer = lodash_1.default.omit(tmp.Buyer, ['birthDay', 'password', 'id', 'deletedAt', 'createdAt', 'updatedAt', 'name', 'emailCode']);
         tmp.Invitation = lodash_1.default.omit(tmp.Invitation, ["id", "deletedAt", "SellerId"]);
         return tmp;
     }
@@ -65,4 +65,14 @@ class BuyerVisibility {
     }
 }
 exports.BuyerVisibility = BuyerVisibility;
+class AdminVisibility {
+    static adaptTransactionWithSellerToPublic(transaction) {
+        const tmp = lodash_1.default.omit(transaction, ['id', 'BuyerId', 'InvitationId']);
+        tmp.Buyer = lodash_1.default.omit(tmp.Buyer, ['birthDay', 'password', 'id', 'deletedAt', 'createdAt', 'updatedAt', 'name', 'emailCode']);
+        tmp.Invitation = lodash_1.default.omit(tmp.Invitation, ['id', 'SellerId']);
+        tmp.Invitation.Seller = lodash_1.default.omit(tmp.Invitation.Seller, ['id', 'password', 'emailCode', 'createdAt', 'updatedAt']);
+        return tmp;
+    }
+}
+exports.AdminVisibility = AdminVisibility;
 //# sourceMappingURL=attributes.visibility.js.map

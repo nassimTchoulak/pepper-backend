@@ -97,7 +97,7 @@ describe('## seller', () => {
         set('Authorization', token).
         expect(httpStatus.OK)).body.seller;
       
-      expect(seller_1.id).toEqual(sellerObject.id);
+      expect(seller_1.email).toEqual(sellerObject.email);
     });
 
     test('should NOT be able to query info with the wrong token', async () => {

@@ -19,7 +19,8 @@ export interface ITransaction {
   state: TransactionStatus,
   outcome: TransactionOutcome,
   activationKey: string,
-  date: Date,
+  paymentDate: Date,
+  deliveryDate: Date,
   createdAt: Date,
   updatedAt: Date,
 };
@@ -47,6 +48,11 @@ export interface ITransactionNoSeller extends ITransaction {
   Invitation: IInvitation
 }
 
+// admin interface
+export interface IAdminTransaction extends ITransaction {
+  Invitation: IInvitationComplete,
+  Buyer: IBuyerBase
+}
 
 export interface IBuyerBase {
   id: number,
@@ -90,8 +96,9 @@ export enum TransactionStatus {
   PAYED = 'payed',
   FULFILLED = 'fulfilled',
   CANCELED = 'canceled',
-  CHANGED_MIND_EARLY = 'changed-mind-early',
-  CHANGED_MIND_LATE = 'changed-mind-late',
+  BUYER_CANCEL_EARLY = 'buyer-cancel-early',
+  BUYER_CANCEL_MID = 'buyer-cancel-mid',
+  BUYER_CANCEL_LATE = 'buyer-cancel-late',
   GHOSTED = 'ghosted',
   SELLER_CANCEL ='seller-cancel'
 }
