@@ -22,7 +22,7 @@ const initClaim = (sequelize) => {
             allowNull: false,
         },
         text: {
-            type: sequelize_1.DataTypes.DATE,
+            type: sequelize_1.DataTypes.TEXT,
             allowNull: false,
         },
     }, { sequelize, paranoid: true });

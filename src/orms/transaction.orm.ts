@@ -1,10 +1,11 @@
-import { Model, DataTypes, Sequelize, BelongsToSetAssociationMixin, BelongsToGetAssociationMixin, NOW,  } from 'sequelize';
+import { Model, DataTypes, Sequelize, BelongsToSetAssociationMixin, BelongsToGetAssociationMixin, NOW, BelongsToManyAddAssociationMixin, HasManyGetAssociationsMixin, HasManyAddAssociationsMixin, HasManyAddAssociationMixin,  } from 'sequelize';
 import { Seller } from 'orms/seller.orm';
 import { Buyer } from './buyer.orm';
 import { Invitation } from './invitation.orm';
 import { TransactionOutcome, TransactionStatus } from 'models/types';
 import { randomHash, randomHashUpper } from 'helpers/helpers';
 import moment from 'moment';
+import { Claim } from './claim.orm';
 
 class Transaction extends Model {
   public id!: number;
@@ -30,6 +31,9 @@ class Transaction extends Model {
   public getBuyer!: BelongsToGetAssociationMixin<Buyer>;
   public setBuyer!: BelongsToSetAssociationMixin<Buyer, number>; 
 
+  public getClaims!: HasManyGetAssociationsMixin<Claim>;
+  public addClaim!: HasManyAddAssociationMixin<Claim, number>;
+
 }
 const initTransaction = (sequelize: Sequelize) => {
     Transaction.init({
@@ -49,7 +53,7 @@ const initTransaction = (sequelize: Sequelize) => {
     deliveryDate: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: NOW()
+      defaultValue: new Date()
     },
     delivery: {
       type: DataTypes.STRING,

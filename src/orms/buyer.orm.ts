@@ -2,6 +2,7 @@ import { Model, DataTypes, Sequelize, HasManyGetAssociationsMixin, HasManyCountA
 import { Gender, UserStatus } from 'models/types';
 import { Invitation } from 'orms/invitation.orm';
 import { Transaction } from './transaction.orm';
+import { Claim } from './claim.orm';
 
 
 class Buyer extends Model {

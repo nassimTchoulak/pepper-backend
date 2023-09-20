@@ -2,7 +2,6 @@ import { Model, DataTypes, Sequelize, BelongsToSetAssociationMixin, BelongsToGet
 import { Seller } from 'orms/seller.orm';
 import { Transaction } from './transaction.orm';
 import { Buyer } from './buyer.orm';
-import { TransactionStatus } from 'models/types';
 import { randomHash } from 'helpers/helpers';
 
 class Invitation extends Model {

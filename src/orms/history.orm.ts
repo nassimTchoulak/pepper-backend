@@ -32,7 +32,7 @@ const initHistory = (sequelize: Sequelize) => {
       allowNull: false,
     },
     admin: {
-      type: DataTypes.DATE,
+      type: DataTypes.STRING,
       allowNull: false,
     },
   }, { sequelize, paranoid: true });

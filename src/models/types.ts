@@ -54,6 +54,12 @@ export interface IAdminTransaction extends ITransaction {
   Buyer: IBuyerBase
 }
 
+export interface IClaim {
+  sender: string,
+  reason: string,
+  text: string
+}
+
 export interface IBuyerBase {
   id: number,
   name: string,

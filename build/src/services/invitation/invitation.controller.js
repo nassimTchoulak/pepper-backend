@@ -117,13 +117,35 @@ class InvitationController {
             return res.json({ transaction: attributes_visibility_1.BuyerVisibility.adaptTransactionWithSellerToBuyer(result.get({ plain: true })) });
         });
     }
+    static addBuyerClaim(req, res) {
+        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+            if (!process.env.JWT_KEY) {
+                throw 'JWT key not provided';
+            }
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const transaction_invitation = yield transaction_orm_1.Transaction.findOne({ where: { uuid: req.body.transactionUuid },
+                raw: false });
+            if (!transaction_invitation) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'Transaction not found' });
+            }
+            if (transaction_invitation.BuyerId !== TokenSeller.id) {
+                res.status(http_status_1.default.UNAUTHORIZED);
+                return res.json({ message: 'Transaction can only be accessed by it\'s Buyer ' });
+            }
+            const transaction = transaction_invitation;
+            const claim = yield orms_1.Claim.create({ sender: 'From Buyer', reason: req.body.reason, text: req.body.text });
+            yield transaction.addClaim(claim);
+            return res.json({ status: true });
+        });
+    }
     static acceptTransaction(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
             if (!process.env.JWT_KEY) {
                 throw 'JWT key not provided';
             }
             const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
-            const transaction_invitation = yield transaction_orm_1.Transaction.findOne({ where: { uuid: req.body.TransactionUuid },
+            const transaction_invitation = yield transaction_orm_1.Transaction.findOne({ where: { uuid: req.body.transactionUuid },
                 include: [{ model: orms_1.Invitation, as: 'Invitation' }, { model: orms_1.Buyer, as: 'Buyer' }], nest: true, raw: false });
             if (!transaction_invitation) {
                 res.status(http_status_1.default.NOT_FOUND);
@@ -148,7 +170,7 @@ class InvitationController {
                 throw 'JWT key not provided';
             }
             const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
-            const transaction_invitation = yield transaction_orm_1.Transaction.findOne({ where: { uuid: req.body.TransactionUuid },
+            const transaction_invitation = yield transaction_orm_1.Transaction.findOne({ where: { uuid: req.body.transactionUuid },
                 include: [{ model: orms_1.Invitation, as: 'Invitation' }, { model: orms_1.Buyer, as: 'Buyer' }], nest: true, raw: false });
             if (!transaction_invitation) {
                 res.status(http_status_1.default.NOT_FOUND);
@@ -167,6 +189,28 @@ class InvitationController {
                 res.status(http_status_1.default.UNAUTHORIZED);
                 return res.json({ message: 'Can not cancel the Transaction ' });
             }
+        });
+    }
+    static addSellerClaim(req, res) {
+        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+            if (!process.env.JWT_KEY) {
+                throw 'JWT key not provided';
+            }
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const transaction_invitation = yield transaction_orm_1.Transaction.findOne({ where: { uuid: req.body.transactionUuid },
+                include: [{ model: orms_1.Invitation, as: 'Invitation' }], raw: false });
+            if (!transaction_invitation) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'Transaction not found' });
+            }
+            if (transaction_invitation.Invitation.SellerId !== TokenSeller.id) {
+                res.status(http_status_1.default.UNAUTHORIZED);
+                return res.json({ message: 'Transaction can only be accessed by it\'s seller ' });
+            }
+            const transaction = transaction_invitation;
+            const claim = yield orms_1.Claim.create({ sender: 'From Seller', reason: req.body.reason, text: req.body.text });
+            yield transaction.addClaim(claim);
+            return res.json({ status: true });
         });
     }
     static getPublicInvitationInfo(req, res) {
@@ -188,7 +232,7 @@ class InvitationController {
     static canValidateTransaction(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
             const transaction = yield transaction_orm_1.Transaction.findOne({
-                where: { uuid: req.body.TransactionUuid },
+                where: { uuid: req.body.transactionUuid },
                 include: [{ model: orms_1.Buyer, as: 'Buyer' }, { model: orms_1.Invitation, as: 'Invitation', include: [{ model: orms_1.Seller, as: 'Seller' }] }], nest: true, raw: true
             });
             if (!transaction) {
@@ -209,7 +253,7 @@ class InvitationController {
     static validateTransaction(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
             const transaction = yield transaction_orm_1.Transaction.findOne({
-                where: { uuid: req.body.TransactionUuid },
+                where: { uuid: req.body.transactionUuid },
                 include: [{ model: orms_1.Buyer, as: 'Buyer' }, { model: orms_1.Invitation, as: 'Invitation', include: [{ model: orms_1.Seller, as: 'Seller' }] }], nest: true, raw: false
             });
             if (!transaction) {
@@ -247,16 +291,30 @@ class InvitationController {
 ], InvitationController, "closeTheTransaction", null);
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({
-        TransactionUuid: joi_1.default.string().required(),
+        transactionUuid: joi_1.default.string().required(),
+        reason: joi_1.default.string().required(),
+        text: joi_1.default.string().required()
+    }))
+], InvitationController, "addBuyerClaim", null);
+(0, tslib_1.__decorate)([
+    (0, helpers_1.validation)(joi_1.default.object({
+        transactionUuid: joi_1.default.string().required(),
         date: joi_1.default.date().min(new Date()).required(),
         delivery: joi_1.default.string().required()
     }))
 ], InvitationController, "acceptTransaction", null);
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({
-        TransactionUuid: joi_1.default.string().required(),
+        transactionUuid: joi_1.default.string().required(),
     }))
 ], InvitationController, "rejectTransaction", null);
+(0, tslib_1.__decorate)([
+    (0, helpers_1.validation)(joi_1.default.object({
+        transactionUuid: joi_1.default.string().required(),
+        reason: joi_1.default.string().required(),
+        text: joi_1.default.string().required()
+    }))
+], InvitationController, "addSellerClaim", null);
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({
         InvitationUuid: joi_1.default.string().required(),
@@ -264,13 +322,13 @@ class InvitationController {
 ], InvitationController, "getPublicInvitationInfo", null);
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({
-        TransactionUuid: joi_1.default.string().required(),
+        transactionUuid: joi_1.default.string().required(),
         activationKey: joi_1.default.string().required(),
     }))
 ], InvitationController, "canValidateTransaction", null);
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({
-        TransactionUuid: joi_1.default.string().required(),
+        transactionUuid: joi_1.default.string().required(),
         activationKey: joi_1.default.string().required(),
     }))
 ], InvitationController, "validateTransaction", null);

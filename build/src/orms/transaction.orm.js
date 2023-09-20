@@ -27,7 +27,7 @@ const initTransaction = (sequelize) => {
         deliveryDate: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
-            defaultValue: (0, sequelize_1.NOW)()
+            defaultValue: new Date()
         },
         delivery: {
             type: sequelize_1.DataTypes.STRING,

@@ -30,7 +30,7 @@ const initClaim = (sequelize: Sequelize) => {
       allowNull: false,
     },
     text: {
-      type: DataTypes.DATE,
+      type: DataTypes.TEXT,
       allowNull: false,
     },
   }, { sequelize, paranoid: true });

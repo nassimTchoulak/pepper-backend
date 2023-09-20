@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import Joi from 'joi';
 import { transactionUUid, validation } from 'helpers/helpers';
-import { Buyer, Invitation, Seller } from 'orms';
+import { Buyer, Claim, Invitation, Seller } from 'orms';
 import httpStatus from 'http-status';
 // import { UserService } from 'services/buyer/buyer.service';
 import 'dotenv/config';
-import { IBuyer, IInvitationComplete, ISeller, ITransactionSellerSide, TransactionOutcome, TransactionStatus } from 'models/types';
+import { IAdminTransaction, IBuyer, IInvitationComplete, ISeller, ITransactionSellerSide, TransactionOutcome, TransactionStatus } from 'models/types';
 import { Transaction } from 'orms/transaction.orm';
 import jwt from 'jsonwebtoken';
 import { AdminVisibility, BuyerVisibility, SellerVisibility } from 'models/attributes.visibility';
@@ -166,12 +166,42 @@ export class InvitationController {
     return res.json({ transaction: BuyerVisibility.adaptTransactionWithSellerToBuyer(result.get({plain: true})) })
   }
 
+  @validation(Joi.object({
+    transactionUuid: Joi.string().required(),
+    reason: Joi.string().required(),
+    text: Joi.string().required()
+  }))
+  public static async addBuyerClaim(req: UserRequest, res: Response): Promise<Response<{ status: boolean }>> {
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  IBuyer;
+
+    const transaction_invitation = await Transaction.findOne({ where: {uuid: req.body.transactionUuid}, 
+      raw: false}) as unknown as {BuyerId : number, id: number}
+    
+    if (!transaction_invitation){
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'Transaction not found' });
+    }
+
+    if (transaction_invitation.BuyerId !== TokenSeller.id) {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'Transaction can only be accessed by it\'s Buyer '});
+    }
+    
+    const transaction = transaction_invitation as unknown as Transaction;
+    const claim = await Claim.create({sender: 'From Buyer', reason: req.body.reason, text: req.body.text});
+    await transaction.addClaim(claim)
+    return res.json({ status: true })
+  }
+
   /***
    * 
    * Methods for seller
    */
   @validation(Joi.object({
-    TransactionUuid: Joi.string().required(),
+    transactionUuid: Joi.string().required(),
     date: Joi.date().min(new Date()).required(), // TO-DO : add 24h to it
     delivery : Joi.string().required()
   }))
@@ -181,7 +211,7 @@ export class InvitationController {
     }
     const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
 
-    const transaction_invitation = await Transaction.findOne({ where: {uuid: req.body.TransactionUuid}, 
+    const transaction_invitation = await Transaction.findOne({ where: {uuid: req.body.transactionUuid}, 
       include:[{ model: Invitation, as:'Invitation'}, { model: Buyer, as: 'Buyer'}], nest: true, raw: false}) as 
         unknown as { Invitation: { SellerId: number }, state: TransactionStatus};
     
@@ -208,7 +238,7 @@ export class InvitationController {
 
 
   @validation(Joi.object({
-    TransactionUuid: Joi.string().required(),
+    transactionUuid: Joi.string().required(),
   }))
   public static async rejectTransaction(req: UserRequest, res: Response): Promise<Response<{ invitations: ITransactionSellerSide }>> {
     if (!process.env.JWT_KEY) {
@@ -216,7 +246,7 @@ export class InvitationController {
     }
     const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
 
-    const transaction_invitation = await Transaction.findOne({ where: {uuid: req.body.TransactionUuid}, 
+    const transaction_invitation = await Transaction.findOne({ where: {uuid: req.body.transactionUuid}, 
       include:[{ model: Invitation, as:'Invitation'}, { model: Buyer, as: 'Buyer'}], nest: true, raw: false}) as 
         unknown as { Invitation: { SellerId: number }, state: TransactionStatus};
     
@@ -244,6 +274,39 @@ export class InvitationController {
   }
 
 
+  @validation(Joi.object({
+    transactionUuid: Joi.string().required(),
+    reason: Joi.string().required(),
+    text: Joi.string().required()
+  }))
+  public static async addSellerClaim(req: UserRequest, res: Response): Promise<Response<{ status: boolean }>> {
+    if (!process.env.JWT_KEY) {
+      throw 'JWT key not provided';
+    }
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
+
+    const transaction_invitation = await Transaction.findOne({ where: {uuid: req.body.transactionUuid}, 
+      include:[{ model:Invitation, as : 'Invitation'}], raw: false}) as 
+        unknown as { Invitation: { SellerId: number }, state: TransactionStatus, id: number};
+    
+    if (!transaction_invitation){
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'Transaction not found' });
+    }
+
+    if (transaction_invitation.Invitation.SellerId !== TokenSeller.id) {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'Transaction can only be accessed by it\'s seller '});
+    }
+    
+    const transaction = transaction_invitation as unknown as Transaction;
+    const claim = await Claim.create({sender: 'From Seller', reason: req.body.reason, text: req.body.text});
+    await transaction.addClaim(claim)
+
+    return res.json({ status: true })
+  }
+
+
   /***
    * Public Invitation & transaction methods
    */
@@ -268,13 +331,13 @@ export class InvitationController {
   }
 
   @validation(Joi.object({
-    TransactionUuid: Joi.string().required(),
+    transactionUuid: Joi.string().required(),
     activationKey: Joi.string().required(),
   }))
-  public static async canValidateTransaction(req: UserRequest, res: Response): Promise<Response<{ transaction: IInvitationComplete }>> {
+  public static async canValidateTransaction(req: UserRequest, res: Response): Promise<Response<{ transaction: IAdminTransaction }>> {
 
     const transaction = await Transaction.findOne({
-      where: { uuid: req.body.TransactionUuid },
+      where: { uuid: req.body.transactionUuid },
       include: [{ model: Buyer, as:'Buyer'} , { model: Invitation, as: 'Invitation', include: [{ model: Seller, as : 'Seller'}] }], nest: true, raw: true
     });
     if (!transaction) {
@@ -294,13 +357,13 @@ export class InvitationController {
 
 
   @validation(Joi.object({
-    TransactionUuid: Joi.string().required(),
+    transactionUuid: Joi.string().required(),
     activationKey: Joi.string().required(),
   }))
-  public static async validateTransaction(req: UserRequest, res: Response): Promise<Response<{ transaction: IInvitationComplete }>> {
+  public static async validateTransaction(req: UserRequest, res: Response): Promise<Response<{ transaction: IAdminTransaction }>> {
 
     const transaction = await Transaction.findOne({
-      where: { uuid: req.body.TransactionUuid },
+      where: { uuid: req.body.transactionUuid },
       include: [ { model: Buyer, as:'Buyer'} , { model: Invitation, as: 'Invitation', include: [{ model: Seller, as : 'Seller'}] }], nest: true, raw: false
     });
     if (!transaction) {
