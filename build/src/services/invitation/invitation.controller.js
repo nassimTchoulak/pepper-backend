@@ -20,10 +20,10 @@ class InvitationController {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'invitation does not exist' });
             }
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_BUYER_KEY) {
                 throw 'JWT key not provided';
             }
-            const buyer_token = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const buyer_token = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_BUYER_KEY);
             const buyer = yield orms_1.Buyer.findOne({ where: { id: buyer_token.id }, raw: false });
             if (!buyer) {
                 res.status(http_status_1.default.NOT_FOUND);
@@ -50,10 +50,10 @@ class InvitationController {
     static payTheTransaction(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
             const uuid = req.body.transactionUuid;
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_BUYER_KEY) {
                 throw 'JWT key not provided';
             }
-            const buyer_token = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const buyer_token = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_BUYER_KEY);
             const transaction = yield transaction_orm_1.Transaction.findOne({ where: { uuid: uuid, BuyerId: buyer_token.id } });
             if (!transaction) {
                 res.status(http_status_1.default.NOT_FOUND);
@@ -70,10 +70,10 @@ class InvitationController {
     static closeTheTransaction(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
             const uuid = req.body.transactionUuid;
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_BUYER_KEY) {
                 throw 'JWT key not provided';
             }
-            const buyer_token = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const buyer_token = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_BUYER_KEY);
             const transaction = yield transaction_orm_1.Transaction.findOne({ where: { uuid: uuid, BuyerId: buyer_token.id } });
             if (!transaction) {
                 res.status(http_status_1.default.NOT_FOUND);
@@ -119,10 +119,10 @@ class InvitationController {
     }
     static addBuyerClaim(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_BUYER_KEY) {
                 throw 'JWT key not provided';
             }
-            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_BUYER_KEY);
             const transaction_invitation = yield transaction_orm_1.Transaction.findOne({ where: { uuid: req.body.transactionUuid },
                 raw: false });
             if (!transaction_invitation) {
@@ -141,10 +141,10 @@ class InvitationController {
     }
     static acceptTransaction(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_SELLER_KEY) {
                 throw 'JWT key not provided';
             }
-            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY);
             const transaction_invitation = yield transaction_orm_1.Transaction.findOne({ where: { uuid: req.body.transactionUuid },
                 include: [{ model: orms_1.Invitation, as: 'Invitation' }, { model: orms_1.Buyer, as: 'Buyer' }], nest: true, raw: false });
             if (!transaction_invitation) {
@@ -166,10 +166,10 @@ class InvitationController {
     }
     static rejectTransaction(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_SELLER_KEY) {
                 throw 'JWT key not provided';
             }
-            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY);
             const transaction_invitation = yield transaction_orm_1.Transaction.findOne({ where: { uuid: req.body.transactionUuid },
                 include: [{ model: orms_1.Invitation, as: 'Invitation' }, { model: orms_1.Buyer, as: 'Buyer' }], nest: true, raw: false });
             if (!transaction_invitation) {
@@ -193,10 +193,10 @@ class InvitationController {
     }
     static addSellerClaim(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_SELLER_KEY) {
                 throw 'JWT key not provided';
             }
-            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY);
             const transaction_invitation = yield transaction_orm_1.Transaction.findOne({ where: { uuid: req.body.transactionUuid },
                 include: [{ model: orms_1.Invitation, as: 'Invitation' }], raw: false });
             if (!transaction_invitation) {

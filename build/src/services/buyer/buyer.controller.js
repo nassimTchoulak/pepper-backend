@@ -57,11 +57,11 @@ class BuyerController {
                 res.status(http_status_1.default.INTERNAL_SERVER_ERROR);
                 return res.json({ message: 'User could not be created!' });
             }
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_BUYER_KEY) {
                 throw 'JWT key not provided';
             }
             (0, mailer_1.sendEmailVerificationCodeBuyer)(user.email, user.emailCode, user.firstName);
-            const token = jsonwebtoken_1.default.sign(user, process.env.JWT_KEY, { expiresIn: "24h" });
+            const token = jsonwebtoken_1.default.sign(user, process.env.JWT_BUYER_KEY, { expiresIn: "24h" });
             return res.json({ token });
         });
     }
@@ -71,7 +71,7 @@ class BuyerController {
                         { phoneNumber: req.body.phoneNumber },
                         { email: req.body.email }
                     ] }, raw: true });
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_BUYER_KEY) {
                 throw 'JWT key not provided';
             }
             if (user === null) {
@@ -79,19 +79,19 @@ class BuyerController {
                 return res.json({ message: 'User does not exist' });
             }
             if (user.status !== types_1.UserStatus.Accepted) {
-                const token = jsonwebtoken_1.default.sign(user, process.env.JWT_KEY, { expiresIn: "24h" });
+                const token = jsonwebtoken_1.default.sign(user, process.env.JWT_BUYER_KEY, { expiresIn: "24h" });
                 return res.json({ token });
             }
-            const token = jsonwebtoken_1.default.sign(user, process.env.JWT_KEY, { expiresIn: "24h" });
+            const token = jsonwebtoken_1.default.sign(user, process.env.JWT_BUYER_KEY, { expiresIn: "24h" });
             return res.json({ token });
         });
     }
     static validateEmail(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_BUYER_KEY) {
                 throw 'JWT key not provided';
             }
-            const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_BUYER_KEY);
             if (buyer.status != types_1.UserStatus.Pending) {
                 return res.json({ token: req.headers.authorization || "" });
             }
@@ -105,20 +105,20 @@ class BuyerController {
                 return res.json({ message: 'wrong code' });
             }
             user.update({ status: types_1.UserStatus.Accepted });
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_BUYER_KEY) {
                 throw 'JWT key not provided';
             }
             const user_data = user.get({ plain: true });
-            const token = jsonwebtoken_1.default.sign(user_data, process.env.JWT_KEY);
+            const token = jsonwebtoken_1.default.sign(user_data, process.env.JWT_BUYER_KEY);
             return res.json({ token });
         });
     }
     static getBuyer(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_BUYER_KEY) {
                 throw 'JWT key not provided';
             }
-            const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_BUYER_KEY);
             const user = yield orms_1.Buyer.findOne({ where: { email: buyer.email }, raw: true });
             if (!user) {
                 res.status(http_status_1.default.NOT_FOUND);
@@ -129,10 +129,10 @@ class BuyerController {
     }
     static updateBuyer(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_BUYER_KEY) {
                 throw 'JWT key not provided';
             }
-            const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_BUYER_KEY);
             yield orms_1.Buyer.update(Object.assign({}, req.body), { where: { email: buyer.email } });
             const user = yield orms_1.Buyer.findOne({ where: { id: buyer.id }, raw: true });
             if (!user) {
@@ -144,10 +144,10 @@ class BuyerController {
     }
     static getAllTransactions(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_BUYER_KEY) {
                 throw 'JWT key not provided';
             }
-            const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_BUYER_KEY);
             const transactions = yield transaction_orm_1.Transaction.findAll({ where: { BuyerId: buyer.id },
                 include: [{ model: orms_1.Invitation, as: 'Invitation' }], raw: true, nest: true });
             return res.json({ transactions: attributes_visibility_1.BuyerVisibility.adaptListOfTransactionNoSellerToBuyer(transactions) });
@@ -155,10 +155,10 @@ class BuyerController {
     }
     static getTransactionDetail(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_BUYER_KEY) {
                 throw 'JWT key not provided';
             }
-            const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_BUYER_KEY);
             const transaction = yield transaction_orm_1.Transaction.findOne({ where: { uuid: req.body.uuid, BuyerId: buyer.id },
                 include: [{ model: orms_1.Invitation, as: 'Invitation', include: [{ model: orms_1.Seller, as: 'Seller' }] }], raw: true, nest: true });
             if (transaction === null) {

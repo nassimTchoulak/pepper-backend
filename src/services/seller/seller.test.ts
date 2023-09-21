@@ -51,21 +51,21 @@ describe('## seller', () => {
         raw: true
       }) as Seller;
       
-      if (!process.env.JWT_KEY) {
+      if (!process.env.JWT_SELLER_KEY) {
         throw 'JWT key not provided';
       }
 
-      const authentifiedUser = jwt.verify(token, process.env.JWT_KEY) as ISeller;
+      const authentifiedUser = jwt.verify(token, process.env.JWT_SELLER_KEY) as ISeller;
       expect(subscribedSeller.id).toEqual(authentifiedUser.id); 
     });
     
     test('should be able to login with email and Password', async () => {
       const { token } = (await request(app).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword})).body;
 
-      if (!process.env.JWT_KEY) {
+      if (!process.env.JWT_SELLER_KEY) {
         throw 'JWT key not provided';
       }
-      const authentifiedUser = jwt.verify(token, process.env.JWT_KEY) as ISeller;
+      const authentifiedUser = jwt.verify(token, process.env.JWT_SELLER_KEY) as ISeller;
   
       expect(sellerObject.id).toEqual(authentifiedUser.id);
     });

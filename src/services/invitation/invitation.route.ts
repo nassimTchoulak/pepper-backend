@@ -30,8 +30,6 @@ class PartyRoutes {
     this._router.route('/refuse').post(authorizeForSeller, checkParametersAndCallRoute(InvitationController.rejectTransaction));
 
     this._router.route('/seller_claim').post(authorizeForSeller, checkParametersAndCallRoute(InvitationController.addSellerClaim));
-    
-    // admin & management operations
 
     // public operations
     this._router.route('/').get( checkParametersAndCallRoute(InvitationController.getPublicInvitationInfo));
@@ -39,7 +37,8 @@ class PartyRoutes {
     this._router.route('/fulfill').get(checkParametersAndCallRoute(InvitationController.canValidateTransaction));
     this._router.route('/fulfill').post(checkParametersAndCallRoute(InvitationController.validateTransaction));
 
-
+    
+    // admin & management operations
   }
 }
 

@@ -51,10 +51,10 @@ class SellerController {
                 return res.json({ message: 'seller could not be created!' });
             }
             (0, mailer_1.sendEmailVerificationCodeSeller)(seller.email, seller.emailCode, seller.firstName);
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_SELLER_KEY) {
                 throw 'JWT key not provided';
             }
-            const token = jsonwebtoken_1.default.sign(seller, process.env.JWT_KEY, { expiresIn: '24h' });
+            const token = jsonwebtoken_1.default.sign(seller, process.env.JWT_SELLER_KEY, { expiresIn: '24h' });
             return res.json({ token });
         });
     }
@@ -70,19 +70,19 @@ class SellerController {
                 res.status(http_status_1.default.UNAUTHORIZED);
                 return res.json({ message: 'seller removed' });
             }
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_SELLER_KEY) {
                 throw 'JWT key not provided';
             }
-            const token = jsonwebtoken_1.default.sign(seller, process.env.JWT_KEY, { expiresIn: '24h' });
+            const token = jsonwebtoken_1.default.sign(seller, process.env.JWT_SELLER_KEY, { expiresIn: '24h' });
             return res.json({ token });
         });
     }
     static getSeller(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_SELLER_KEY) {
                 throw 'JWT key not provided';
             }
-            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY);
             const seller = yield orms_1.Seller.findOne({ where: { id: TokenSeller.id }, raw: true });
             if (!seller) {
                 res.status(http_status_1.default.NOT_FOUND);
@@ -93,10 +93,10 @@ class SellerController {
     }
     static updateSeller(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_SELLER_KEY) {
                 throw 'JWT key not provided';
             }
-            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY);
             yield orms_1.Seller.update(Object.assign({}, req.body), { where: { id: TokenSeller.id } });
             const seller = yield orms_1.Seller.findOne({ where: { id: TokenSeller.id }, raw: true });
             if (!seller) {
@@ -108,10 +108,10 @@ class SellerController {
     }
     static validateSellerEmail(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_SELLER_KEY) {
                 throw 'JWT key not provided';
             }
-            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY);
             const user = yield orms_1.Seller.findOne({ where: { email: TokenSeller.email }, raw: false });
             if (!user) {
                 res.status(http_status_1.default.NOT_FOUND);
@@ -122,20 +122,20 @@ class SellerController {
                 return res.json({ message: 'wrong code' });
             }
             user.update({ status: types_1.UserStatus.Accepted });
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_SELLER_KEY) {
                 throw 'JWT key not provided';
             }
             const user_data = user.get({ plain: true });
-            const token = jsonwebtoken_1.default.sign(user_data, process.env.JWT_KEY);
+            const token = jsonwebtoken_1.default.sign(user_data, process.env.JWT_SELLER_KEY);
             return res.json({ token });
         });
     }
     static createNewInvitation(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_SELLER_KEY) {
                 throw 'JWT key not provided';
             }
-            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY);
             const seller = yield orms_1.Seller.findOne({ where: { id: TokenSeller.id }, raw: false });
             if (!seller) {
                 res.status(http_status_1.default.NOT_FOUND);
@@ -155,10 +155,10 @@ class SellerController {
     }
     static getSellerInvitations(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_SELLER_KEY) {
                 throw 'JWT key not provided';
             }
-            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY);
             const seller = yield orms_1.Seller.findOne({ where: { id: TokenSeller.id } });
             if (!seller) {
                 res.status(http_status_1.default.NOT_FOUND);
@@ -178,10 +178,10 @@ class SellerController {
     }
     static getSellerOneInvitation(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_SELLER_KEY) {
                 throw 'JWT key not provided';
             }
-            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY);
             const seller = yield orms_1.Seller.findOne({ where: { id: TokenSeller.id } });
             if (!seller) {
                 res.status(http_status_1.default.NOT_FOUND);
@@ -206,10 +206,10 @@ class SellerController {
     }
     static getSellerOneTransaction(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_SELLER_KEY) {
                 throw 'JWT key not provided';
             }
-            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY);
             const seller = yield orms_1.Seller.findOne({ where: { id: TokenSeller.id } });
             if (!seller) {
                 res.status(http_status_1.default.NOT_FOUND);
@@ -231,10 +231,10 @@ class SellerController {
     }
     static deleteInvitation(req, res) {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_SELLER_KEY) {
                 throw 'JWT key not provided';
             }
-            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_KEY);
+            const TokenSeller = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY);
             const seller = yield orms_1.Seller.findOne({ where: { id: TokenSeller.id } });
             if (!seller) {
                 res.status(http_status_1.default.NOT_FOUND);

@@ -78,11 +78,11 @@ export class SellerController {
 
     sendEmailVerificationCodeSeller(seller.email, seller.emailCode, seller.firstName);
 
-    if (!process.env.JWT_KEY) {
+    if (!process.env.JWT_SELLER_KEY) {
       throw 'JWT key not provided';
     }
 
-    const token = jwt.sign(seller, process.env.JWT_KEY, { expiresIn: '24h'});
+    const token = jwt.sign(seller, process.env.JWT_SELLER_KEY, { expiresIn: '24h'});
     return res.json({ token });
   }
 
@@ -105,20 +105,20 @@ export class SellerController {
       return res.json({ message: 'seller removed' });
     }
 
-    if (!process.env.JWT_KEY) {
+    if (!process.env.JWT_SELLER_KEY) {
       throw 'JWT key not provided';
     }
-    const token = jwt.sign(seller, process.env.JWT_KEY, { expiresIn: '24h'});
+    const token = jwt.sign(seller, process.env.JWT_SELLER_KEY, { expiresIn: '24h'});
     return res.json({ token });
   }
 
   @validation(Joi.object({}))
   public static async getSeller(req: SellerRequest, res: Response): Promise<Response<{ seller: ISellerBase }>> {
 
-    if (!process.env.JWT_KEY) {
+    if (!process.env.JWT_SELLER_KEY) {
       throw 'JWT key not provided';
     }
-    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISellerBase;
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY) as unknown as  ISellerBase;
     const seller = await Seller.findOne({ where: { id: TokenSeller.id }, raw: true });
     if (!seller) {
       res.status(httpStatus.NOT_FOUND);
@@ -137,10 +137,10 @@ export class SellerController {
     description: Joi.string().optional(),
   }))
   public static async updateSeller(req: SellerRequest, res: Response): Promise<Response<{ seller: ISellerBase }>> {
-    if (!process.env.JWT_KEY) {
+    if (!process.env.JWT_SELLER_KEY) {
       throw 'JWT key not provided';
     }
-    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY) as unknown as  ISeller;
     await Seller.update({ ...req.body }, { where:  { id: TokenSeller.id }});
     const seller = await Seller.findOne({ where: { id: TokenSeller.id }, raw: true });
     if (!seller) {
@@ -154,10 +154,10 @@ export class SellerController {
     emailCode: Joi.number().required()
   }))
   public static async validateSellerEmail(req: SellerRequest, res: Response): Promise<Response<{ token: string }>> {
-    if (!process.env.JWT_KEY) {
+    if (!process.env.JWT_SELLER_KEY) {
       throw 'JWT key not provided';
     }
-    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY) as unknown as  ISeller;
     const user = await Seller.findOne({ where: { email: TokenSeller.email}, raw: false });
     if (!user) {
       res.status(httpStatus.NOT_FOUND);
@@ -170,11 +170,11 @@ export class SellerController {
     }
     // update the user
     user.update({status: UserStatus.Accepted})
-    if (!process.env.JWT_KEY) {
+    if (!process.env.JWT_SELLER_KEY) {
       throw 'JWT key not provided';
     }
     const user_data = user.get({plain: true});
-    const token = jwt.sign(user_data, process.env.JWT_KEY);
+    const token = jwt.sign(user_data, process.env.JWT_SELLER_KEY);
     return res.json({ token });
   }
 
@@ -188,10 +188,10 @@ export class SellerController {
     delivery: Joi.string().required(),
   }))
   public static async createNewInvitation(req: SellerRequest, res: Response): Promise<Response<{ invitation: IInvitation }>> {
-    if (!process.env.JWT_KEY) {
+    if (!process.env.JWT_SELLER_KEY) {
       throw 'JWT key not provided';
     }
-    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY) as unknown as  ISeller;
     const seller = await Seller.findOne({ where: { id: TokenSeller.id }, raw: false});
 
     if (!seller) {
@@ -214,10 +214,10 @@ export class SellerController {
 
   @validation(Joi.object({}))
   public static async getSellerInvitations(req: SellerRequest, res: Response): Promise<Response<{ invitations: IInvitationTransaction[] }>> {
-    if (!process.env.JWT_KEY) {
+    if (!process.env.JWT_SELLER_KEY) {
       throw 'JWT key not provided';
     }
-    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY) as unknown as  ISeller;
     const seller = await Seller.findOne({ where: { id: TokenSeller.id }});
 
     if (!seller) {
@@ -246,10 +246,10 @@ export class SellerController {
     uuid: Joi.string().required()
   }))
   public static async getSellerOneInvitation(req: SellerRequest, res: Response): Promise<Response<{ invitation: IInvitationTransaction }>> {
-    if (!process.env.JWT_KEY) {
+    if (!process.env.JWT_SELLER_KEY) {
       throw 'JWT key not provided';
     }
-    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY) as unknown as  ISeller;
     const seller = await Seller.findOne({ where: { id: TokenSeller.id }});
 
     if (!seller) {
@@ -280,10 +280,10 @@ export class SellerController {
     uuid: Joi.string().required()
   }))
   public static async getSellerOneTransaction(req: SellerRequest, res: Response): Promise<Response<{ invitations: ITransactionSellerSide }>> {
-    if (!process.env.JWT_KEY) {
+    if (!process.env.JWT_SELLER_KEY) {
       throw 'JWT key not provided';
     }
-    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as  ISeller;
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY) as unknown as  ISeller;
     const seller = await Seller.findOne({ where: { id: TokenSeller.id }});
 
     if (!seller) {
@@ -313,10 +313,10 @@ export class SellerController {
     uuid: Joi.string().required(),
   }))
   public static async deleteInvitation(req: SellerRequest, res: Response): Promise<Response<{ invitation: IInvitation }>> {
-    if (!process.env.JWT_KEY) {
+    if (!process.env.JWT_SELLER_KEY) {
       throw 'JWT key not provided';
     }
-    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_KEY) as unknown as ISeller;
+    const TokenSeller = jwt.verify(req.headers.authorization || "", process.env.JWT_SELLER_KEY) as unknown as ISeller;
     const seller = await Seller.findOne({ where: { id: TokenSeller.id }});
     if (!seller) {
       res.status(httpStatus.NOT_FOUND);

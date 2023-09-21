@@ -6,11 +6,11 @@ import { IBuyer, ISeller } from 'models/types';
 const authorizeForBuyer = async (req: any, res: any, next: any) => {
   let buyer;
   try {
-    if (!process.env.JWT_KEY) {
+    if (!process.env.JWT_BUYER_KEY) {
       throw 'JWT key not provided';
     }
 
-    buyer = jwt.verify(req.headers.authorization, process.env.JWT_KEY) as IBuyer;
+    buyer = jwt.verify(req.headers.authorization, process.env.JWT_BUYER_KEY) as IBuyer;
 
     if (!buyer?.id) {
       throw 'Does not contain buyer';
@@ -28,11 +28,11 @@ const authorizeForBuyer = async (req: any, res: any, next: any) => {
 const authorizeForSeller = async (req: any, res: any, next: any) => {
   let seller;
   try {
-    if (!process.env.JWT_KEY) {
+    if (!process.env.JWT_SELLER_KEY) {
       throw 'JWT key not provided';
     }
 
-    seller = jwt.verify(req.headers.authorization, process.env.JWT_KEY) as ISeller;
+    seller = jwt.verify(req.headers.authorization, process.env.JWT_SELLER_KEY) as ISeller;
 
     if (!seller?.id) {
       throw 'Does not contain seller';

@@ -78,27 +78,27 @@ describe('## User', () => {
       const { token } = (await request(app).put('/api/buyer/login').send({ ...buyerInfo, code: '123456' }).expect(httpStatus.OK)).body;
       const subscribedUser = await Buyer.findOne({ where: { phoneNumber: buyerInfo.phoneNumber}}) as unknown as IBuyer;
       
-      if (!process.env.JWT_KEY) {
+      if (!process.env.JWT_BUYER_KEY) {
         throw 'JWT key not provided';
       }
 
-      const authentifiedUser = jwt.verify(token, process.env.JWT_KEY) as IBuyer;
+      const authentifiedUser = jwt.verify(token, process.env.JWT_BUYER_KEY) as IBuyer;
       expect(subscribedUser.id).toEqual(authentifiedUser.id);
     });
   
     test('should be able to login if phoneNumber exists', async () => {
       const { token } = (await request(app).post('/api/buyer/login').send({ phoneNumber: user1.phoneNumber, password:user1.password, email: '' }).expect(httpStatus.OK)).body;
-      if (!process.env.JWT_KEY) {
+      if (!process.env.JWT_BUYER_KEY) {
         throw 'JWT key not provided';
       }
-      const authentifiedUser = jwt.verify(token, process.env.JWT_KEY) as IBuyer;
+      const authentifiedUser = jwt.verify(token, process.env.JWT_BUYER_KEY) as IBuyer;
   
       expect(user1.id).toEqual(authentifiedUser.id);
     });
 
     test('should not be able to validate wrong emailCode', async () => {
       const { token } = (await request(app).post('/api/buyer/login').send({ phoneNumber: user1.phoneNumber, password:user1.password, email: '' }).expect(httpStatus.OK)).body;
-      if (!process.env.JWT_KEY) {
+      if (!process.env.JWT_BUYER_KEY) {
         throw 'JWT key not provided';
       }
       (await request(app).patch(`/api/buyer/login`).
@@ -109,17 +109,17 @@ describe('## User', () => {
 
     test('should be able to validate correct emailCode', async () => {
       const { token } = (await request(app).post('/api/buyer/login').send({ phoneNumber: user1.phoneNumber, password:user1.password, email: '' }).expect(httpStatus.OK)).body;
-      if (!process.env.JWT_KEY) {
+      if (!process.env.JWT_BUYER_KEY) {
         throw 'JWT key not provided';
       }
-      const authentifiedUser = jwt.verify(token, process.env.JWT_KEY) as IBuyer;
+      const authentifiedUser = jwt.verify(token, process.env.JWT_BUYER_KEY) as IBuyer;
       const buyerObject = await Buyer.findByPk(authentifiedUser.id)
       const result_request = (await request(app).patch(`/api/buyer/login`).
         send({emailCode: buyerObject?.emailCode}).
         set('Authorization', token).
         expect(httpStatus.OK)).body;
 
-        const validated_user = jwt.verify(result_request.token, process.env.JWT_KEY) as IBuyer;
+        const validated_user = jwt.verify(result_request.token, process.env.JWT_BUYER_KEY) as IBuyer;
         expect(validated_user.status).toBe(UserStatus.Accepted);
         expect(validated_user.id).toBe(authentifiedUser.id);
     });

@@ -40,18 +40,18 @@ describe('## seller', () => {
                 where: { email: sellerInfoTest.email, password: sellerInfoTest.password },
                 raw: true
             });
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_SELLER_KEY) {
                 throw 'JWT key not provided';
             }
-            const authentifiedUser = jsonwebtoken_1.default.verify(token, process.env.JWT_KEY);
+            const authentifiedUser = jsonwebtoken_1.default.verify(token, process.env.JWT_SELLER_KEY);
             expect(subscribedSeller.id).toEqual(authentifiedUser.id);
         }));
         test('should be able to login with email and Password', () => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
             const { token } = (yield (0, supertest_1.default)(index_1.default).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword })).body;
-            if (!process.env.JWT_KEY) {
+            if (!process.env.JWT_SELLER_KEY) {
                 throw 'JWT key not provided';
             }
-            const authentifiedUser = jsonwebtoken_1.default.verify(token, process.env.JWT_KEY);
+            const authentifiedUser = jsonwebtoken_1.default.verify(token, process.env.JWT_SELLER_KEY);
             expect(sellerObject.id).toEqual(authentifiedUser.id);
         }));
         test('should not able to subscribe with same email twice', () => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {

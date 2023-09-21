@@ -8,10 +8,10 @@ require("dotenv/config");
 const authorizeForBuyer = (req, res, next) => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
     let buyer;
     try {
-        if (!process.env.JWT_KEY) {
+        if (!process.env.JWT_BUYER_KEY) {
             throw 'JWT key not provided';
         }
-        buyer = jsonwebtoken_1.default.verify(req.headers.authorization, process.env.JWT_KEY);
+        buyer = jsonwebtoken_1.default.verify(req.headers.authorization, process.env.JWT_BUYER_KEY);
         if (!(buyer === null || buyer === void 0 ? void 0 : buyer.id)) {
             throw 'Does not contain buyer';
         }
@@ -29,10 +29,10 @@ exports.authorizeForBuyer = authorizeForBuyer;
 const authorizeForSeller = (req, res, next) => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
     let seller;
     try {
-        if (!process.env.JWT_KEY) {
+        if (!process.env.JWT_SELLER_KEY) {
             throw 'JWT key not provided';
         }
-        seller = jsonwebtoken_1.default.verify(req.headers.authorization, process.env.JWT_KEY);
+        seller = jsonwebtoken_1.default.verify(req.headers.authorization, process.env.JWT_SELLER_KEY);
         if (!(seller === null || seller === void 0 ? void 0 : seller.id)) {
             throw 'Does not contain seller';
         }
