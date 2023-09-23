@@ -73,6 +73,11 @@ class AdminVisibility {
         tmp.Invitation.Seller = lodash_1.default.omit(tmp.Invitation.Seller, ['id', 'password', 'emailCode', 'createdAt', 'updatedAt']);
         return tmp;
     }
+    static adaptTransactionsWithSellerToPublic(transactions) {
+        return lodash_1.default.map(transactions, (transaction) => {
+            return this.adaptTransactionWithSellerToPublic(transaction);
+        });
+    }
 }
 exports.AdminVisibility = AdminVisibility;
 //# sourceMappingURL=attributes.visibility.js.map

@@ -13,6 +13,10 @@ const initHistory = (sequelize) => {
             autoIncrement: true,
             primaryKey: true
         },
+        actionType: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false,
+        },
         action: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,

@@ -49,7 +49,7 @@ export class InvitationController {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'buyer does not exist' });
     } 
-    
+
 
     const transactionInfo = {
       InvitationId: invitation.id,
@@ -144,7 +144,7 @@ export class InvitationController {
       const nowDate = new Date();
       if (paymentDate > nowDate) {
         // payment has less than 3 hours delay
-        const result = await transaction.update({ state : TransactionStatus.BUYER_CANCEL_EARLY })
+        const result = await transaction.update({ state : TransactionStatus.PAYED_BUYER_CANCEL_EARLY })
         return res.json({ transaction: BuyerVisibility.adaptTransactionWithSellerToBuyer(result.get({plain: true})) })
       }
       else {
@@ -154,11 +154,11 @@ export class InvitationController {
         delivery_time_minus_24.setHours(delivery_time_minus_24.getHours() - 24)
 
         if ((nowDate < paymentDate) && (nowDate < delivery_time_minus_24)) {
-          const result = await transaction.update({ state : TransactionStatus.BUYER_CANCEL_MID })
+          const result = await transaction.update({ state : TransactionStatus.PAYED_BUYER_CANCEL_MID })
           return res.json({ transaction: BuyerVisibility.adaptTransactionWithSellerToBuyer(result.get({plain: true})) })
         }
         else {
-          const result = await transaction.update({ state : TransactionStatus.BUYER_CANCEL_LATE })
+          const result = await transaction.update({ state : TransactionStatus.PAYED_BUYER_CANCEL_LATE })
           return res.json({ transaction: BuyerVisibility.adaptTransactionWithSellerToBuyer(result.get({plain: true})) })
         }
       }

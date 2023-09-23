@@ -45,7 +45,7 @@ const initTransaction = (sequelize) => {
             allowNull: true
         },
         state: {
-            type: sequelize_1.DataTypes.ENUM(types_1.TransactionStatus.CANCELED, types_1.TransactionStatus.OPENED, types_1.TransactionStatus.FULFILLED, types_1.TransactionStatus.PAYED, types_1.TransactionStatus.BUYER_CANCEL_MID, types_1.TransactionStatus.ACCEPTED, types_1.TransactionStatus.BUYER_CANCEL_EARLY, types_1.TransactionStatus.BUYER_CANCEL_LATE, types_1.TransactionStatus.SELLER_CANCEL, types_1.TransactionStatus.GHOSTED),
+            type: sequelize_1.DataTypes.ENUM(types_1.TransactionStatus.CANCELED, types_1.TransactionStatus.OPENED, types_1.TransactionStatus.FULFILLED, types_1.TransactionStatus.PAYED, types_1.TransactionStatus.PAYED_BUYER_CANCEL_MID, types_1.TransactionStatus.ACCEPTED, types_1.TransactionStatus.PAYED_BUYER_CANCEL_EARLY, types_1.TransactionStatus.PAYED_COMPLEX_CANCEL, types_1.TransactionStatus.FULFILLED_CONTINUE, types_1.TransactionStatus.FULFILLED_HOLD, types_1.TransactionStatus.PAYED_BUYER_CANCEL_LATE, types_1.TransactionStatus.PAYED_SELLER_CANCEL, types_1.TransactionStatus.PAYED_GHOSTED, types_1.TransactionStatus.PAYED_REIMBURSED),
             allowNull: false,
             defaultValue: types_1.TransactionStatus.OPENED
         },

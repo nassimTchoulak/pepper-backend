@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserStatus = exports.StoreStatus = exports.Gender = exports.TransactionOutcome = exports.TransactionStatus = void 0;
+exports.UserStatus = exports.StoreStatus = exports.Gender = exports.TransactionOutcome = exports.FULFILLED_TO_BE_PAYED_LIST = exports.CANCELED_TO_BE_PAYED_LIST = exports.TransactionStatus = void 0;
 ;
 ;
 ;
@@ -10,13 +10,21 @@ var TransactionStatus;
     TransactionStatus["ACCEPTED"] = "accepted";
     TransactionStatus["PAYED"] = "payed";
     TransactionStatus["FULFILLED"] = "fulfilled";
+    TransactionStatus["FULFILLED_HOLD"] = "fulfilled-hold";
+    TransactionStatus["FULFILLED_CONTINUE"] = "fulfilled-continue";
     TransactionStatus["CANCELED"] = "canceled";
-    TransactionStatus["BUYER_CANCEL_EARLY"] = "buyer-cancel-early";
-    TransactionStatus["BUYER_CANCEL_MID"] = "buyer-cancel-mid";
-    TransactionStatus["BUYER_CANCEL_LATE"] = "buyer-cancel-late";
-    TransactionStatus["GHOSTED"] = "ghosted";
-    TransactionStatus["SELLER_CANCEL"] = "seller-cancel";
+    TransactionStatus["PAYED_BUYER_CANCEL_EARLY"] = "payed-buyer-cancel-early";
+    TransactionStatus["PAYED_BUYER_CANCEL_MID"] = "payed-buyer-cancel-mid";
+    TransactionStatus["PAYED_BUYER_CANCEL_LATE"] = "payed-buyer-cancel-late";
+    TransactionStatus["PAYED_GHOSTED"] = "payed-ghosted";
+    TransactionStatus["PAYED_SELLER_CANCEL"] = "payed-seller-cancel";
+    TransactionStatus["PAYED_REIMBURSED"] = "payed-reimbursed";
+    TransactionStatus["PAYED_COMPLEX_CANCEL"] = "payed-reimbursed-complex";
 })(TransactionStatus = exports.TransactionStatus || (exports.TransactionStatus = {}));
+exports.CANCELED_TO_BE_PAYED_LIST = [TransactionStatus.PAYED_BUYER_CANCEL_EARLY, TransactionStatus.PAYED_BUYER_CANCEL_LATE,
+    TransactionStatus.PAYED_BUYER_CANCEL_MID, TransactionStatus.PAYED_GHOSTED, TransactionStatus.PAYED_REIMBURSED,
+    TransactionStatus.PAYED_COMPLEX_CANCEL, TransactionStatus.PAYED_SELLER_CANCEL];
+exports.FULFILLED_TO_BE_PAYED_LIST = [TransactionStatus.FULFILLED_CONTINUE, TransactionStatus.FULFILLED];
 var TransactionOutcome;
 (function (TransactionOutcome) {
     TransactionOutcome["CLOSED_FAILED"] = "closed-failed";

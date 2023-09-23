@@ -96,7 +96,7 @@ class InvitationController {
                 paymentDate.setHours(paymentDate.getHours() + 3);
                 const nowDate = new Date();
                 if (paymentDate > nowDate) {
-                    const result = yield transaction.update({ state: types_1.TransactionStatus.BUYER_CANCEL_EARLY });
+                    const result = yield transaction.update({ state: types_1.TransactionStatus.PAYED_BUYER_CANCEL_EARLY });
                     return res.json({ transaction: attributes_visibility_1.BuyerVisibility.adaptTransactionWithSellerToBuyer(result.get({ plain: true })) });
                 }
                 else {
@@ -104,11 +104,11 @@ class InvitationController {
                     const delivery_time_minus_24 = new Date(transaction.deliveryDate);
                     delivery_time_minus_24.setHours(delivery_time_minus_24.getHours() - 24);
                     if ((nowDate < paymentDate) && (nowDate < delivery_time_minus_24)) {
-                        const result = yield transaction.update({ state: types_1.TransactionStatus.BUYER_CANCEL_MID });
+                        const result = yield transaction.update({ state: types_1.TransactionStatus.PAYED_BUYER_CANCEL_MID });
                         return res.json({ transaction: attributes_visibility_1.BuyerVisibility.adaptTransactionWithSellerToBuyer(result.get({ plain: true })) });
                     }
                     else {
-                        const result = yield transaction.update({ state: types_1.TransactionStatus.BUYER_CANCEL_LATE });
+                        const result = yield transaction.update({ state: types_1.TransactionStatus.PAYED_BUYER_CANCEL_LATE });
                         return res.json({ transaction: attributes_visibility_1.BuyerVisibility.adaptTransactionWithSellerToBuyer(result.get({ plain: true })) });
                     }
                 }

@@ -96,5 +96,11 @@ export class AdminVisibility {
     tmp.Invitation = _.omit(tmp.Invitation, ['id', 'SellerId']) as unknown as IInvitationComplete;
     tmp.Invitation.Seller = _.omit(tmp.Invitation.Seller, ['id', 'password', 'emailCode', 'createdAt', 'updatedAt']) as unknown as ISellerBase;
     return tmp;
-}
+  }
+
+  public static adaptTransactionsWithSellerToPublic(transactions: Transaction[]) : IAdminTransaction[] {
+    return _.map(transactions, (transaction) => {
+      return this.adaptTransactionWithSellerToPublic(transaction)
+    }); 
+  }
 }

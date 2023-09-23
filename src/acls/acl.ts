@@ -47,4 +47,30 @@ const authorizeForSeller = async (req: any, res: any, next: any) => {
   }
 }
 
-export { authorizeForBuyer as authorizeForBuyer, authorizeForSeller as authorizeForSeller };
+const authorizeForAdmin = async (req: any, res: any, next: any) => {
+  if (!process.env.RSA_PUBLIC) {
+    throw 'public key';
+  }
+  const publicKey = process.env.RSA_PUBLIC.replace(/\\n/g, '\n');
+
+  try {
+    if (!process.env.JWT_SELLER_KEY) {
+      throw 'JWT key not provided';
+    }
+
+    const decoded = jwt.verify(req.headers.authorization, publicKey, {
+      algorithms: ['RS256'],
+      issuer: 'application',
+    }) as {name: string, id: number}
+
+    req.admin = decoded;
+    next();
+  } catch (e) {
+    res.status(httpStatus.UNAUTHORIZED);
+    res.json({
+      message: `Invalid token: ${e}`,
+    });
+  }
+}
+
+export { authorizeForBuyer as authorizeForBuyer, authorizeForSeller as authorizeForSeller, authorizeForAdmin };

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.authorizeForSeller = exports.authorizeForBuyer = void 0;
+exports.authorizeForAdmin = exports.authorizeForSeller = exports.authorizeForBuyer = void 0;
 const tslib_1 = require("tslib");
 const jsonwebtoken_1 = (0, tslib_1.__importDefault)(require("jsonwebtoken"));
 const http_status_1 = (0, tslib_1.__importDefault)(require("http-status"));
@@ -47,4 +47,28 @@ const authorizeForSeller = (req, res, next) => (0, tslib_1.__awaiter)(void 0, vo
     }
 });
 exports.authorizeForSeller = authorizeForSeller;
+const authorizeForAdmin = (req, res, next) => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
+    if (!process.env.RSA_PUBLIC) {
+        throw 'public key';
+    }
+    const publicKey = process.env.RSA_PUBLIC.replace(/\\n/g, '\n');
+    try {
+        if (!process.env.JWT_SELLER_KEY) {
+            throw 'JWT key not provided';
+        }
+        const decoded = jsonwebtoken_1.default.verify(req.headers.authorization, publicKey, {
+            algorithms: ['RS256'],
+            issuer: 'application',
+        });
+        req.admin = decoded;
+        next();
+    }
+    catch (e) {
+        res.status(http_status_1.default.UNAUTHORIZED);
+        res.json({
+            message: `Invalid token: ${e}`,
+        });
+    }
+});
+exports.authorizeForAdmin = authorizeForAdmin;
 //# sourceMappingURL=acl.js.map

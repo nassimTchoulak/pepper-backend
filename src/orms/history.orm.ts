@@ -8,6 +8,7 @@ import { Transaction } from './transaction.orm';
 class History extends Model {
   public id!: number;
   public action!: string;
+  public actionType!: string;
   public reason!: string;
   public admin!: string;
 
@@ -22,6 +23,10 @@ const initHistory = (sequelize: Sequelize) => {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true
+    },
+    actionType: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     action: {
       type: DataTypes.STRING,

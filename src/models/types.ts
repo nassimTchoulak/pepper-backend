@@ -54,10 +54,25 @@ export interface IAdminTransaction extends ITransaction {
   Buyer: IBuyerBase
 }
 
+export interface IAdminFullTransaction extends IAdminTransaction {
+  Claims: IClaim[],
+  History: IHistory[]
+}
+
 export interface IClaim {
+  id: number,
   sender: string,
   reason: string,
-  text: string
+  text: string,
+  createdAt: Date
+}
+export interface IHistory {
+  id: number,
+  action: string,
+  actionType: string,
+  reason: string,
+  text: string,
+  createdAt: Date
 }
 
 export interface IBuyerBase {
@@ -97,17 +112,41 @@ export interface ISeller extends ISellerBase {
 
 
 export enum TransactionStatus {
+  // initiated by the Buyer
   OPENED = 'opened',
+  // accepted by the seller
   ACCEPTED = 'accepted',
+  // payed by the buyer
   PAYED = 'payed',
+  // validated by the seller -> to be sent
   FULFILLED = 'fulfilled',
+  // validated but with reserve | activated when claim is submitted after validation
+  FULFILLED_HOLD = 'fulfilled-hold',
+  // decision : the hold is lifted no more claims
+  FULFILLED_CONTINUE = 'fulfilled-continue',
+  // canceled no process
   CANCELED = 'canceled',
-  BUYER_CANCEL_EARLY = 'buyer-cancel-early',
-  BUYER_CANCEL_MID = 'buyer-cancel-mid',
-  BUYER_CANCEL_LATE = 'buyer-cancel-late',
-  GHOSTED = 'ghosted',
-  SELLER_CANCEL ='seller-cancel'
+  // cancel directly by buyer change mind
+  PAYED_BUYER_CANCEL_EARLY = 'payed-buyer-cancel-early',
+  PAYED_BUYER_CANCEL_MID = 'payed-buyer-cancel-mid',
+  // decision + state of cancelation
+  PAYED_BUYER_CANCEL_LATE = 'payed-buyer-cancel-late',
+  // decision : buyer did not show up
+  PAYED_GHOSTED = 'payed-ghosted',
+  // decision : seller requested the cancelation
+  PAYED_SELLER_CANCEL ='payed-seller-cancel',
+  // decision
+  PAYED_REIMBURSED = 'payed-reimbursed',
+  // decision
+  PAYED_COMPLEX_CANCEL = 'payed-reimbursed-complex',
+  
 }
+
+export const CANCELED_TO_BE_PAYED_LIST = [TransactionStatus.PAYED_BUYER_CANCEL_EARLY, TransactionStatus.PAYED_BUYER_CANCEL_LATE,
+  TransactionStatus.PAYED_BUYER_CANCEL_MID, TransactionStatus.PAYED_GHOSTED, TransactionStatus.PAYED_REIMBURSED,
+  TransactionStatus.PAYED_COMPLEX_CANCEL, TransactionStatus.PAYED_SELLER_CANCEL]
+
+export const FULFILLED_TO_BE_PAYED_LIST = [TransactionStatus.FULFILLED_CONTINUE , TransactionStatus.FULFILLED]
 
 export enum TransactionOutcome {
   CLOSED_FAILED = 'closed-failed',
