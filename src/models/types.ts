@@ -71,7 +71,6 @@ export interface IHistory {
   action: string,
   actionType: string,
   reason: string,
-  text: string,
   createdAt: Date
 }
 

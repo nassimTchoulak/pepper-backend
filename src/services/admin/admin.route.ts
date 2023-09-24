@@ -26,22 +26,24 @@ class AdminRoutes {
     this._router.route('/ongoing_fulfilled').get(authorizeForAdmin, checkParametersAndCallRoute(AdminController.getOngoingPayedFulfilled));
 
     // decisions to be made
+    this._router.route('/decide').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.decideOnTransaction));
+    /*
     this._router.route('/decide/ghosting').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));
     this._router.route('/decide/change_mind_late').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));
     this._router.route('/decide/seller_canceled').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));
     this._router.route('/decide/reimburse').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));
     this._router.route('/decide/reimburse_complex').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));
-    this._router.route('/decide/fulfilled').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));
+    this._router.route('/decide/fulfilled').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));*/
     // accountant closing the transaction
-    this._router.route('/close').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));
+    this._router.route('/close').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.closeTransaction));
 
     // more detail to make decision
-    this._router.route('/seller_history').get(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));
-    this._router.route('/buyer_history').get(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));
-    this._router.route('/transaction').get(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));
+    this._router.route('/seller_history').get(authorizeForAdmin, checkParametersAndCallRoute(AdminController.getSellerHistory));
+    this._router.route('/buyer_history').get(authorizeForAdmin, checkParametersAndCallRoute(AdminController.getBuyerHistory));
+    this._router.route('/transaction').get(authorizeForAdmin, checkParametersAndCallRoute(AdminController.getTransactionDetail));
 
     // dash board of logs Closings, decisions
-    this._router.route('/actions').get(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));
+    this._router.route('/actions').get(authorizeForAdmin, checkParametersAndCallRoute(AdminController.getActionsHistory));
   }
 }
 
