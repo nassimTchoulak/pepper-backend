@@ -3,8 +3,10 @@ export interface IInvitation {
   product: string,
   description: string,
   price: number,
-  instances: number,
-  delivery: string,
+  storeWilaya : string,
+  storeLocation: string,
+  deliveryType: DeliveryType,
+  localDeliveryPrice: number,
   active: boolean,
   date: Date,
   createdAt: Date,
@@ -15,12 +17,14 @@ export interface IInvitation {
 
 export interface ITransaction {
   uuid: string
-  delivery: string,
+  deliveryPlace: string,
+  deliveryType: DeliveryType,
+  deliveryPrice: number,
+  deliveryDate: Date,
   state: TransactionStatus,
   outcome: TransactionOutcome,
   activationKey: string,
   paymentDate: Date,
-  deliveryDate: Date,
   createdAt: Date,
   updatedAt: Date,
 };
@@ -79,8 +83,9 @@ export interface IBuyerBase {
   name: string,
   firstName: string,
   birthDay: Date,
-  gender: Gender
+  gender: Gender,
   phoneNumber: string,
+  wilaya: string;
   address: string,
   status: UserStatus,
   email: string,
@@ -94,6 +99,7 @@ export interface ISellerBase {
   firstName: string,
   businessName: string,
   location: string,
+  wilaya: string
   description: string,
   status: UserStatus
 }
@@ -159,11 +165,11 @@ export enum Gender {
   WOMAN = 'woman'
 }
 
-export enum StoreStatus {
-  Idle = 'idle',
-  Pending = 'pending',
-  Fulfilled = 'fulfilled',
-  Rejected = 'rejected',
+export enum DeliveryType {
+  LOCAL_WILAYA_ONLY = 'local-wilaya-only',
+  BETWEEN_WILAYAS = 'between-wilayas',
+  PICK_FROM_SHOP = 'pick-from-shop',
+  NOT_NEEDED = 'not-needed',
 };
 
 

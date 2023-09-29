@@ -12,6 +12,7 @@ import _ from 'lodash';
 import { } from 'services/buyer/buyer.helper';
 import 'dotenv/config';
 import moment from 'moment';
+import { WILAYAS } from 'models/wilayas';
 
 describe('## User', () => {
   let user1: Buyer;
@@ -72,6 +73,7 @@ describe('## User', () => {
         email: fake.email,
         password: fake.password,
         address: fake.address,
+        wilaya: WILAYAS[fake.integer(0,25)],
         birthDay: moment()
       };
 

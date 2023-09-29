@@ -14,6 +14,7 @@ const sequelize_1 = require("sequelize");
 const mailer_1 = require("services/mailer/mailer");
 const transaction_orm_1 = require("orms/transaction.orm");
 const attributes_visibility_1 = require("models/attributes.visibility");
+const wilayas_1 = require("models/wilayas");
 ;
 class BuyerController {
     static createLoginVerificationAndCheckIfUserExisits(req, res) {
@@ -50,6 +51,7 @@ class BuyerController {
                 gender: req.body.gender,
                 phoneNumber: req.body.phoneNumber,
                 address: req.body.address,
+                wilaya: req.body.wilaya,
                 description: req.body.description,
             });
             const user = yield orms_1.Buyer.findOne({ where: { phoneNumber: req.body.phoneNumber }, raw: true });
@@ -186,6 +188,7 @@ class BuyerController {
         birthDay: joi_1.default.date().required(),
         gender: joi_1.default.string().valid(...Object.values(types_1.Gender)).required(),
         address: joi_1.default.string().optional(),
+        wilaya: joi_1.default.string().valid(...wilayas_1.WILAYAS).required(),
         description: joi_1.default.string().optional(),
     }))
 ], BuyerController, "subscribe", null);
@@ -207,6 +210,7 @@ class BuyerController {
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({
         address: joi_1.default.string().optional(),
+        wilaya: joi_1.default.string().valid(...wilayas_1.WILAYAS).optional(),
         description: joi_1.default.string().optional(),
         name: joi_1.default.string().optional(),
         firstName: joi_1.default.string().optional(),

@@ -11,6 +11,8 @@ const types_1 = require("models/types");
 const transaction_orm_1 = require("orms/transaction.orm");
 const jsonwebtoken_1 = (0, tslib_1.__importDefault)(require("jsonwebtoken"));
 const attributes_visibility_1 = require("models/attributes.visibility");
+const wilayas_1 = require("models/wilayas");
+const console_1 = require("console");
 ;
 class InvitationController {
     static createTransactionFromInvitation(req, res) {
@@ -29,10 +31,41 @@ class InvitationController {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'buyer does not exist' });
             }
+            if ((invitation.deliveryType === types_1.DeliveryType.LOCAL_WILAYA_ONLY)
+                && (req.body.deliveryWilaya !== invitation.storeWilaya)) {
+                res.status(http_status_1.default.UNAUTHORIZED);
+                return res.json({ message: 'transaction is not allowed in different wilaya' });
+            }
+            let price = 0;
+            let type;
+            if ((invitation.deliveryType === types_1.DeliveryType.NOT_NEEDED) ||
+                (invitation.deliveryType === types_1.DeliveryType.PICK_FROM_SHOP)) {
+                price = 0;
+                type = invitation.deliveryType;
+            }
+            else {
+                if (invitation.deliveryType === types_1.DeliveryType.LOCAL_WILAYA_ONLY) {
+                    (0, console_1.assert)(req.body.deliveryWilaya === invitation.storeWilaya);
+                    price = invitation.localDeliveryPrice;
+                    type = types_1.DeliveryType.LOCAL_WILAYA_ONLY;
+                }
+                else {
+                    if (req.body.deliveryWilaya === invitation.storeWilaya) {
+                        price = invitation.localDeliveryPrice;
+                        type = types_1.DeliveryType.LOCAL_WILAYA_ONLY;
+                    }
+                    else {
+                        price = -1;
+                        type = types_1.DeliveryType.BETWEEN_WILAYAS;
+                    }
+                }
+            }
             const transactionInfo = {
                 InvitationId: invitation.id,
                 BuyerId: buyer.id,
-                delivery: req.body.delivery,
+                deliveryPlace: req.body.deliveryPlace + ", " + req.body.deliveryWilaya,
+                deliveryType: type,
+                deliveryPrice: price,
                 uuid: (0, helpers_1.transactionUUid)()
             };
             yield transaction_orm_1.Transaction.create(transactionInfo);
@@ -159,8 +192,9 @@ class InvitationController {
                 res.status(http_status_1.default.UNAUTHORIZED);
                 return res.json({ message: 'The Transaction has been modified and can not be accepted' });
             }
+            const price = (transaction_invitation.deliveryType === types_1.DeliveryType.BETWEEN_WILAYAS) ? req.body.deliveryPrice : transaction_invitation.deliveryPrice;
             const transaction = transaction_invitation;
-            yield transaction.update({ state: types_1.TransactionStatus.ACCEPTED, delivery: req.body.delivery, deliveryDate: req.body.date });
+            yield transaction.update({ state: types_1.TransactionStatus.ACCEPTED, deliveryPrice: price, deliveryDate: req.body.date });
             return res.json({ transaction: attributes_visibility_1.SellerVisibility.AdaptSellerFullTransactionToSeller(transaction.get({ plain: true })) });
         });
     }
@@ -276,7 +310,8 @@ class InvitationController {
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({
         InvitationUuid: joi_1.default.string().required(),
-        delivery: joi_1.default.string().required(),
+        deliveryWilaya: joi_1.default.string().valid(...wilayas_1.WILAYAS).required(),
+        deliveryPlace: joi_1.default.string().required(),
     }))
 ], InvitationController, "createTransactionFromInvitation", null);
 (0, tslib_1.__decorate)([
@@ -300,7 +335,7 @@ class InvitationController {
     (0, helpers_1.validation)(joi_1.default.object({
         transactionUuid: joi_1.default.string().required(),
         date: joi_1.default.date().min(new Date()).required(),
-        delivery: joi_1.default.string().required()
+        deliveryPrice: joi_1.default.string().required()
     }))
 ], InvitationController, "acceptTransaction", null);
 (0, tslib_1.__decorate)([

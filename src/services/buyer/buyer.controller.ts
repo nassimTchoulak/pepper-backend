@@ -12,6 +12,7 @@ import { Op, where } from 'sequelize';
 import { sendEmailVerificationCodeBuyer } from 'services/mailer/mailer';
 import { Transaction } from 'orms/transaction.orm';
 import { BuyerVisibility } from 'models/attributes.visibility';
+import { WILAYAS } from 'models/wilayas';
 
 interface UserRequest extends Request {
   user: Buyer
@@ -42,6 +43,7 @@ export class BuyerController {
     birthDay: Joi.date().required(),
     gender: Joi.string().valid(...Object.values(Gender)).required(),
     address: Joi.string().optional(),
+    wilaya: Joi.string().valid(...WILAYAS).required(),
     description: Joi.string().optional(),
   }))
   public static async subscribe(req: Request, res: Response): Promise<Response<{ token: string }>> {
@@ -70,6 +72,7 @@ export class BuyerController {
       gender: req.body.gender,
       phoneNumber: req.body.phoneNumber,
       address: req.body.address,
+      wilaya: req.body.wilaya,
       description: req.body.description,
     });
 
@@ -173,6 +176,7 @@ export class BuyerController {
 
   @validation(Joi.object({
     address: Joi.string().optional(),
+    wilaya: Joi.string().valid(...WILAYAS).optional(),
     description: Joi.string().optional(),
     name: Joi.string().optional(),
     firstName: Joi.string().optional(),

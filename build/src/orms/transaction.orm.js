@@ -26,12 +26,21 @@ const initTransaction = (sequelize) => {
         },
         deliveryDate: {
             type: sequelize_1.DataTypes.DATE,
-            allowNull: false,
-            defaultValue: new Date()
+            allowNull: true,
         },
-        delivery: {
+        deliveryPlace: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
+        },
+        deliveryType: {
+            type: sequelize_1.DataTypes.ENUM(types_1.DeliveryType.BETWEEN_WILAYAS, types_1.DeliveryType.LOCAL_WILAYA_ONLY, types_1.DeliveryType.NOT_NEEDED, types_1.DeliveryType.PICK_FROM_SHOP),
+            allowNull: false,
+            defaultValue: types_1.DeliveryType.LOCAL_WILAYA_ONLY
+        },
+        deliveryPrice: {
+            type: sequelize_1.DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0
         },
         activationKey: {
             type: sequelize_1.DataTypes.STRING,

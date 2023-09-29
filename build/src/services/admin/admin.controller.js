@@ -43,7 +43,7 @@ class AdminController {
                     { model: orms_1.Buyer, as: 'Buyer' },
                     { model: orms_1.Invitation, as: 'Invitation', include: [{ model: orms_1.Seller, as: 'Seller' }] }
                 ],
-                where: { outcome: types_1.TransactionOutcome.ONGOING },
+                where: { outcome: types_1.TransactionOutcome.ONGOING, state: [types_1.TransactionStatus.FULFILLED, types_1.TransactionStatus.PAYED, types_1.TransactionStatus.ACCEPTED] },
                 order: [['createdAt', 'DESC']]
             });
             const transaction_plain = lodash_1.default.map(transactions, (transaction) => {
@@ -226,7 +226,7 @@ class AdminController {
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({
         transactionUuid: joi_1.default.string().required(),
-        decision: joi_1.default.string().valid(types_1.TransactionStatus.PAYED_GHOSTED, types_1.TransactionStatus.PAYED_BUYER_CANCEL_LATE, types_1.TransactionStatus.PAYED_SELLER_CANCEL, types_1.TransactionStatus.PAYED_REIMBURSED, types_1.TransactionStatus.PAYED_COMPLEX_CANCEL, types_1.TransactionStatus.FULFILLED_CONTINUE, types_1.TransactionStatus.FULFILLED).required(),
+        decision: joi_1.default.string().valid(types_1.TransactionStatus.PAYED_GHOSTED, types_1.TransactionStatus.PAYED_BUYER_CANCEL_LATE, types_1.TransactionStatus.PAYED_SELLER_CANCEL, types_1.TransactionStatus.PAYED_REIMBURSED, types_1.TransactionStatus.PAYED_COMPLEX_CANCEL, types_1.TransactionStatus.FULFILLED_CONTINUE, types_1.TransactionStatus.FULFILLED_HOLD, types_1.TransactionStatus.FULFILLED).required(),
         reason: joi_1.default.string().required()
     }))
 ], AdminController, "decideOnTransaction", null);

@@ -15,6 +15,7 @@ class AdminRoutes {
     }
     _assignRoute() {
         this._router.route('/').get(acl_1.authorizeForAdmin, (0, helpers_1.checkParametersAndCallRoute)(admin_controller_1.AdminController.dummyMethod));
+        this._router.route('/').put((0, helpers_1.checkParametersAndCallRoute)(admin_controller_1.AdminController.generateAdminToken));
         this._router.route('/ongoing_claims').get(acl_1.authorizeForAdmin, (0, helpers_1.checkParametersAndCallRoute)(admin_controller_1.AdminController.getOngoingClaims));
         this._router.route('/ongoing_payed_canceled').get(acl_1.authorizeForAdmin, (0, helpers_1.checkParametersAndCallRoute)(admin_controller_1.AdminController.getOngoingPayedCanceled));
         this._router.route('/ongoing_fulfilled').get(acl_1.authorizeForAdmin, (0, helpers_1.checkParametersAndCallRoute)(admin_controller_1.AdminController.getOngoingPayedFulfilled));

@@ -56,7 +56,7 @@ export class AdminController {
         { model: Buyer, as:'Buyer'} ,
         { model: Invitation, as: 'Invitation', include: [{ model: Seller, as : 'Seller'}] }
         ],
-        where: { outcome: TransactionOutcome.ONGOING },
+        where: { outcome: TransactionOutcome.ONGOING, state : [TransactionStatus.FULFILLED, TransactionStatus.PAYED, TransactionStatus.ACCEPTED] },
         order: [['createdAt', 'DESC']]
         })
 
@@ -134,6 +134,7 @@ export class AdminController {
       TransactionStatus.PAYED_REIMBURSED,
       TransactionStatus.PAYED_COMPLEX_CANCEL,
       TransactionStatus.FULFILLED_CONTINUE,
+      TransactionStatus.FULFILLED_HOLD,
       TransactionStatus.FULFILLED
     ).required(),
     reason: Joi.string().required()

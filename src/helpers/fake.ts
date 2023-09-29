@@ -1,7 +1,8 @@
 import { Buyer, Invitation, Seller } from "orms";
-import { Gender, IBuyer, ISeller, UserStatus } from 'models/types';
+import { DeliveryType, Gender, IBuyer, ISeller, UserStatus } from 'models/types';
 import casual from 'casual';
 import moment from "moment";
+import { WILAYAS } from "models/wilayas";
 
 casual.define('gender', () => casual.boolean ? Gender.MAN : Gender.WOMAN );
 casual.define('phoneNumber', () => casual.numerify('06########') );
@@ -20,6 +21,7 @@ const createFakeBuyer = async (overrideProps?: Partial<IBuyer>): Promise<Buyer> 
     email: casual.email,
     password: casual.password,
     address: casual.address,
+    wilaya: WILAYAS[casual.integer(0, 48)],
     ...(overrideProps ? overrideProps : {})
   });
 
@@ -35,6 +37,7 @@ const createFakeSeller = async (password = casual.password as any): Promise<Sell
     name: casual.name,
     password: password,
     location: casual.address,
+    wilaya: WILAYAS[casual.integer(0, 48)],
     description: casual.description
   });
 
@@ -50,6 +53,7 @@ const createFakeInvitationWithSeller = async (): Promise<Invitation> => {
     name: casual.name,
     password: casual.password,
     location: casual.address,
+    wilaya: WILAYAS[casual.integer(0, 48)],
     description: casual.description
   });
 
@@ -59,7 +63,10 @@ const createFakeInvitationWithSeller = async (): Promise<Invitation> => {
     price: casual.integer(0, 100),
     instances: casual.integer(20, 40),
     description: casual.description,
-    delivery: casual.address2,
+    storeWilaya : WILAYAS[casual.integer(0, 48)],
+    storeLocation: casual.address2,
+    deliveryType: DeliveryType.LOCAL_WILAYA_ONLY,
+    localDeliveryPrice: 400,
   });
   
   await seller.addInvitation(invitation);
@@ -80,7 +87,10 @@ const createFakeInvitation = async (organizerInfo: Seller | ISeller): Promise<In
     price: casual.integer(0, 100),
     instances: casual.integer(20, 40),
     description: casual.description,
-    delivery: casual.address2,
+    storeWilaya : WILAYAS[casual.integer(0, 48)],
+    storeLocation: casual.address2,
+    deliveryType: DeliveryType.LOCAL_WILAYA_ONLY,
+    localDeliveryPrice: 400,
   });
   await seller?.addInvitation(invitation);
   const createdInvitation = await Invitation.findOne({ where: { id: invitation.id }, raw: false });

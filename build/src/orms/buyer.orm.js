@@ -46,6 +46,10 @@ const initBuyer = (sequelize) => {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
         },
+        wilaya: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: true,
+        },
         address: {
             type: sequelize_1.DataTypes.TEXT,
             allowNull: true,

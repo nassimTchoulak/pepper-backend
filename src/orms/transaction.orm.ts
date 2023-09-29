@@ -2,7 +2,7 @@ import { Model, DataTypes, Sequelize, BelongsToSetAssociationMixin, BelongsToGet
 import { Seller } from 'orms/seller.orm';
 import { Buyer } from './buyer.orm';
 import { Invitation } from './invitation.orm';
-import { TransactionOutcome, TransactionStatus } from 'models/types';
+import { DeliveryType, TransactionOutcome, TransactionStatus } from 'models/types';
 import { randomHash, randomHashUpper } from 'helpers/helpers';
 import moment from 'moment';
 import { Claim } from './claim.orm';
@@ -12,12 +12,10 @@ class Transaction extends Model {
   public uuid!: number;
   public activationKey!: string;
   public paymentDate!: Date;
-  // public product!: string;
-  // public description!: string;
   public deliveryDate!: Date;
-  // public price!: number;
-  public delivery!: string;
-
+  public deliveryPlace!: string;
+  public deliveryType!: DeliveryType;
+  public deliveryPrice!: number;
   public state!: TransactionStatus;
   public outcome!: TransactionOutcome;
 
@@ -52,12 +50,21 @@ const initTransaction = (sequelize: Sequelize) => {
     },
     deliveryDate: {
       type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: new Date()
+      allowNull: true,
     },
-    delivery: {
+    deliveryPlace: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    deliveryType: {
+      type: DataTypes.ENUM(DeliveryType.BETWEEN_WILAYAS, DeliveryType.LOCAL_WILAYA_ONLY, DeliveryType.NOT_NEEDED, DeliveryType.PICK_FROM_SHOP),
+      allowNull: false,
+      defaultValue: DeliveryType.LOCAL_WILAYA_ONLY
+    },
+    deliveryPrice: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0
     },
     activationKey: {
       type: DataTypes.STRING,

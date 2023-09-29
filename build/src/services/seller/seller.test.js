@@ -7,8 +7,10 @@ const http_status_1 = (0, tslib_1.__importDefault)(require("http-status"));
 const orms_1 = require("orms");
 const fake_1 = require("helpers/fake");
 const pepperDb_1 = require("orms/pepperDb");
+const types_1 = require("models/types");
 const jsonwebtoken_1 = (0, tslib_1.__importDefault)(require("jsonwebtoken"));
 const moment_1 = (0, tslib_1.__importDefault)(require("moment"));
+const wilayas_1 = require("models/wilayas");
 describe('## seller', () => {
     let sellerObject;
     const organizerPassword = fake_1.fake.password;
@@ -32,6 +34,7 @@ describe('## seller', () => {
                 password: fake_1.fake.password,
                 businessName: fake_1.fake.title,
                 location: fake_1.fake.address,
+                wilaya: wilayas_1.WILAYAS[fake_1.fake.integer(0, 48)],
                 description: fake_1.fake.description,
                 code: "123456"
             };
@@ -63,6 +66,7 @@ describe('## seller', () => {
                 password: fake_1.fake.password,
                 businessName: fake_1.fake.title,
                 location: fake_1.fake.address,
+                wilaya: wilayas_1.WILAYAS[fake_1.fake.integer(0, 48)],
                 description: fake_1.fake.description,
                 code: "123456"
             };
@@ -127,9 +131,11 @@ describe('## seller', () => {
                 product: fake_1.fake.name,
                 date: (0, moment_1.default)(),
                 price: fake_1.fake.integer(0, 100),
-                instances: fake_1.fake.integer(20, 40),
                 description: fake_1.fake.description,
-                delivery: fake_1.fake.address2,
+                storeWilaya: wilayas_1.WILAYAS[fake_1.fake.integer(0, 48)],
+                storeLocation: fake_1.fake.address2,
+                deliveryType: types_1.DeliveryType.LOCAL_WILAYA_ONLY,
+                localDeliveryPrice: 400,
             };
             const { token } = (yield (0, supertest_1.default)(index_1.default).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword })).body;
             const invitation = (yield (0, supertest_1.default)(index_1.default).post(`/api/seller/invitation`).
@@ -145,9 +151,11 @@ describe('## seller', () => {
                 product: fake_1.fake.name,
                 date: (0, moment_1.default)(),
                 price: fake_1.fake.integer(0, 100),
-                instances: fake_1.fake.integer(20, 40),
                 description: fake_1.fake.description,
-                delivery: fake_1.fake.address2,
+                storeWilaya: wilayas_1.WILAYAS[fake_1.fake.integer(0, 48)],
+                storeLocation: fake_1.fake.address2,
+                deliveryType: types_1.DeliveryType.LOCAL_WILAYA_ONLY,
+                localDeliveryPrice: 400,
             };
             const { token } = (yield (0, supertest_1.default)(index_1.default).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword })).body;
             const request_val = (yield (0, supertest_1.default)(index_1.default).post(`/api/seller/invitation`).

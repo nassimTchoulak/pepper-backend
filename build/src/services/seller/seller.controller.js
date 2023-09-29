@@ -14,6 +14,7 @@ const mailer_1 = require("services/mailer/mailer");
 const auth_1 = (0, tslib_1.__importDefault)(require("helpers/auth"));
 const transaction_orm_1 = require("orms/transaction.orm");
 const attributes_visibility_1 = require("models/attributes.visibility");
+const wilayas_1 = require("models/wilayas");
 ;
 class SellerController {
     static subscribe(req, res) {
@@ -37,6 +38,7 @@ class SellerController {
                 password: req.body.password,
                 phoneNumber: req.body.phoneNumber,
                 businessName: req.body.businessName,
+                wilaya: req.body.wilaya,
                 location: req.body.location,
                 description: req.body.description,
                 email: req.body.email
@@ -145,9 +147,11 @@ class SellerController {
                 product: req.body.product,
                 date: req.body.date,
                 price: req.body.price,
-                instances: req.body.instances,
-                delivery: req.body.delivery,
                 description: req.body.description,
+                storeWilaya: req.body.storeWilaya,
+                storeLocation: req.body.storeLocation,
+                deliveryType: req.body.deliveryType,
+                localDeliveryPrice: req.body.localDeliveryPrice,
             });
             yield seller.addInvitation(invitation);
             return res.json({ invitation: attributes_visibility_1.SellerVisibility.AdaptSimpleInvitationToSeller(invitation) });
@@ -262,6 +266,7 @@ class SellerController {
         email: joi_1.default.string().required(),
         businessName: joi_1.default.string().required(),
         location: joi_1.default.string().required(),
+        wilaya: joi_1.default.string().valid(...wilayas_1.WILAYAS).required(),
         description: joi_1.default.string().required(),
         code: joi_1.default.string().required()
     }))
@@ -282,6 +287,7 @@ class SellerController {
         password: joi_1.default.string().optional(),
         businessName: joi_1.default.string().optional(),
         location: joi_1.default.string().optional(),
+        wilaya: joi_1.default.string().valid(...wilayas_1.WILAYAS).optional(),
         description: joi_1.default.string().optional(),
     }))
 ], SellerController, "updateSeller", null);
@@ -295,9 +301,11 @@ class SellerController {
         product: joi_1.default.string().required(),
         date: joi_1.default.date().required(),
         price: joi_1.default.number().required(),
-        instances: joi_1.default.number().required(),
         description: joi_1.default.string().required(),
-        delivery: joi_1.default.string().required(),
+        storeWilaya: joi_1.default.string().valid(...wilayas_1.WILAYAS).required(),
+        storeLocation: joi_1.default.string().required(),
+        deliveryType: joi_1.default.string().valid(...Object.values(types_1.DeliveryType)).required(),
+        localDeliveryPrice: joi_1.default.number().required(),
     }))
 ], SellerController, "createNewInvitation", null);
 (0, tslib_1.__decorate)([

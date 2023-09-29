@@ -13,6 +13,7 @@ class Seller extends Model {
   public name!: string;
   public firstName!: string;
   public businessName!: string;
+  public wilaya!: string;
   public location!: string;
   public description!: string;
   public status!: UserStatus;
@@ -61,6 +62,10 @@ const initSeller = (sequelize: Sequelize) => {
       unique: false,
     },
     password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    wilaya : {
       type: DataTypes.STRING,
       allowNull: false,
     },

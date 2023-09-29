@@ -13,7 +13,7 @@ class AdminRoutes {
 
   private _assignRoute() {
     this._router.route('/').get(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));
-    // this._router.route('/').put(checkParametersAndCallRoute(AdminController.generateAdminToken));
+    this._router.route('/').put(checkParametersAndCallRoute(AdminController.generateAdminToken));
     
     // include fulfilled transactions
     // view the claims that requires a decision FuLfilledHold + payed only
@@ -27,13 +27,7 @@ class AdminRoutes {
 
     // decisions to be made
     this._router.route('/decide').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.decideOnTransaction));
-    /*
-    this._router.route('/decide/ghosting').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));
-    this._router.route('/decide/change_mind_late').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));
-    this._router.route('/decide/seller_canceled').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));
-    this._router.route('/decide/reimburse').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));
-    this._router.route('/decide/reimburse_complex').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));
-    this._router.route('/decide/fulfilled').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.dummyMethod));*/
+
     // accountant closing the transaction
     this._router.route('/close').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.closeTransaction));
 

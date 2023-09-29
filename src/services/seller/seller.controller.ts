@@ -4,7 +4,7 @@ import { validation } from 'helpers/helpers';
 import { Seller, Invitation, Buyer } from 'orms';
 import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
-import { ISeller, IInvitation, UserStatus, IInvitationTransaction, ISellerBase, ITransactionSellerSide } from 'models/types';
+import { ISeller, IInvitation, UserStatus, IInvitationTransaction, ISellerBase, ITransactionSellerSide, DeliveryType } from 'models/types';
 import 'dotenv/config';
 import _, { includes } from 'lodash';
 import { SellerService } from 'services/seller/seller.service';
@@ -13,6 +13,7 @@ import { sendEmailVerificationCodeSeller } from 'services/mailer/mailer';
 import AuthHelper from 'helpers/auth';
 import { Transaction } from 'orms/transaction.orm';
 import { SellerVisibility } from 'models/attributes.visibility';
+import { WILAYAS } from 'models/wilayas';
 
 // useful when parsing the entire ISeller to be modified
 interface SellerRequest extends Request {
@@ -29,6 +30,7 @@ export class SellerController {
     email: Joi.string().required(),
     businessName: Joi.string().required(),
     location: Joi.string().required(),
+    wilaya: Joi.string().valid(...WILAYAS).required(),
     description: Joi.string().required(),
     code: Joi.string().required()
   }))
@@ -60,6 +62,7 @@ export class SellerController {
       password: req.body.password,
       phoneNumber: req.body.phoneNumber,
       businessName: req.body.businessName,
+      wilaya: req.body.wilaya,
       location: req.body.location,
       description: req.body.description,
       email: req.body.email
@@ -134,6 +137,7 @@ export class SellerController {
     password:  Joi.string().optional(),
     businessName: Joi.string().optional(),
     location: Joi.string().optional(),
+    wilaya: Joi.string().valid(...WILAYAS).optional(),
     description: Joi.string().optional(),
   }))
   public static async updateSeller(req: SellerRequest, res: Response): Promise<Response<{ seller: ISellerBase }>> {
@@ -183,9 +187,11 @@ export class SellerController {
     product: Joi.string().required(),
     date: Joi.date().required(),
     price: Joi.number().required(),
-    instances: Joi.number().required(),
     description: Joi.string().required(),
-    delivery: Joi.string().required(),
+    storeWilaya : Joi.string().valid(...WILAYAS).required(),
+    storeLocation: Joi.string().required(),
+    deliveryType: Joi.string().valid(...Object.values(DeliveryType)).required(),
+    localDeliveryPrice: Joi.number().required(),
   }))
   public static async createNewInvitation(req: SellerRequest, res: Response): Promise<Response<{ invitation: IInvitation }>> {
     if (!process.env.JWT_SELLER_KEY) {
@@ -203,9 +209,11 @@ export class SellerController {
       product: req.body.product,
       date: req.body.date,
       price: req.body.price,
-      instances: req.body.instances,
-      delivery: req.body.delivery,
       description: req.body.description,
+      storeWilaya : req.body.storeWilaya,
+      storeLocation: req.body.storeLocation,
+      deliveryType: req.body.deliveryType,
+      localDeliveryPrice: req.body.localDeliveryPrice,
     });
 
     await seller.addInvitation(invitation);

@@ -5,9 +5,10 @@ import httpStatus from 'http-status';
 import { Seller } from 'orms';
 import { createFakeSeller, createFakeInvitation, fake } from 'helpers/fake';
 import { syncDbModels } from 'orms/pepperDb';
-import { ISeller, IInvitation } from 'models/types';
+import { ISeller, IInvitation, DeliveryType } from 'models/types';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
+import { WILAYAS } from 'models/wilayas';
 
 describe('## seller', () => {
 
@@ -41,6 +42,7 @@ describe('## seller', () => {
         password: fake.password,
         businessName: fake.title,
         location: fake.address,
+        wilaya: WILAYAS[fake.integer(0, 48)],
         description: fake.description,
         code: "123456"
       };
@@ -81,6 +83,7 @@ describe('## seller', () => {
         password: fake.password,
         businessName: fake.title,
         location: fake.address,
+        wilaya: WILAYAS[fake.integer(0, 48)],
         description: fake.description,
         code: "123456"
       };
@@ -175,9 +178,11 @@ describe('## seller', () => {
         product: fake.name,
         date: moment(),
         price: fake.integer(0, 100),
-        instances: fake.integer(20, 40),
         description: fake.description,
-        delivery: fake.address2,
+        storeWilaya : WILAYAS[fake.integer(0, 48)],
+        storeLocation: fake.address2,
+        deliveryType: DeliveryType.LOCAL_WILAYA_ONLY,
+        localDeliveryPrice: 400,
       }
 
       const { token } = (await request(app).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword})).body;
@@ -200,9 +205,11 @@ describe('## seller', () => {
         product: fake.name,
         date: moment(),
         price: fake.integer(0, 100),
-        instances: fake.integer(20, 40),
         description: fake.description,
-        delivery: fake.address2,
+        storeWilaya : WILAYAS[fake.integer(0, 48)],
+        storeLocation: fake.address2,
+        deliveryType: DeliveryType.LOCAL_WILAYA_ONLY,
+        localDeliveryPrice: 400,
       }
 
       const { token } = (await request(app).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword})).body;

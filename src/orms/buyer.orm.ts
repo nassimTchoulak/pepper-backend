@@ -13,6 +13,7 @@ class Buyer extends Model {
   public birthDay!: Date;
   public phoneNumber!: string;
   public email!: string;
+  public wilaya!: string;
   public address!: string;
   public password!: string;
   public status!: UserStatus;
@@ -66,6 +67,10 @@ const initBuyer = (sequelize: Sequelize) => {
     password: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    wilaya: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     address: {
       type: DataTypes.TEXT,

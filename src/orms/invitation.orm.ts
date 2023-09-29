@@ -3,6 +3,7 @@ import { Seller } from 'orms/seller.orm';
 import { Transaction } from './transaction.orm';
 import { Buyer } from './buyer.orm';
 import { randomHash } from 'helpers/helpers';
+import { DeliveryType } from 'models/types';
 
 class Invitation extends Model {
 
@@ -12,9 +13,10 @@ class Invitation extends Model {
   public description!: string;
   public date!: Date;
   public price!: number;
-  public instances!: number;
-  public autoAccept !: boolean;
-  public delivery!: string;
+  public storeWilaya !: string;
+  public storeLocation!: string;
+  public deliveryType!: DeliveryType;
+  public localDeliveryPrice!: number;
   public active!: boolean;
 
   public createdAt!: Date;
@@ -42,7 +44,7 @@ const initInvitation = (sequelize: Sequelize) => {
       allowNull: false,
     },
     description: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: false,
     },
     date: {
@@ -53,18 +55,23 @@ const initInvitation = (sequelize: Sequelize) => {
       type: DataTypes.FLOAT,
       allowNull: false,
     },
-    instances: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    delivery: {
+    storeLocation: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    autoAccept: { /// buyer may proceed directly to payment
-      type: DataTypes.BOOLEAN,
+    storeWilaya: {
+      type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: false
+    },
+    deliveryType: {
+      type: DataTypes.ENUM(DeliveryType.BETWEEN_WILAYAS, DeliveryType.LOCAL_WILAYA_ONLY, DeliveryType.NOT_NEEDED, DeliveryType.PICK_FROM_SHOP),
+      allowNull: false,
+      defaultValue: DeliveryType.LOCAL_WILAYA_ONLY
+    },
+    localDeliveryPrice: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0
     },
     uuid: {
       type: DataTypes.STRING,

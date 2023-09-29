@@ -6,6 +6,7 @@ const seller_orm_1 = require("orms/seller.orm");
 const transaction_orm_1 = require("./transaction.orm");
 const buyer_orm_1 = require("./buyer.orm");
 const helpers_1 = require("helpers/helpers");
+const types_1 = require("models/types");
 class Invitation extends sequelize_1.Model {
 }
 exports.Invitation = Invitation;
@@ -21,7 +22,7 @@ const initInvitation = (sequelize) => {
             allowNull: false,
         },
         description: {
-            type: sequelize_1.DataTypes.STRING,
+            type: sequelize_1.DataTypes.TEXT,
             allowNull: false,
         },
         date: {
@@ -32,18 +33,23 @@ const initInvitation = (sequelize) => {
             type: sequelize_1.DataTypes.FLOAT,
             allowNull: false,
         },
-        instances: {
-            type: sequelize_1.DataTypes.INTEGER,
-            allowNull: false,
-        },
-        delivery: {
+        storeLocation: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
         },
-        autoAccept: {
-            type: sequelize_1.DataTypes.BOOLEAN,
+        storeWilaya: {
+            type: sequelize_1.DataTypes.STRING,
             allowNull: false,
-            defaultValue: false
+        },
+        deliveryType: {
+            type: sequelize_1.DataTypes.ENUM(types_1.DeliveryType.BETWEEN_WILAYAS, types_1.DeliveryType.LOCAL_WILAYA_ONLY, types_1.DeliveryType.NOT_NEEDED, types_1.DeliveryType.PICK_FROM_SHOP),
+            allowNull: false,
+            defaultValue: types_1.DeliveryType.LOCAL_WILAYA_ONLY
+        },
+        localDeliveryPrice: {
+            type: sequelize_1.DataTypes.INTEGER,
+            allowNull: true,
+            defaultValue: 0
         },
         uuid: {
             type: sequelize_1.DataTypes.STRING,

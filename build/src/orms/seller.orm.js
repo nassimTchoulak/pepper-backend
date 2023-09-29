@@ -43,6 +43,10 @@ const initSeller = (sequelize) => {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
         },
+        wilaya: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false,
+        },
         location: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,

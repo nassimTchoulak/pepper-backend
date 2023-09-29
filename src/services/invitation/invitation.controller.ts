@@ -5,10 +5,13 @@ import { Buyer, Claim, Invitation, Seller } from 'orms';
 import httpStatus from 'http-status';
 // import { UserService } from 'services/buyer/buyer.service';
 import 'dotenv/config';
-import { IAdminTransaction, IBuyer, IInvitationComplete, ISeller, ITransactionSellerSide, TransactionOutcome, TransactionStatus } from 'models/types';
+import { DeliveryType, IAdminTransaction, IBuyer, IInvitationComplete, ISeller, ITransactionSellerSide, TransactionOutcome, TransactionStatus } from 'models/types';
 import { Transaction } from 'orms/transaction.orm';
 import jwt from 'jsonwebtoken';
 import { AdminVisibility, BuyerVisibility, SellerVisibility } from 'models/attributes.visibility';
+import { WILAYAS } from 'models/wilayas';
+import { Delegate } from 'aws-sdk/clients/workmail';
+import { assert } from 'console';
 
 
 interface UserRequest extends Request {
@@ -31,7 +34,8 @@ export class InvitationController {
 
   @validation(Joi.object({
     InvitationUuid: Joi.string().required(),
-    delivery: Joi.string().required(),
+    deliveryWilaya: Joi.string().valid(...WILAYAS).required(),
+    deliveryPlace: Joi.string().required(),
   }))
   public static async createTransactionFromInvitation(req: UserRequest, res: Response): Promise<Response<{ transaction: IInvitationComplete }>> {
     const invitation = await Invitation.findOne({where: { uuid: req.body.InvitationUuid }})
@@ -50,11 +54,46 @@ export class InvitationController {
       return res.json({ message: 'buyer does not exist' });
     } 
 
+    if ((invitation.deliveryType === DeliveryType.LOCAL_WILAYA_ONLY) 
+      && (req.body.deliveryWilaya !== invitation.storeWilaya)){
+        res.status(httpStatus.UNAUTHORIZED);
+        return res.json({ message: 'transaction is not allowed in different wilaya' });
+    }
 
+    let price = 0;
+    let type: DeliveryType;
+
+    if ((invitation.deliveryType === DeliveryType.NOT_NEEDED) || 
+        (invitation.deliveryType === DeliveryType.PICK_FROM_SHOP)) {
+          price = 0;
+          type = invitation.deliveryType;
+    }
+    else {
+      if (invitation.deliveryType === DeliveryType.LOCAL_WILAYA_ONLY) {
+        assert(req.body.deliveryWilaya === invitation.storeWilaya)
+        // auto-accept
+        price = invitation.localDeliveryPrice;
+        type = DeliveryType.LOCAL_WILAYA_ONLY;
+      }
+      else {
+        ///invitation.deliveryType === DeliveryType.BETWEEN_WILAYAS
+        if(req.body.deliveryWilaya === invitation.storeWilaya) {
+          // auto-accept
+          price = invitation.localDeliveryPrice;
+          type = DeliveryType.LOCAL_WILAYA_ONLY;
+        }
+        else {
+          price = -1
+          type = DeliveryType.BETWEEN_WILAYAS;
+        }
+      }
+    }
     const transactionInfo = {
       InvitationId: invitation.id,
       BuyerId: buyer.id,
-      delivery: req.body.delivery,
+      deliveryPlace: req.body.deliveryPlace + ", " + req.body.deliveryWilaya,
+      deliveryType: type,
+      deliveryPrice: price,
       uuid: transactionUUid()
     }
     //instead of await invitation.addTransaction(buyer, { through : transactionInfo })
@@ -204,7 +243,7 @@ export class InvitationController {
   @validation(Joi.object({
     transactionUuid: Joi.string().required(),
     date: Joi.date().min(new Date()).required(), // TO-DO : add 24h to it
-    delivery : Joi.string().required()
+    deliveryPrice : Joi.string().required()
   }))
   public static async acceptTransaction(req: UserRequest, res: Response): Promise<Response<{ invitations: ITransactionSellerSide }>> {
     if (!process.env.JWT_SELLER_KEY) {
@@ -214,7 +253,7 @@ export class InvitationController {
 
     const transaction_invitation = await Transaction.findOne({ where: {uuid: req.body.transactionUuid}, 
       include:[{ model: Invitation, as:'Invitation'}, { model: Buyer, as: 'Buyer'}], nest: true, raw: false}) as 
-        unknown as { Invitation: { SellerId: number }, state: TransactionStatus};
+        unknown as { Invitation: { SellerId: number }, state: TransactionStatus, deliveryPrice: number, deliveryType: DeliveryType};
     
     if (!transaction_invitation){
       res.status(httpStatus.NOT_FOUND);
@@ -231,8 +270,10 @@ export class InvitationController {
       return res.json({ message: 'The Transaction has been modified and can not be accepted'});
     }
 
+    const price = (transaction_invitation.deliveryType === DeliveryType.BETWEEN_WILAYAS)? req.body.deliveryPrice : transaction_invitation.deliveryPrice;
+
     const transaction = transaction_invitation as unknown as Transaction;
-    await transaction.update({ state: TransactionStatus.ACCEPTED, delivery: req.body.delivery, deliveryDate: req.body.date})
+    await transaction.update({ state: TransactionStatus.ACCEPTED, deliveryPrice: price, deliveryDate: req.body.date})
 
     return res.json({ transaction: SellerVisibility.AdaptSellerFullTransactionToSeller(transaction.get({ plain: true }))});
   }

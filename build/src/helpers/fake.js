@@ -7,6 +7,7 @@ const types_1 = require("models/types");
 const casual_1 = (0, tslib_1.__importDefault)(require("casual"));
 exports.fake = casual_1.default;
 const moment_1 = (0, tslib_1.__importDefault)(require("moment"));
+const wilayas_1 = require("models/wilayas");
 casual_1.default.define('gender', () => casual_1.default.boolean ? types_1.Gender.MAN : types_1.Gender.WOMAN);
 casual_1.default.define('phoneNumber', () => casual_1.default.numerify('06########'));
 casual_1.default.define('product', () => ({ name: casual_1.default.word, price: casual_1.default.integer(3, 20) }));
@@ -15,7 +16,7 @@ casual_1.default.define('match_status', () => [
     types_1.UserStatus.Accepted,
 ][casual_1.default.integer(0, 1)]);
 const createFakeBuyer = (overrideProps) => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
-    const buyer = yield orms_1.Buyer.create(Object.assign({ name: casual_1.default.first_name, firstName: casual_1.default.name, gender: casual_1.default.gender, phoneNumber: casual_1.default.phoneNumber, email: casual_1.default.email, password: casual_1.default.password, address: casual_1.default.address }, (overrideProps ? overrideProps : {})));
+    const buyer = yield orms_1.Buyer.create(Object.assign({ name: casual_1.default.first_name, firstName: casual_1.default.name, gender: casual_1.default.gender, phoneNumber: casual_1.default.phoneNumber, email: casual_1.default.email, password: casual_1.default.password, address: casual_1.default.address, wilaya: wilayas_1.WILAYAS[casual_1.default.integer(0, 48)] }, (overrideProps ? overrideProps : {})));
     return buyer.get({ plain: true });
 });
 exports.createFakeBuyer = createFakeBuyer;
@@ -28,6 +29,7 @@ const createFakeSeller = (password = casual_1.default.password) => (0, tslib_1._
         name: casual_1.default.name,
         password: password,
         location: casual_1.default.address,
+        wilaya: wilayas_1.WILAYAS[casual_1.default.integer(0, 48)],
         description: casual_1.default.description
     });
     return seller.get({ plain: true });
@@ -42,6 +44,7 @@ const createFakeInvitationWithSeller = () => (0, tslib_1.__awaiter)(void 0, void
         name: casual_1.default.name,
         password: casual_1.default.password,
         location: casual_1.default.address,
+        wilaya: wilayas_1.WILAYAS[casual_1.default.integer(0, 48)],
         description: casual_1.default.description
     });
     const invitation = yield orms_1.Invitation.create({
@@ -50,7 +53,10 @@ const createFakeInvitationWithSeller = () => (0, tslib_1.__awaiter)(void 0, void
         price: casual_1.default.integer(0, 100),
         instances: casual_1.default.integer(20, 40),
         description: casual_1.default.description,
-        delivery: casual_1.default.address2,
+        storeWilaya: wilayas_1.WILAYAS[casual_1.default.integer(0, 48)],
+        storeLocation: casual_1.default.address2,
+        deliveryType: types_1.DeliveryType.LOCAL_WILAYA_ONLY,
+        localDeliveryPrice: 400,
     });
     yield seller.addInvitation(invitation);
     const createdInvitation = yield orms_1.Invitation.findOne({ where: { id: invitation.id }, raw: false });
@@ -68,7 +74,10 @@ const createFakeInvitation = (organizerInfo) => (0, tslib_1.__awaiter)(void 0, v
         price: casual_1.default.integer(0, 100),
         instances: casual_1.default.integer(20, 40),
         description: casual_1.default.description,
-        delivery: casual_1.default.address2,
+        storeWilaya: wilayas_1.WILAYAS[casual_1.default.integer(0, 48)],
+        storeLocation: casual_1.default.address2,
+        deliveryType: types_1.DeliveryType.LOCAL_WILAYA_ONLY,
+        localDeliveryPrice: 400,
     });
     yield (seller === null || seller === void 0 ? void 0 : seller.addInvitation(invitation));
     const createdInvitation = yield orms_1.Invitation.findOne({ where: { id: invitation.id }, raw: false });

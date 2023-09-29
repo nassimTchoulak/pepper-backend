@@ -11,6 +11,7 @@ const jsonwebtoken_1 = (0, tslib_1.__importDefault)(require("jsonwebtoken"));
 const types_1 = require("models/types");
 require("dotenv/config");
 const moment_1 = (0, tslib_1.__importDefault)(require("moment"));
+const wilayas_1 = require("models/wilayas");
 describe('## User', () => {
     let user1;
     let user2;
@@ -61,6 +62,7 @@ describe('## User', () => {
                 email: fake_1.fake.email,
                 password: fake_1.fake.password,
                 address: fake_1.fake.address,
+                wilaya: wilayas_1.WILAYAS[fake_1.fake.integer(0, 25)],
                 birthDay: (0, moment_1.default)()
             };
             const { token } = (yield (0, supertest_1.default)(index_1.default).put('/api/buyer/login').send(Object.assign(Object.assign({}, buyerInfo), { code: '123456' })).expect(http_status_1.default.OK)).body;
