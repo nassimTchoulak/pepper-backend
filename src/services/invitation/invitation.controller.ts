@@ -52,7 +52,12 @@ export class InvitationController {
     if (!buyer) {
       res.status(httpStatus.NOT_FOUND);
       return res.json({ message: 'buyer does not exist' });
-    } 
+    }
+
+    if (!invitation.active) {
+        res.status(httpStatus.UNAUTHORIZED);
+        return res.json({ message: 'Invitation is closed' });
+    }
 
     if ((invitation.deliveryType === DeliveryType.LOCAL_WILAYA_ONLY) 
       && (req.body.deliveryWilaya !== invitation.storeWilaya)){

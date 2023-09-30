@@ -52,7 +52,7 @@ export class AdminController {
       include:[
         { model: Claim , required: true },
         //  { model: Claim, paranoid: true, required: false},
-        { model: History, as: 'Histories'},
+        { model: History, as: 'Histories', required: false},
         { model: Buyer, as:'Buyer'} ,
         { model: Invitation, as: 'Invitation', include: [{ model: Seller, as : 'Seller'}] }
         ],
@@ -76,9 +76,9 @@ export class AdminController {
     
     const transactions = await Transaction.findAll({
       include:[
-         { model: Claim , required: true },
+         { model: Claim , required: false },
         //  { model: Claim, paranoid: true, required: false},
-        { model: History, as: 'Histories'},
+        { model: History, as: 'Histories', required: false},
         { model: Buyer, as:'Buyer'} ,
         { model: Invitation, as: 'Invitation', include: [{ model: Seller, as : 'Seller'}] }
         ],
@@ -104,9 +104,9 @@ export class AdminController {
 
     const transactions = await Transaction.findAll({
       include:[
-         { model: Claim , required: true },
+         { model: Claim , required: false },
         //  { model: Claim, paranoid: true, required: false},
-        { model: History, as: 'Histories'},
+        { model: History, as: 'Histories', required: false},
         { model: Buyer, as:'Buyer'} ,
         { model: Invitation, as: 'Invitation', include: [{ model: Seller, as : 'Seller'}] }
         ],
@@ -211,12 +211,13 @@ export class AdminController {
     }
     const invitations = await Invitation.findAll({
       include: [
-          { model: Transaction, as: 'InvitationTransactions'},
-          { model: Transaction, as: 'InvitationTransactions', paranoid: true, required: false}
+          // { model: Transaction, as: 'InvitationTransactions'},
+          { model: Transaction, as: 'InvitationTransactions', required: false}
       ],
       where: {
         SellerId: seller.id
-      }
+      }, raw: true,
+      order: [['createdAt', 'DESC']]
     });
     return res.json({ invitations: SellerVisibility.AdaptListOfInvitationTransactionToSeller(invitations) });
   }
@@ -232,7 +233,7 @@ export class AdminController {
     }
 
     const transactions = await Transaction.findAll({ where: {BuyerId: buyer.id}, 
-      include: [{model: Invitation, as:'Invitation'} ], raw: true, nest: true})
+      include: [{model: Invitation, as:'Invitation'} ], raw: true, nest: true, order: [['createdAt', 'DESC']]})
     return res.json({transactions: BuyerVisibility.adaptListOfTransactionNoSellerToBuyer(transactions)})
   }
 
@@ -252,15 +253,17 @@ export class AdminController {
     
     const transaction = await Transaction.findOne({
       include:[
-        { model: Claim , required: true },
+        // { model: Claim, as:'Claims' },
+        { model: Claim, as:'Claims', required: false },
         //  { model: Claim, paranoid: true, required: false},
-        { model: History, as: 'Histories'},
+        // { model: History, as: 'Histories' },
+        { model: History, as: 'Histories', required: false},
         { model: Buyer, as:'Buyer'} ,
         { model: Invitation, as: 'Invitation', include: [{ model: Seller, as : 'Seller'}] }
         ],
         where: { uuid: req.body.transactionUuid},
         order: [['createdAt', 'DESC']],
-        raw: true, nest: true
+        raw: false, nest: true
         })
     
       if (!transaction) {
@@ -268,7 +271,7 @@ export class AdminController {
         return res.json({ message: 'transaction not found' });
       }
 
-    return res.json({ transactions: AdminVisibility.adaptTransactionWithSellerToPublic(transaction) });
+    return res.json({ transactions: AdminVisibility.adaptTransactionWithSellerToPublic(transaction.get({plain : true})) });
   }
 
 

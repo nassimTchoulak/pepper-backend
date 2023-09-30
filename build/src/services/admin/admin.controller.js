@@ -39,7 +39,7 @@ class AdminController {
             const transactions = yield orms_1.Transaction.findAll({
                 include: [
                     { model: orms_1.Claim, required: true },
-                    { model: orms_1.History, as: 'Histories' },
+                    { model: orms_1.History, as: 'Histories', required: false },
                     { model: orms_1.Buyer, as: 'Buyer' },
                     { model: orms_1.Invitation, as: 'Invitation', include: [{ model: orms_1.Seller, as: 'Seller' }] }
                 ],
@@ -58,8 +58,8 @@ class AdminController {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
             const transactions = yield orms_1.Transaction.findAll({
                 include: [
-                    { model: orms_1.Claim, required: true },
-                    { model: orms_1.History, as: 'Histories' },
+                    { model: orms_1.Claim, required: false },
+                    { model: orms_1.History, as: 'Histories', required: false },
                     { model: orms_1.Buyer, as: 'Buyer' },
                     { model: orms_1.Invitation, as: 'Invitation', include: [{ model: orms_1.Seller, as: 'Seller' }] }
                 ],
@@ -78,8 +78,8 @@ class AdminController {
             new_date.setMinutes(new_date.getMinutes() - 2);
             const transactions = yield orms_1.Transaction.findAll({
                 include: [
-                    { model: orms_1.Claim, required: true },
-                    { model: orms_1.History, as: 'Histories' },
+                    { model: orms_1.Claim, required: false },
+                    { model: orms_1.History, as: 'Histories', required: false },
                     { model: orms_1.Buyer, as: 'Buyer' },
                     { model: orms_1.Invitation, as: 'Invitation', include: [{ model: orms_1.Seller, as: 'Seller' }] }
                 ],
@@ -159,12 +159,12 @@ class AdminController {
             }
             const invitations = yield orms_1.Invitation.findAll({
                 include: [
-                    { model: orms_1.Transaction, as: 'InvitationTransactions' },
-                    { model: orms_1.Transaction, as: 'InvitationTransactions', paranoid: true, required: false }
+                    { model: orms_1.Transaction, as: 'InvitationTransactions', required: false }
                 ],
                 where: {
                     SellerId: seller.id
-                }
+                }, raw: true,
+                order: [['createdAt', 'DESC']]
             });
             return res.json({ invitations: attributes_visibility_1.SellerVisibility.AdaptListOfInvitationTransactionToSeller(invitations) });
         });
@@ -177,7 +177,7 @@ class AdminController {
                 return res.json({ message: 'Seller not found' });
             }
             const transactions = yield orms_1.Transaction.findAll({ where: { BuyerId: buyer.id },
-                include: [{ model: orms_1.Invitation, as: 'Invitation' }], raw: true, nest: true });
+                include: [{ model: orms_1.Invitation, as: 'Invitation' }], raw: true, nest: true, order: [['createdAt', 'DESC']] });
             return res.json({ transactions: attributes_visibility_1.BuyerVisibility.adaptListOfTransactionNoSellerToBuyer(transactions) });
         });
     }
@@ -191,20 +191,20 @@ class AdminController {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
             const transaction = yield orms_1.Transaction.findOne({
                 include: [
-                    { model: orms_1.Claim, required: true },
-                    { model: orms_1.History, as: 'Histories' },
+                    { model: orms_1.Claim, as: 'Claims', required: false },
+                    { model: orms_1.History, as: 'Histories', required: false },
                     { model: orms_1.Buyer, as: 'Buyer' },
                     { model: orms_1.Invitation, as: 'Invitation', include: [{ model: orms_1.Seller, as: 'Seller' }] }
                 ],
                 where: { uuid: req.body.transactionUuid },
                 order: [['createdAt', 'DESC']],
-                raw: true, nest: true
+                raw: false, nest: true
             });
             if (!transaction) {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'transaction not found' });
             }
-            return res.json({ transactions: attributes_visibility_1.AdminVisibility.adaptTransactionWithSellerToPublic(transaction) });
+            return res.json({ transactions: attributes_visibility_1.AdminVisibility.adaptTransactionWithSellerToPublic(transaction.get({ plain: true })) });
         });
     }
 }

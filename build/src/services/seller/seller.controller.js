@@ -170,12 +170,11 @@ class SellerController {
             }
             const invitations = yield orms_1.Invitation.findAll({
                 include: [
-                    { model: transaction_orm_1.Transaction, as: 'InvitationTransactions' },
-                    { model: transaction_orm_1.Transaction, as: 'InvitationTransactions', paranoid: true, required: false }
+                    { model: transaction_orm_1.Transaction, as: 'InvitationTransactions', required: false }
                 ],
                 where: {
                     SellerId: TokenSeller.id
-                }
+                }, raw: false, order: [['createdAt', 'DESC']]
             });
             return res.json({ invitations: attributes_visibility_1.SellerVisibility.AdaptListOfInvitationTransactionToSeller(invitations) });
         });
@@ -193,8 +192,7 @@ class SellerController {
             }
             const invitation = yield orms_1.Invitation.findOne({
                 include: [
-                    { model: transaction_orm_1.Transaction, as: 'InvitationTransactions' },
-                    { model: transaction_orm_1.Transaction, as: 'InvitationTransactions', paranoid: true, required: false }
+                    { model: transaction_orm_1.Transaction, as: 'InvitationTransactions', required: false },
                 ],
                 where: {
                     uuid: req.body.uuid,

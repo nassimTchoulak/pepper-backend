@@ -239,12 +239,12 @@ export class SellerController {
       */
       const invitations = await Invitation.findAll({
         include: [
-            { model: Transaction, as: 'InvitationTransactions'},
-            { model: Transaction, as: 'InvitationTransactions', paranoid: true, required: false}
+            // { model: Transaction, as: 'InvitationTransactions'},
+            { model: Transaction, as: 'InvitationTransactions', required: false}
         ],
         where: {
           SellerId: TokenSeller.id
-        }
+        }, raw: false, order: [['createdAt', 'DESC']]
     });
 
     return res.json({ invitations: SellerVisibility.AdaptListOfInvitationTransactionToSeller(invitations) });
@@ -267,8 +267,8 @@ export class SellerController {
 
     const invitation = await Invitation.findOne({
         include: [
-            { model: Transaction, as: 'InvitationTransactions'},
-            { model: Transaction, as: 'InvitationTransactions', paranoid: true, required: false}
+            { model: Transaction, as: 'InvitationTransactions', required: false},
+            // { model: Transaction, as: 'InvitationTransactions', paranoid: true, required: false}
         ],
         where: {
           uuid: req.body.uuid,

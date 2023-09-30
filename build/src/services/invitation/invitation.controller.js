@@ -31,6 +31,10 @@ class InvitationController {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'buyer does not exist' });
             }
+            if (!invitation.active) {
+                res.status(http_status_1.default.UNAUTHORIZED);
+                return res.json({ message: 'Invitation is closed' });
+            }
             if ((invitation.deliveryType === types_1.DeliveryType.LOCAL_WILAYA_ONLY)
                 && (req.body.deliveryWilaya !== invitation.storeWilaya)) {
                 res.status(http_status_1.default.UNAUTHORIZED);
