@@ -28,6 +28,21 @@ const createFakeBuyer = async (overrideProps?: Partial<IBuyer>): Promise<Buyer> 
   return buyer.get({ plain: true });
 }
 
+const createFakeBuyerPassword = async (password: string): Promise<Buyer> => {
+  const buyer = await Buyer.create({
+    name: casual.first_name,
+    firstName: casual.name,
+    gender: (casual as unknown as any).gender,
+    phoneNumber: (casual as unknown as any).phoneNumber,
+    email: casual.email,
+    password: password,
+    address: casual.address,
+    wilaya: WILAYAS[casual.integer(0, 48)],
+  });
+
+  return buyer.get({ plain: true });
+}
+
 const createFakeSeller = async (password = casual.password as any): Promise<Seller> => {
   const seller = await Seller.create({
     phoneNumber: (casual as unknown as any).phoneNumber,
@@ -102,4 +117,4 @@ const createFakeInvitation = async (organizerInfo: Seller | ISeller): Promise<In
 
 // TO-DO: add fake transactions
 
-export { createFakeInvitationWithSeller , createFakeBuyer , createFakeSeller , createFakeInvitation , casual as fake };
+export { createFakeInvitationWithSeller , createFakeBuyer , createFakeSeller , createFakeBuyerPassword, createFakeInvitation , casual as fake };

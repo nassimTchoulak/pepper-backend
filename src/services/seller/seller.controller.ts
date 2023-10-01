@@ -186,12 +186,14 @@ export class SellerController {
   @validation(Joi.object({
     product: Joi.string().required(),
     date: Joi.date().required(),
-    price: Joi.number().required(),
+    price: Joi.number().required().min(200),
     description: Joi.string().required(),
     storeWilaya : Joi.string().valid(...WILAYAS).required(),
     storeLocation: Joi.string().required(),
     deliveryType: Joi.string().valid(...Object.values(DeliveryType)).required(),
     localDeliveryPrice: Joi.number().required(),
+    autoAccept: Joi.boolean().required(),
+    deliveryDelayHours: Joi.number().min(0).required()
   }))
   public static async createNewInvitation(req: SellerRequest, res: Response): Promise<Response<{ invitation: IInvitation }>> {
     if (!process.env.JWT_SELLER_KEY) {
@@ -214,6 +216,8 @@ export class SellerController {
       storeLocation: req.body.storeLocation,
       deliveryType: req.body.deliveryType,
       localDeliveryPrice: req.body.localDeliveryPrice,
+      autoAccept: req.body.autoAccept,
+      deliveryDelayHours: req.body.deliveryDelayHours
     });
 
     await seller.addInvitation(invitation);

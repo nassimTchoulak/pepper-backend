@@ -88,7 +88,7 @@ export class InvitationController {
           type = DeliveryType.LOCAL_WILAYA_ONLY;
         }
         else {
-          price = -1
+          price = 0
           type = DeliveryType.BETWEEN_WILAYAS;
         }
       }
@@ -99,7 +99,8 @@ export class InvitationController {
       deliveryPlace: req.body.deliveryPlace + ", " + req.body.deliveryWilaya,
       deliveryType: type,
       deliveryPrice: price,
-      uuid: transactionUUid()
+      uuid: transactionUUid(),
+      state: (invitation.autoAccept && (type !== DeliveryType.BETWEEN_WILAYAS))? TransactionStatus.ACCEPTED : TransactionStatus.OPENED
     }
     //instead of await invitation.addTransaction(buyer, { through : transactionInfo })
     await Transaction.create(transactionInfo)

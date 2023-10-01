@@ -123,19 +123,21 @@ describe('## seller', () => {
                 set('Authorization', testToken).
                 expect(http_status_1.default.OK)).body.invitations;
             expect(parties.length).toEqual(2);
-            expect(parties[1].uuid).toEqual(p2.uuid);
-            expect(parties[0].uuid).toEqual(p1.uuid);
+            expect(parties[0].uuid).toEqual(p2.uuid);
+            expect(parties[1].uuid).toEqual(p1.uuid);
         }));
         test('Should be able to create new invitation for organizer', () => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
             const partyTest = {
                 product: fake_1.fake.name,
                 date: (0, moment_1.default)(),
-                price: fake_1.fake.integer(0, 100),
+                price: fake_1.fake.integer(200, 1000),
                 description: fake_1.fake.description,
                 storeWilaya: wilayas_1.WILAYAS[fake_1.fake.integer(0, 48)],
                 storeLocation: fake_1.fake.address2,
                 deliveryType: types_1.DeliveryType.LOCAL_WILAYA_ONLY,
                 localDeliveryPrice: 400,
+                autoAccept: true,
+                deliveryDelayHours: 24,
             };
             const { token } = (yield (0, supertest_1.default)(index_1.default).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword })).body;
             const invitation = (yield (0, supertest_1.default)(index_1.default).post(`/api/seller/invitation`).
@@ -150,12 +152,14 @@ describe('## seller', () => {
             const partyTest = {
                 product: fake_1.fake.name,
                 date: (0, moment_1.default)(),
-                price: fake_1.fake.integer(0, 100),
+                price: fake_1.fake.integer(200, 1000),
                 description: fake_1.fake.description,
                 storeWilaya: wilayas_1.WILAYAS[fake_1.fake.integer(0, 48)],
                 storeLocation: fake_1.fake.address2,
                 deliveryType: types_1.DeliveryType.LOCAL_WILAYA_ONLY,
                 localDeliveryPrice: 400,
+                autoAccept: true,
+                deliveryDelayHours: 24,
             };
             const { token } = (yield (0, supertest_1.default)(index_1.default).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword })).body;
             const request_val = (yield (0, supertest_1.default)(index_1.default).post(`/api/seller/invitation`).

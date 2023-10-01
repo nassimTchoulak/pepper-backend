@@ -17,6 +17,8 @@ class Invitation extends Model {
   public storeLocation!: string;
   public deliveryType!: DeliveryType;
   public localDeliveryPrice!: number;
+  public deliveryDelayHours!: number;
+  public autoAccept!: boolean;
   public active!: boolean;
 
   public createdAt!: Date;
@@ -46,6 +48,16 @@ const initInvitation = (sequelize: Sequelize) => {
     description: {
       type: DataTypes.TEXT,
       allowNull: false,
+    },
+    deliveryDelayHours: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 24
+    },
+    autoAccept: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
     },
     date: {
       type: DataTypes.DATE,

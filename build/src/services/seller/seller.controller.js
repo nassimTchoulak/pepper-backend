@@ -152,6 +152,8 @@ class SellerController {
                 storeLocation: req.body.storeLocation,
                 deliveryType: req.body.deliveryType,
                 localDeliveryPrice: req.body.localDeliveryPrice,
+                autoAccept: req.body.autoAccept,
+                deliveryDelayHours: req.body.deliveryDelayHours
             });
             yield seller.addInvitation(invitation);
             return res.json({ invitation: attributes_visibility_1.SellerVisibility.AdaptSimpleInvitationToSeller(invitation) });
@@ -298,12 +300,14 @@ class SellerController {
     (0, helpers_1.validation)(joi_1.default.object({
         product: joi_1.default.string().required(),
         date: joi_1.default.date().required(),
-        price: joi_1.default.number().required(),
+        price: joi_1.default.number().required().min(200),
         description: joi_1.default.string().required(),
         storeWilaya: joi_1.default.string().valid(...wilayas_1.WILAYAS).required(),
         storeLocation: joi_1.default.string().required(),
         deliveryType: joi_1.default.string().valid(...Object.values(types_1.DeliveryType)).required(),
         localDeliveryPrice: joi_1.default.number().required(),
+        autoAccept: joi_1.default.boolean().required(),
+        deliveryDelayHours: joi_1.default.number().min(0).required()
     }))
 ], SellerController, "createNewInvitation", null);
 (0, tslib_1.__decorate)([

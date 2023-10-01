@@ -59,7 +59,7 @@ class InvitationController {
                         type = types_1.DeliveryType.LOCAL_WILAYA_ONLY;
                     }
                     else {
-                        price = -1;
+                        price = 0;
                         type = types_1.DeliveryType.BETWEEN_WILAYAS;
                     }
                 }
@@ -70,7 +70,8 @@ class InvitationController {
                 deliveryPlace: req.body.deliveryPlace + ", " + req.body.deliveryWilaya,
                 deliveryType: type,
                 deliveryPrice: price,
-                uuid: (0, helpers_1.transactionUUid)()
+                uuid: (0, helpers_1.transactionUUid)(),
+                state: (invitation.autoAccept && (type !== types_1.DeliveryType.BETWEEN_WILAYAS)) ? types_1.TransactionStatus.ACCEPTED : types_1.TransactionStatus.OPENED
             };
             yield transaction_orm_1.Transaction.create(transactionInfo);
             const transaction = yield transaction_orm_1.Transaction.findOne({

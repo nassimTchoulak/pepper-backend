@@ -167,8 +167,8 @@ describe('## seller', () => {
           expect(httpStatus.OK)).body.invitations;
   
       expect(parties.length).toEqual(2);
-      expect(parties[1].uuid).toEqual(p2.uuid);
-      expect(parties[0].uuid).toEqual(p1.uuid);
+      expect(parties[0].uuid).toEqual(p2.uuid);
+      expect(parties[1].uuid).toEqual(p1.uuid);
       
     });
   
@@ -177,16 +177,18 @@ describe('## seller', () => {
       const partyTest = {
         product: fake.name,
         date: moment(),
-        price: fake.integer(0, 100),
+        price: fake.integer(200, 1000),
         description: fake.description,
         storeWilaya : WILAYAS[fake.integer(0, 48)],
         storeLocation: fake.address2,
         deliveryType: DeliveryType.LOCAL_WILAYA_ONLY,
         localDeliveryPrice: 400,
+        autoAccept: true,
+        deliveryDelayHours: 24,
       }
 
       const { token } = (await request(app).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword})).body;
-      
+
       const invitation: IInvitation = (await request(app).post(`/api/seller/invitation`).
       send({...partyTest}).
       set('Authorization', token).
@@ -204,12 +206,14 @@ describe('## seller', () => {
       const partyTest = {
         product: fake.name,
         date: moment(),
-        price: fake.integer(0, 100),
+        price: fake.integer(200, 1000),
         description: fake.description,
         storeWilaya : WILAYAS[fake.integer(0, 48)],
         storeLocation: fake.address2,
         deliveryType: DeliveryType.LOCAL_WILAYA_ONLY,
         localDeliveryPrice: 400,
+        autoAccept: true,
+        deliveryDelayHours: 24,
       }
 
       const { token } = (await request(app).post('/api/seller/login').send({ email: sellerObject.email, password: organizerPassword})).body;

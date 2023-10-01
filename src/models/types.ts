@@ -8,15 +8,16 @@ export interface IInvitation {
   deliveryType: DeliveryType,
   localDeliveryPrice: number,
   active: boolean,
+  autoAccept: boolean,
+  deliveryDelayHours: number,
   date: Date,
   createdAt: Date,
   updatedAt: Date,
-  autoAccept: boolean
 };
 
 
 export interface ITransaction {
-  uuid: string
+  uuid: string,
   deliveryPlace: string,
   deliveryType: DeliveryType,
   deliveryPrice: number,

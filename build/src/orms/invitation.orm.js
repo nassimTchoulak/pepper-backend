@@ -25,6 +25,16 @@ const initInvitation = (sequelize) => {
             type: sequelize_1.DataTypes.TEXT,
             allowNull: false,
         },
+        deliveryDelayHours: {
+            type: sequelize_1.DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 24
+        },
+        autoAccept: {
+            type: sequelize_1.DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
+        },
         date: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
