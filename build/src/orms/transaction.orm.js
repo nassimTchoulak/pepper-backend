@@ -62,7 +62,17 @@ const initTransaction = (sequelize) => {
             type: sequelize_1.DataTypes.ENUM(types_1.TransactionOutcome.CANCELED, types_1.TransactionOutcome.ONGOING, types_1.TransactionOutcome.CLOSED_FAILED, types_1.TransactionOutcome.CLOSED_SUCCESS),
             allowNull: false,
             defaultValue: types_1.TransactionOutcome.ONGOING
-        }
+        },
+        certifiedDelivery: {
+            type: sequelize_1.DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
+        },
+        certifiedCompany: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false,
+            defaultValue: ''
+        },
     }, { sequelize, paranoid: true });
 };
 exports.initTransaction = initTransaction;

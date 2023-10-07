@@ -126,7 +126,6 @@ class AdminController {
                 res.status(http_status_1.default.UNAUTHORIZED);
                 return res.json({ message: 'Transaction already closed' });
             }
-            const price = transaction.Invitation.price;
             const state = transaction === null || transaction === void 0 ? void 0 : transaction.state;
             let outcome;
             if (types_1.CANCELED_TO_BE_PAYED_LIST.indexOf(state) !== -1) {
@@ -141,10 +140,10 @@ class AdminController {
                     return res.json({ message: 'Transaction can not be closed' });
                 }
             }
-            const priceInterface = (0, pricing_1.default)(transaction.state);
+            const priceInterface = (0, pricing_1.default)(transaction);
             yield orms_1.History.create({ actionType: 'closing & accounting',
-                action: `${transaction.uuid} : { commission: ${priceInterface.commission(price)}} `,
-                reason: `${transaction.uuid} : { price:${price}, seller:${priceInterface.seller(price)}, buyer:${priceInterface.buyer(price)} } `,
+                action: `${transaction.uuid}`,
+                reason: `${JSON.stringify(priceInterface)}`,
                 admin: req.admin.name, TransactionId: transaction.id });
             yield transaction.update({ outcome: outcome });
             return res.json({ transaction: attributes_visibility_1.AdminVisibility.adaptTransactionWithSellerToPublic(transaction.get({ plain: true })) });

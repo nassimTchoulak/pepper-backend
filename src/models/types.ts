@@ -28,6 +28,8 @@ export interface ITransaction {
   paymentDate: Date,
   createdAt: Date,
   updatedAt: Date,
+  certifiedDelivery: boolean,
+  certifiedCompany: string
 };
 
 // Seller interfaces

@@ -18,6 +18,9 @@ class Transaction extends Model {
   public deliveryPrice!: number;
   public state!: TransactionStatus;
   public outcome!: TransactionOutcome;
+  public certifiedDelivery!: boolean;
+  public certifiedCompany!: string;
+
 
   public createdAt!: Date;
   public updatedAt!: Date;
@@ -89,7 +92,17 @@ const initTransaction = (sequelize: Sequelize) => {
       type: DataTypes.ENUM( TransactionOutcome.CANCELED, TransactionOutcome.ONGOING, TransactionOutcome.CLOSED_FAILED, TransactionOutcome.CLOSED_SUCCESS),
       allowNull: false,
       defaultValue: TransactionOutcome.ONGOING
-    }
+    },
+    certifiedDelivery: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    certifiedCompany: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: ''
+    },
   }, { sequelize, paranoid: true });
   
 };

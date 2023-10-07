@@ -174,7 +174,7 @@ export class AdminController {
       res.status(httpStatus.UNAUTHORIZED);
       return res.json({ message: 'Transaction already closed' });
     }
-    const price = (transaction as unknown as IAdminTransaction).Invitation.price
+    
     const state = transaction?.state
     let outcome;
     if (CANCELED_TO_BE_PAYED_LIST.indexOf(state) !== -1) {
@@ -189,10 +189,11 @@ export class AdminController {
         return res.json({ message: 'Transaction can not be closed' });
       }
     }
-    const priceInterface = priceCalculator(transaction.state)
+    const priceInterface = priceCalculator(transaction as unknown as ITransactionNoSeller)
+
     await History.create({ actionType: 'closing & accounting',
-       action: `${transaction.uuid} : { commission: ${priceInterface.commission(price)}} `,
-       reason: `${transaction.uuid} : { price:${price}, seller:${priceInterface.seller(price)}, buyer:${priceInterface.buyer(price)} } `,
+       action: `${transaction.uuid}`,
+       reason: `${JSON.stringify(priceInterface)}`,
        admin: req.admin.name, TransactionId: transaction.id})
 
     await transaction.update({ outcome: outcome  })
