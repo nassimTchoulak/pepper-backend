@@ -4,7 +4,7 @@ import { validation } from 'helpers/helpers';
 import { Buyer, Invitation, Seller } from 'orms';
 import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
-import { Gender, IBuyer, IBuyerBase, IInvitation, ITransaction, ITransactionNoSeller, ITransactionWithSeller, UserStatus } from 'models/types';
+import { Gender, IBuyer, IBuyerBase, IInvitation, ITransaction, ITransactionNoSeller, ITransactionWithSeller, EntityStatus } from 'models/types';
 import _, { includes } from 'lodash';
 import 'dotenv/config';
 import AuthHelper from 'helpers/auth';
@@ -114,7 +114,7 @@ export class BuyerController {
       return res.json({ message: 'User does not exist' });
     }
 
-    if (user.status !== UserStatus.Accepted) {
+    if (user.status !== EntityStatus.Accepted) {
       // send tmp token
       const token = jwt.sign(user, process.env.JWT_BUYER_KEY, {expiresIn:"24h"});
       return res.json({ token });
@@ -134,7 +134,7 @@ export class BuyerController {
     const buyer = jwt.verify(req.headers.authorization || "", process.env.JWT_BUYER_KEY) as unknown as IBuyer;
 
     // nothing to activate
-    if (buyer.status != UserStatus.Pending)
+    if (buyer.status != EntityStatus.Pending)
     {
       return res.json({ token: req.headers.authorization || "" });
     }
@@ -149,7 +149,7 @@ export class BuyerController {
       return res.json({ message: 'wrong code' });
     }
     // update the user
-    user.update({status: UserStatus.Accepted})
+    user.update({status: EntityStatus.Accepted})
     if (!process.env.JWT_BUYER_KEY) {
       throw 'JWT key not provided';
     }

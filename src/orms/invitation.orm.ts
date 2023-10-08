@@ -3,7 +3,7 @@ import { Seller } from 'orms/seller.orm';
 import { Transaction } from './transaction.orm';
 import { Buyer } from './buyer.orm';
 import { randomHash } from 'helpers/helpers';
-import { DeliveryType } from 'models/types';
+import { DeliveryType, EntityStatus } from 'models/types';
 
 class Invitation extends Model {
 
@@ -93,9 +93,9 @@ const initInvitation = (sequelize: Sequelize) => {
       }
     },
     active: {
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.ENUM(EntityStatus.Accepted, EntityStatus.Rejected, EntityStatus.Pending, EntityStatus.Started),
       allowNull: false,
-      defaultValue: true
+      defaultValue: EntityStatus.Pending
     },
   }, { sequelize, paranoid: true });
   

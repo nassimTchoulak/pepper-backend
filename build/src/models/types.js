@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserStatus = exports.DeliveryType = exports.Gender = exports.TransactionOutcome = exports.FULFILLED_TO_BE_PAYED_LIST = exports.CANCELED_TO_BE_PAYED_LIST = exports.TransactionStatus = void 0;
+exports.EntityStatus = exports.DeliveryType = exports.Gender = exports.TransactionOutcome = exports.FULFILLED_TO_BE_PAYED_LIST = exports.CANCELED_TO_BE_PAYED_LIST = exports.TransactionStatus = void 0;
 ;
 ;
 ;
@@ -45,11 +45,11 @@ var DeliveryType;
     DeliveryType["NOT_NEEDED"] = "not-needed";
 })(DeliveryType = exports.DeliveryType || (exports.DeliveryType = {}));
 ;
-var UserStatus;
-(function (UserStatus) {
-    UserStatus["Pending"] = "pending";
-    UserStatus["Started"] = "started";
-    UserStatus["Accepted"] = "accepted";
-    UserStatus["Rejected"] = "rejected";
-})(UserStatus = exports.UserStatus || (exports.UserStatus = {}));
+var EntityStatus;
+(function (EntityStatus) {
+    EntityStatus["Pending"] = "pending";
+    EntityStatus["Started"] = "started";
+    EntityStatus["Accepted"] = "accepted";
+    EntityStatus["Rejected"] = "rejected";
+})(EntityStatus = exports.EntityStatus || (exports.EntityStatus = {}));
 //# sourceMappingURL=types.js.map

@@ -103,7 +103,7 @@ describe('## User', () => {
                 set('Authorization', token).
                 expect(http_status_1.default.OK)).body;
             const validated_user = jsonwebtoken_1.default.verify(result_request.token, process.env.JWT_BUYER_KEY);
-            expect(validated_user.status).toBe(types_1.UserStatus.Accepted);
+            expect(validated_user.status).toBe(types_1.EntityStatus.Accepted);
             expect(validated_user.id).toBe(authentifiedUser.id);
         }));
     });

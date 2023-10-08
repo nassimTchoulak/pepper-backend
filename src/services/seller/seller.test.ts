@@ -5,7 +5,7 @@ import httpStatus from 'http-status';
 import { Seller } from 'orms';
 import { createFakeSeller, createFakeInvitation, fake } from 'helpers/fake';
 import { syncDbModels } from 'orms/pepperDb';
-import { ISeller, IInvitation, DeliveryType } from 'models/types';
+import { ISeller, IInvitation, DeliveryType, EntityStatus } from 'models/types';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import { WILAYAS } from 'models/wilayas';
@@ -227,7 +227,7 @@ describe('## seller', () => {
       
       const invitation: IInvitation = request_val.body.invitation;
   
-      expect(invitation.active).toBe(true);
+      expect(invitation.active).toBe(EntityStatus.Pending);
 
       
       const req_reuslt = (await request(app).delete(`/api/seller/invitation`).
@@ -238,7 +238,7 @@ describe('## seller', () => {
 
       const delete_invitation = req_reuslt.body.invitation;
 
-      expect(delete_invitation.active).toEqual(false);
+      expect(delete_invitation.active).toEqual(EntityStatus.Rejected);
       
     });
     

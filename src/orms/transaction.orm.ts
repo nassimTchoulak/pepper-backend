@@ -6,6 +6,7 @@ import { DeliveryType, TransactionOutcome, TransactionStatus } from 'models/type
 import { randomHash, randomHashUpper } from 'helpers/helpers';
 import moment from 'moment';
 import { Claim } from './claim.orm';
+import { History } from './history.orm';
 
 class Transaction extends Model {
   public id!: number;
@@ -34,6 +35,9 @@ class Transaction extends Model {
 
   public getClaims!: HasManyGetAssociationsMixin<Claim>;
   public addClaim!: HasManyAddAssociationMixin<Claim, number>;
+
+  public getHistories!: HasManyGetAssociationsMixin<History>;
+  public addHistory!: HasManyAddAssociationMixin<History, number>;
 
 }
 const initTransaction = (sequelize: Sequelize) => {

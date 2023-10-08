@@ -1,6 +1,6 @@
 import { Buyer, Invitation, Seller } from "orms";
 import { normalizeInvitations } from 'services/buyer/buyer.helper';
-import { UserStatus, TransactionStatus, IBuyerBase } from 'models/types';
+import { EntityStatus, TransactionStatus, IBuyerBase } from 'models/types';
 import { Op } from 'sequelize';
 import _ from 'lodash';
 export class BuyerService {

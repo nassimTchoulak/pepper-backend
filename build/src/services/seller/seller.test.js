@@ -167,12 +167,12 @@ describe('## seller', () => {
                 set('Authorization', token).
                 expect(http_status_1.default.OK));
             const invitation = request_val.body.invitation;
-            expect(invitation.active).toBe(true);
+            expect(invitation.active).toBe(types_1.EntityStatus.Pending);
             const req_reuslt = (yield (0, supertest_1.default)(index_1.default).delete(`/api/seller/invitation`).
                 send({ uuid: invitation.uuid }).
                 set('Authorization', token));
             const delete_invitation = req_reuslt.body.invitation;
-            expect(delete_invitation.active).toEqual(false);
+            expect(delete_invitation.active).toEqual(types_1.EntityStatus.Rejected);
         }));
     });
 });

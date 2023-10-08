@@ -67,7 +67,7 @@ class SellerController {
                 res.status(http_status_1.default.NOT_FOUND);
                 return res.json({ message: 'seller does not exist' });
             }
-            const isAuthorized = seller.status !== types_1.UserStatus.Rejected;
+            const isAuthorized = seller.status !== types_1.EntityStatus.Rejected;
             if (!isAuthorized) {
                 res.status(http_status_1.default.UNAUTHORIZED);
                 return res.json({ message: 'seller removed' });
@@ -123,7 +123,7 @@ class SellerController {
                 res.status(http_status_1.default.UNAUTHORIZED);
                 return res.json({ message: 'wrong code' });
             }
-            user.update({ status: types_1.UserStatus.Accepted });
+            user.update({ status: types_1.EntityStatus.Accepted });
             if (!process.env.JWT_SELLER_KEY) {
                 throw 'JWT key not provided';
             }
@@ -247,7 +247,7 @@ class SellerController {
             const invitation = yield orms_1.Invitation.findOne({ where: { uuid: req.body.uuid } });
             const invitationSeller = yield (invitation === null || invitation === void 0 ? void 0 : invitation.getSeller());
             if ((invitationSeller != null) && (invitation != null) && (invitationSeller.id == seller.id)) {
-                const result = yield invitation.update({ active: false });
+                const result = yield invitation.update({ active: types_1.EntityStatus.Rejected });
                 return res.json({ invitation: attributes_visibility_1.SellerVisibility.AdaptSimpleInvitationToSeller(result) });
             }
             else {

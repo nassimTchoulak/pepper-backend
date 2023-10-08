@@ -1,8 +1,6 @@
-import { Model, DataTypes, Sequelize, HasManyGetAssociationsMixin, HasManyCountAssociationsMixin, HasManyHasAssociationMixin, HasManyAddAssociationMixin, HasManySetAssociationsMixin, Association, HasManyRemoveAssociationMixin, NOW, BelongsToManyHasAssociationsMixin, BelongsToManyAddAssociationMixin } from 'sequelize';
-import { Gender, UserStatus } from 'models/types';
-import { Invitation } from 'orms/invitation.orm';
+import { Model, DataTypes, Sequelize } from 'sequelize';
+
 import { Transaction } from './transaction.orm';
-import { Claim } from './claim.orm';
 
 
 class DeliveryOffice extends Model {

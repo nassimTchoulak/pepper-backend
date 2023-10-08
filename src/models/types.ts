@@ -90,7 +90,7 @@ export interface IBuyerBase {
   phoneNumber: string,
   wilaya: string;
   address: string,
-  status: UserStatus,
+  status: EntityStatus,
   email: string,
 }
 
@@ -104,7 +104,7 @@ export interface ISellerBase {
   location: string,
   wilaya: string
   description: string,
-  status: UserStatus
+  status: EntityStatus
 }
 
 
@@ -176,7 +176,7 @@ export enum DeliveryType {
 };
 
 
-export enum UserStatus {
+export enum EntityStatus {
   Pending = 'pending',
   Started = 'started',
   Accepted = 'accepted',

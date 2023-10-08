@@ -55,9 +55,9 @@ const initBuyer = (sequelize) => {
             allowNull: true,
         },
         status: {
-            type: sequelize_1.DataTypes.ENUM(types_1.UserStatus.Pending, types_1.UserStatus.Accepted, types_1.UserStatus.Rejected, types_1.UserStatus.Started),
+            type: sequelize_1.DataTypes.ENUM(types_1.EntityStatus.Pending, types_1.EntityStatus.Accepted, types_1.EntityStatus.Rejected, types_1.EntityStatus.Started),
             allowNull: false,
-            defaultValue: types_1.UserStatus.Pending,
+            defaultValue: types_1.EntityStatus.Pending,
         },
         emailCode: {
             type: sequelize_1.DataTypes.INTEGER,

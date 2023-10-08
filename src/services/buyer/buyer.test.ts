@@ -7,7 +7,7 @@ import { Buyer, Invitation } from 'orms';
 import { createFakeBuyer, createFakeInvitationWithSeller, fake } from 'helpers/fake';
 import { syncDbModels } from 'orms/pepperDb';
 import jwt from 'jsonwebtoken';
-import { Gender, IBuyer, UserStatus } from 'models/types';
+import { Gender, IBuyer, EntityStatus } from 'models/types';
 import _ from 'lodash';
 import { } from 'services/buyer/buyer.helper';
 import 'dotenv/config';
@@ -122,7 +122,7 @@ describe('## User', () => {
         expect(httpStatus.OK)).body;
 
         const validated_user = jwt.verify(result_request.token, process.env.JWT_BUYER_KEY) as IBuyer;
-        expect(validated_user.status).toBe(UserStatus.Accepted);
+        expect(validated_user.status).toBe(EntityStatus.Accepted);
         expect(validated_user.id).toBe(authentifiedUser.id);
     });
 

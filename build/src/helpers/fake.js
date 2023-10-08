@@ -12,8 +12,8 @@ casual_1.default.define('gender', () => casual_1.default.boolean ? types_1.Gende
 casual_1.default.define('phoneNumber', () => casual_1.default.numerify('06########'));
 casual_1.default.define('product', () => ({ name: casual_1.default.word, price: casual_1.default.integer(3, 20) }));
 casual_1.default.define('match_status', () => [
-    types_1.UserStatus.Pending,
-    types_1.UserStatus.Accepted,
+    types_1.EntityStatus.Pending,
+    types_1.EntityStatus.Accepted,
 ][casual_1.default.integer(0, 1)]);
 const createFakeBuyer = (overrideProps) => (0, tslib_1.__awaiter)(void 0, void 0, void 0, function* () {
     const buyer = yield orms_1.Buyer.create(Object.assign({ name: casual_1.default.first_name, firstName: casual_1.default.name, gender: casual_1.default.gender, phoneNumber: casual_1.default.phoneNumber, email: casual_1.default.email, password: casual_1.default.password, address: casual_1.default.address, wilaya: wilayas_1.WILAYAS[casual_1.default.integer(0, 48)] }, (overrideProps ? overrideProps : {})));

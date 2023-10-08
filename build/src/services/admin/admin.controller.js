@@ -206,6 +206,105 @@ class AdminController {
             return res.json({ transactions: attributes_visibility_1.AdminVisibility.adaptTransactionWithSellerToPublic(transaction.get({ plain: true })) });
         });
     }
+    static addNoteToTransaction(req, res) {
+        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+            const transaction = yield orms_1.Transaction.findOne({
+                where: { uuid: req.body.transactionUuid },
+                raw: false, nest: true
+            });
+            if (!transaction) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'transaction not found' });
+            }
+            const history = yield orms_1.History.create({ action: req.body.title, actionType: 'Note', reason: req.body.text, admin: req.admin.name });
+            if (!history) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'not could not be added' });
+            }
+            yield transaction.addHistory(history);
+            const transaction_ = yield orms_1.Transaction.findOne({
+                include: [
+                    { model: orms_1.Claim, as: 'Claims', required: false },
+                    { model: orms_1.History, as: 'Histories', required: false },
+                    { model: orms_1.Buyer, as: 'Buyer' },
+                    { model: orms_1.Invitation, as: 'Invitation', include: [{ model: orms_1.Seller, as: 'Seller' }] }
+                ],
+                where: { uuid: req.body.transactionUuid },
+                order: [['createdAt', 'DESC']],
+                raw: false, nest: true
+            });
+            if (!transaction_) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'transaction not found' });
+            }
+            return res.json({ transactions: attributes_visibility_1.AdminVisibility.adaptTransactionWithSellerToPublic(transaction_.get({ plain: true })) });
+        });
+    }
+    static getClosingInfoPrice(req, res) {
+        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+            const transaction = yield orms_1.Transaction.findOne({
+                where: { uuid: req.body.transactionUuid },
+                include: [{ model: orms_1.Buyer, as: 'Buyer' }, { model: orms_1.Invitation, as: 'Invitation', include: [{ model: orms_1.Seller, as: 'Seller' }] }], nest: true, raw: false
+            });
+            if (!transaction) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'Transaction not found' });
+            }
+            if (transaction.outcome !== types_1.TransactionOutcome.ONGOING) {
+                res.status(http_status_1.default.UNAUTHORIZED);
+                return res.json({ message: 'Transaction already closed' });
+            }
+            const state = transaction === null || transaction === void 0 ? void 0 : transaction.state;
+            let outcome;
+            if (types_1.CANCELED_TO_BE_PAYED_LIST.indexOf(state) !== -1) {
+                outcome = types_1.TransactionOutcome.CLOSED_FAILED;
+            }
+            else {
+                if (types_1.FULFILLED_TO_BE_PAYED_LIST.indexOf(state) != -1) {
+                    outcome = types_1.TransactionOutcome.CLOSED_SUCCESS;
+                }
+                else {
+                    res.status(http_status_1.default.UNAUTHORIZED);
+                    return res.json({ message: 'Transaction can not be closed' });
+                }
+            }
+            const priceInterface = (0, pricing_1.default)(transaction);
+            return res.json({ info: priceInterface });
+        });
+    }
+    static approveInvitation(req, res) {
+        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+            const invitation = yield orms_1.Invitation.findOne({ where: { uuid: req.body.uuid } });
+            if (!invitation) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'No matching invitation found' });
+            }
+            yield invitation.update({ active: types_1.EntityStatus.Accepted });
+            return res.json({ invitation: attributes_visibility_1.SellerVisibility.AdaptSimpleInvitationToSeller(invitation) });
+        });
+    }
+    static rejectInvitation(req, res) {
+        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+            const invitation = yield orms_1.Invitation.findOne({ where: { uuid: req.body.uuid } });
+            if (!invitation) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'No matching invitation found' });
+            }
+            yield invitation.update({ active: types_1.EntityStatus.Rejected });
+            return res.json({ invitation: attributes_visibility_1.SellerVisibility.AdaptSimpleInvitationToSeller(invitation) });
+        });
+    }
+    static rejectSeller(req, res) {
+        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+            yield orms_1.Seller.update({ status: types_1.EntityStatus.Rejected }, { where: { id: req.body.sellerId } });
+            const seller = yield orms_1.Seller.findOne({ where: { id: req.body.sellerId }, raw: true });
+            if (!seller) {
+                res.status(http_status_1.default.NOT_FOUND);
+                return res.json({ message: 'seller does not exist' });
+            }
+            return res.json({ seller: attributes_visibility_1.SellerVisibility.AdaptSellerForSeller(seller) });
+        });
+    }
 }
 (0, tslib_1.__decorate)([
     (0, helpers_1.validation)(joi_1.default.object({
@@ -252,5 +351,32 @@ class AdminController {
         transactionUuid: joi_1.default.string().required()
     }))
 ], AdminController, "getTransactionDetail", null);
+(0, tslib_1.__decorate)([
+    (0, helpers_1.validation)(joi_1.default.object({
+        transactionUuid: joi_1.default.string().required(),
+        title: joi_1.default.string().required(),
+        text: joi_1.default.string().required()
+    }))
+], AdminController, "addNoteToTransaction", null);
+(0, tslib_1.__decorate)([
+    (0, helpers_1.validation)(joi_1.default.object({
+        transactionUuid: joi_1.default.string().required(),
+    }))
+], AdminController, "getClosingInfoPrice", null);
+(0, tslib_1.__decorate)([
+    (0, helpers_1.validation)(joi_1.default.object({
+        uuid: joi_1.default.string().required(),
+    }))
+], AdminController, "approveInvitation", null);
+(0, tslib_1.__decorate)([
+    (0, helpers_1.validation)(joi_1.default.object({
+        uuid: joi_1.default.string().required(),
+    }))
+], AdminController, "rejectInvitation", null);
+(0, tslib_1.__decorate)([
+    (0, helpers_1.validation)(joi_1.default.object({
+        sellerId: joi_1.default.string().required(),
+    }))
+], AdminController, "rejectSeller", null);
 exports.AdminController = AdminController;
 //# sourceMappingURL=admin.controller.js.map

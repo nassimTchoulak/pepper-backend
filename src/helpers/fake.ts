@@ -1,5 +1,5 @@
 import { Buyer, Invitation, Seller } from "orms";
-import { DeliveryType, Gender, IBuyer, ISeller, UserStatus } from 'models/types';
+import { DeliveryType, Gender, IBuyer, ISeller, EntityStatus } from 'models/types';
 import casual from 'casual';
 import moment from "moment";
 import { WILAYAS } from "models/wilayas";
@@ -8,8 +8,8 @@ casual.define('gender', () => casual.boolean ? Gender.MAN : Gender.WOMAN );
 casual.define('phoneNumber', () => casual.numerify('06########') );
 casual.define('product', () => ({ name: casual.word, price: casual.integer(3, 20) }) );
 casual.define('match_status', () => [
-  UserStatus.Pending,
-  UserStatus.Accepted,
+  EntityStatus.Pending,
+  EntityStatus.Accepted,
 ][casual.integer(0, 1)]);
 
 const createFakeBuyer = async (overrideProps?: Partial<IBuyer>): Promise<Buyer> => {

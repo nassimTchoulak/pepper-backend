@@ -4,7 +4,7 @@ import { validation } from 'helpers/helpers';
 import { Seller, Invitation, Buyer } from 'orms';
 import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
-import { ISeller, IInvitation, UserStatus, IInvitationTransaction, ISellerBase, ITransactionSellerSide, DeliveryType } from 'models/types';
+import { ISeller, IInvitation, EntityStatus, IInvitationTransaction, ISellerBase, ITransactionSellerSide, DeliveryType } from 'models/types';
 import 'dotenv/config';
 import _, { includes } from 'lodash';
 import { SellerService } from 'services/seller/seller.service';
@@ -101,7 +101,7 @@ export class SellerController {
     }
 
     // TO-DO : update policy for allowed logins (maybe pending or Accepted)
-    const isAuthorized = seller.status !== UserStatus.Rejected;
+    const isAuthorized = seller.status !== EntityStatus.Rejected;
 
     if (!isAuthorized) {
       res.status(httpStatus.UNAUTHORIZED);
@@ -173,7 +173,7 @@ export class SellerController {
       return res.json({ message: 'wrong code' });
     }
     // update the user
-    user.update({status: UserStatus.Accepted})
+    user.update({status: EntityStatus.Accepted})
     if (!process.env.JWT_SELLER_KEY) {
       throw 'JWT key not provided';
     }
@@ -340,7 +340,7 @@ export class SellerController {
     const invitationSeller = await invitation?.getSeller();
 
     if ((invitationSeller != null) && (invitation != null) && (invitationSeller.id == seller.id)){
-      const result = await invitation.update({active : false});
+      const result = await invitation.update({active : EntityStatus.Rejected});
       
       return res.json({ invitation: SellerVisibility.AdaptSimpleInvitationToSeller(result) });
     }

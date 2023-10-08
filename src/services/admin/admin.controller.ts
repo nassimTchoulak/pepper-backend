@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import Joi from 'joi';
 import { validation } from 'helpers/helpers';
 import { Buyer, Claim, History, Invitation, Seller, Transaction } from 'orms';
-import { CANCELED_TO_BE_PAYED_LIST, FULFILLED_TO_BE_PAYED_LIST, IAdminFullTransaction, IAdminTransaction, IHistory, IInvitationTransaction, ITransactionNoSeller, TransactionOutcome, TransactionStatus, UserStatus } from 'models/types';
+import { CANCELED_TO_BE_PAYED_LIST, FULFILLED_TO_BE_PAYED_LIST, IAdminFullTransaction, IAdminTransaction, IHistory, IInvitationTransaction, ITransactionNoSeller, TransactionOutcome, TransactionStatus, EntityStatus, ISellerBase } from 'models/types';
 import 'dotenv/config';
 import _ from 'lodash';
 import jwt from 'jsonwebtoken';
@@ -273,6 +273,144 @@ export class AdminController {
       }
 
     return res.json({ transactions: AdminVisibility.adaptTransactionWithSellerToPublic(transaction.get({plain : true})) });
+  }
+
+
+  @validation(Joi.object({
+    transactionUuid: Joi.string().required(),
+    title: Joi.string().required(),
+    text: Joi.string().required()
+  }))
+  public static async addNoteToTransaction(req: AdminRequest, res: Response): Promise<Response<{transaction : IAdminFullTransaction }>> {
+    
+    const transaction = await Transaction.findOne({
+        where: { uuid: req.body.transactionUuid},
+        raw: false, nest: true
+    })
+    
+    if (!transaction) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'transaction not found' });
+    }
+    const history = await History.create({ action: req.body.title, actionType: 'Note', reason: req.body.text, admin: req.admin.name})
+    if (!history) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'not could not be added' });
+    }
+    await transaction.addHistory(history)
+
+    const transaction_ = await Transaction.findOne({
+      include:[
+        // { model: Claim, as:'Claims' },
+        { model: Claim, as:'Claims', required: false },
+        //  { model: Claim, paranoid: true, required: false},
+        // { model: History, as: 'Histories' },
+        { model: History, as: 'Histories', required: false},
+        { model: Buyer, as:'Buyer'} ,
+        { model: Invitation, as: 'Invitation', include: [{ model: Seller, as : 'Seller'}] }
+        ],
+        where: { uuid: req.body.transactionUuid},
+        order: [['createdAt', 'DESC']],
+        raw: false, nest: true
+        })
+    
+      if (!transaction_) {
+        res.status(httpStatus.NOT_FOUND);
+        return res.json({ message: 'transaction not found' });
+      }
+
+    return res.json({ transactions: AdminVisibility.adaptTransactionWithSellerToPublic(transaction_.get({plain : true})) });
+  }
+
+
+  
+  @validation(Joi.object({
+    transactionUuid: Joi.string().required(),
+  }))
+  public static async getClosingInfoPrice(req: AdminRequest, res: Response): Promise<Response<{info : {
+            commission_money: number;
+            buyer_money: number;
+            seller_money: number;
+            payed_money: number;
+} }>> {
+
+    const transaction = await Transaction.findOne({
+      where: { uuid: req.body.transactionUuid },
+      include: [{ model: Buyer, as:'Buyer'} , { model: Invitation, as: 'Invitation', include: [{ model: Seller, as : 'Seller'}] }], nest: true, raw: false
+    });
+    if (!transaction) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'Transaction not found' });
+    }
+    if (transaction.outcome !== TransactionOutcome.ONGOING) {
+      res.status(httpStatus.UNAUTHORIZED);
+      return res.json({ message: 'Transaction already closed' });
+    }
+    
+    const state = transaction?.state
+    let outcome;
+    if (CANCELED_TO_BE_PAYED_LIST.indexOf(state) !== -1) {
+      outcome = TransactionOutcome.CLOSED_FAILED
+    }
+    else {
+      if (FULFILLED_TO_BE_PAYED_LIST.indexOf(state) != -1) {
+        outcome = TransactionOutcome.CLOSED_SUCCESS
+      }
+      else {
+        res.status(httpStatus.UNAUTHORIZED);
+        return res.json({ message: 'Transaction can not be closed' });
+      }
+    }
+    const priceInterface = priceCalculator(transaction as unknown as ITransactionNoSeller)
+    return res.json({ info: priceInterface })
+    
+  }
+
+
+  @validation(Joi.object({
+    uuid: Joi.string().required(),
+  }))
+  public static async approveInvitation(req: AdminRequest, res: Response): Promise<Response<{ invitation: IAdminFullTransaction }>> {
+
+    const invitation = await Invitation.findOne({ where: { uuid: req.body.uuid}});
+    
+    if (!invitation) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'No matching invitation found' });
+    }
+    
+    await invitation.update({active : EntityStatus.Accepted});
+    return res.json({ invitation: SellerVisibility.AdaptSimpleInvitationToSeller(invitation) });
+  }
+
+  @validation(Joi.object({
+    uuid: Joi.string().required(),
+  }))
+  public static async rejectInvitation(req: AdminRequest, res: Response): Promise<Response<{ invitation: IAdminFullTransaction }>> {
+
+    const invitation = await Invitation.findOne({ where: { uuid: req.body.uuid}});
+    
+    if (!invitation) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'No matching invitation found' });
+    }
+    
+    await invitation.update({active : EntityStatus.Rejected});
+    return res.json({ invitation: SellerVisibility.AdaptSimpleInvitationToSeller(invitation) });
+  }
+
+  @validation(Joi.object({
+    sellerId: Joi.string().required(),
+  }))
+  public static async rejectSeller(req: AdminRequest, res: Response): Promise<Response<{ seller: ISellerBase }>> {
+
+    await Seller.update({ status: EntityStatus.Rejected }, { where:  { id: req.body.sellerId }});
+    const seller = await Seller.findOne({ where: { id: req.body.sellerId }, raw: true });
+    if (!seller) {
+      res.status(httpStatus.NOT_FOUND);
+      return res.json({ message: 'seller does not exist' });
+    }
+    return res.json({ seller: SellerVisibility.AdaptSellerForSeller(seller) });
   }
 
 

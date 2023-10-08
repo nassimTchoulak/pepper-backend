@@ -69,9 +69,9 @@ const initInvitation = (sequelize) => {
             }
         },
         active: {
-            type: sequelize_1.DataTypes.BOOLEAN,
+            type: sequelize_1.DataTypes.ENUM(types_1.EntityStatus.Accepted, types_1.EntityStatus.Rejected, types_1.EntityStatus.Pending, types_1.EntityStatus.Started),
             allowNull: false,
-            defaultValue: true
+            defaultValue: types_1.EntityStatus.Pending
         },
     }, { sequelize, paranoid: true });
 };

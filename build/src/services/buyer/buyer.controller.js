@@ -80,7 +80,7 @@ class BuyerController {
                 res.status(http_status_1.default.UNAUTHORIZED);
                 return res.json({ message: 'User does not exist' });
             }
-            if (user.status !== types_1.UserStatus.Accepted) {
+            if (user.status !== types_1.EntityStatus.Accepted) {
                 const token = jsonwebtoken_1.default.sign(user, process.env.JWT_BUYER_KEY, { expiresIn: "24h" });
                 return res.json({ token });
             }
@@ -94,7 +94,7 @@ class BuyerController {
                 throw 'JWT key not provided';
             }
             const buyer = jsonwebtoken_1.default.verify(req.headers.authorization || "", process.env.JWT_BUYER_KEY);
-            if (buyer.status != types_1.UserStatus.Pending) {
+            if (buyer.status != types_1.EntityStatus.Pending) {
                 return res.json({ token: req.headers.authorization || "" });
             }
             const user = yield orms_1.Buyer.findOne({ where: { email: buyer.email }, raw: false });
@@ -106,7 +106,7 @@ class BuyerController {
                 res.status(http_status_1.default.UNAUTHORIZED);
                 return res.json({ message: 'wrong code' });
             }
-            user.update({ status: types_1.UserStatus.Accepted });
+            user.update({ status: types_1.EntityStatus.Accepted });
             if (!process.env.JWT_BUYER_KEY) {
                 throw 'JWT key not provided';
             }

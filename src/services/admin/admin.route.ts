@@ -27,7 +27,11 @@ class AdminRoutes {
 
     // decisions to be made
     this._router.route('/decide').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.decideOnTransaction));
+    // add a note to a transaction
+    this._router.route('/note').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.addNoteToTransaction));
 
+    // get the money that should be given to each party
+    this._router.route('/get_closing_info').get(authorizeForAdmin, checkParametersAndCallRoute(AdminController.getClosingInfoPrice));
     // accountant closing the transaction
     this._router.route('/close').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.closeTransaction));
 
@@ -38,6 +42,13 @@ class AdminRoutes {
 
     // dash board of logs Closings, decisions
     this._router.route('/actions').get(authorizeForAdmin, checkParametersAndCallRoute(AdminController.getActionsHistory));
+
+    // manage sellers & invitation
+    this._router.route('/validate_invitation').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.approveInvitation));
+    this._router.route('/block_invitation').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.rejectInvitation));
+    // seller delete
+    this._router.route('/delete_seller').post(authorizeForAdmin, checkParametersAndCallRoute(AdminController.rejectSeller));
+
   }
 }
 

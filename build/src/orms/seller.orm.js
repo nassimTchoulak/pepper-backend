@@ -56,9 +56,9 @@ const initSeller = (sequelize) => {
             allowNull: false,
         },
         status: {
-            type: sequelize_1.DataTypes.ENUM(types_1.UserStatus.Accepted, types_1.UserStatus.Started, types_1.UserStatus.Rejected, types_1.UserStatus.Pending),
+            type: sequelize_1.DataTypes.ENUM(types_1.EntityStatus.Accepted, types_1.EntityStatus.Started, types_1.EntityStatus.Rejected, types_1.EntityStatus.Pending),
             allowNull: false,
-            defaultValue: types_1.UserStatus.Pending
+            defaultValue: types_1.EntityStatus.Pending
         },
         emailCode: {
             type: sequelize_1.DataTypes.INTEGER,

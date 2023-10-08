@@ -3,7 +3,7 @@ import {
   HasManyGetAssociationsMixin, HasManyAddAssociationMixin, HasManyHasAssociationMixin, HasManyCountAssociationsMixin,
 } from 'sequelize';
 import { Invitation } from 'orms/invitation.orm';
-import { UserStatus } from 'models/types';
+import { EntityStatus } from 'models/types';
 
 class Seller extends Model {
   public id!: number;
@@ -16,7 +16,7 @@ class Seller extends Model {
   public wilaya!: string;
   public location!: string;
   public description!: string;
-  public status!: UserStatus;
+  public status!: EntityStatus;
   public emailCode !: number;
 
   public createdAt!: Date;
@@ -78,9 +78,9 @@ const initSeller = (sequelize: Sequelize) => {
       allowNull: false,
     },
     status: {
-      type: DataTypes.ENUM( UserStatus.Accepted, UserStatus.Started, UserStatus.Rejected, UserStatus.Pending ),
+      type: DataTypes.ENUM( EntityStatus.Accepted, EntityStatus.Started, EntityStatus.Rejected, EntityStatus.Pending ),
       allowNull: false,
-      defaultValue: UserStatus.Pending 
+      defaultValue: EntityStatus.Pending 
     },
     emailCode: {
       type: DataTypes.INTEGER,
