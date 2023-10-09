@@ -4,7 +4,6 @@
 To launch the project
 
 ```sh
-git clone https://github.com/MeddahAbdellah/pepper-backend
 cd pepper-backend
 npm install
 docker-compose up
